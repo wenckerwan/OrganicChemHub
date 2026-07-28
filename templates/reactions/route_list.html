@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load search_extras %}
+
+{% block title %}合成路线 | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="page-band py-4 border-bottom">
+  <div class="container">
+    <h1 class="h2 mb-3">合成路线</h1>
+    <form class="row g-2 align-items-end" method="get">
+      <div class="col-lg-5">
+        <label class="form-label" for="q">关键词</label>
+        <input id="q" class="form-control" name="q" value="{{ query }}" type="search" placeholder="目标产物、路线摘要、相关反应">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="difficulty">难度</label>
+        <select id="difficulty" class="form-select" name="difficulty">
+          <option value="">全部难度</option>
+          {% for value,label in difficulty_choices %}
+            <option value="{{ value }}" {% if selected_difficulty == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="sort">排序</label>
+        <select id="sort" class="form-select" name="sort">
+          <option value="target" {% if selected_sort == "target" %}selected{% endif %}>目标</option>
+          <option value="difficulty" {% if selected_sort == "difficulty" %}selected{% endif %}>难度</option>
+          <option value="steps" {% if selected_sort == "steps" %}selected{% endif %}>步数</option>
+          <option value="updated" {% if selected_sort == "updated" %}selected{% endif %}>更新</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-grid">
+        <button class="btn btn-dark" type="submit">
+          <i class="bi bi-search me-1"></i>搜索
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row g-3">
+      {% for route in routes %}
+        <div class="col-md-6">
+          <article class="reaction-card border h-100">
+            <div class="d-flex justify-content-between gap-3">
+              <h2 class="h5"><a href="{{ route.get_absolute_url }}">{{ route.target_product|highlight_query:query }}</a></h2>
+              <span class="badge text-bg-light">{{ route.get_difficulty_display }}</span>
+            </div>
+            {% if route.summary %}<p class="text-secondary">{{ route.summary|truncatechars:140|highlight_query:query }}</p>{% endif %}
+            <div class="tag-row">
+              {% for reaction in route.related_reactions.all %}
+                <span>{{ reaction.name_zh }}</span>
+              {% endfor %}
+            </div>
+          </article>
+        </div>
+      {% empty %}
+        <div class="col-12">
+          <div class="empty-state">没有找到匹配的已发布路线。</div>
+          <div class="recommend-panel mt-3">
+            <h2 class="h5">推荐查看</h2>
+            <div class="list-group">
+              {% for route in recommended_routes %}
+                <a class="list-group-item list-group-item-action" href="{{ route.get_absolute_url }}">{{ route.target_product }}</a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% include "reactions/partials/pagination.html" %}
+  </div>
+</section>
+{% endblock %}

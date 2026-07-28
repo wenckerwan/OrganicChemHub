@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}{{ route.target_product }} | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="page-band detail-hero">
+  <div class="container">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+      <div>
+        <h1 class="h2 mb-1">{{ route.target_product }}</h1>
+        {% if route.summary %}<p class="lead text-secondary mb-0">{{ route.summary }}</p>{% endif %}
+      </div>
+      <div class="detail-badges">
+        <span>{{ route.get_difficulty_display }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        {% if route.target_smiles %}
+          <section class="detail-section">
+            {% include "reactions/partials/structure_viewer.html" with smiles=route.target_smiles mode="molecule" title="目标产物结构式" %}
+          </section>
+        {% endif %}
+        <section class="detail-section">
+          <h2>路线步骤</h2>
+          <div class="timeline">
+            {% for step in route.steps.all %}
+              <article class="timeline-step">
+                <div class="step-number">{{ step.step_number }}</div>
+                <div>
+                  <h3 class="h5">{{ step.title }}</h3>
+                  {% if step.reagents %}<p><strong>试剂：</strong>{{ step.reagents|linebreaksbr }}</p>{% endif %}
+                  {% if step.condition %}<p><strong>条件：</strong>{{ step.condition|linebreaksbr }}</p>{% endif %}
+                  {% if step.yield_text %}<p><strong>产率：</strong>{{ step.yield_text }}</p>{% endif %}
+                  {% if step.reactant_smiles %}
+                    {% include "reactions/partials/structure_viewer.html" with smiles=step.reactant_smiles mode="molecule" title="反应物结构式" %}
+                  {% endif %}
+                  {% if step.product_smiles %}
+                    {% include "reactions/partials/structure_viewer.html" with smiles=step.product_smiles mode="molecule" title="产物结构式" %}
+                  {% endif %}
+                  {% if step.note %}<p class="text-secondary">{{ step.note|linebreaksbr }}</p>{% endif %}
+                  <div class="tag-row">
+                    {% for reaction in step.related_reactions.all %}
+                      <a href="{{ reaction.get_absolute_url }}">{{ reaction.name_zh }}</a>
+                    {% endfor %}
+                  </div>
+                </div>
+              </article>
+            {% empty %}
+              <div class="empty-state">暂无路线步骤。</div>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+      <aside class="col-lg-4">
+        <div class="side-panel">
+          <h2 class="h5">优点</h2>
+          <p class="text-secondary">{{ route.advantages|default:"暂无记录"|linebreaksbr }}</p>
+          <h2 class="h5 mt-4">缺点</h2>
+          <p class="text-secondary">{{ route.disadvantages|default:"暂无记录"|linebreaksbr }}</p>
+          <h2 class="h5 mt-4">来源</h2>
+          <p class="text-secondary">{{ route.source|default:"暂无记录" }}</p>
+        </div>
+        <div class="side-panel mt-3">
+          <h2 class="h5">相关人名反应</h2>
+          <div class="list-group list-group-flush">
+            {% for reaction in route.related_reactions.all %}
+              <a class="list-group-item px-0" href="{{ reaction.get_absolute_url }}">{{ reaction.name_zh }}</a>
+            {% empty %}
+              <span class="text-muted">暂无关联反应</span>
+            {% endfor %}
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

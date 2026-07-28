@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}首次部署引导 | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="page-band py-4 border-bottom">
+  <div class="container">
+    <h1 class="h2 mb-2">首次部署</h1>
+    <p class="text-secondary mb-0">面向宝塔面板托管的 OrganicChemHub 上线检查清单。</p>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <section class="detail-section">
+          <h2>上线前检查</h2>
+          <ul class="check-list">
+            <li>安装 Python 项目运行环境。</li>
+            <li>安装依赖并确认 Django 可运行。</li>
+            <li>配置生产环境变量，包括 `SECRET_KEY`、`DEBUG`、`ALLOWED_HOSTS`。</li>
+            <li>执行数据库迁移。</li>
+            <li>创建管理员账号。</li>
+            <li>收集静态文件。</li>
+            <li>配置 Gunicorn 服务。</li>
+            <li>在宝塔面板中配置 Nginx 反向代理。</li>
+            <li>配置 HTTPS 和数据库备份。</li>
+          </ul>
+        </section>
+
+        <section class="detail-section">
+          <h2>常用命令</h2>
+          <pre class="smiles-box">python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py collectstatic --noinput
+gunicorn organic_chem_hub.wsgi:application --bind 127.0.0.1:8000</pre>
+        </section>
+
+        <section class="detail-section">
+          <h2>宝塔面板要点</h2>
+          <p>宝塔面板中建议使用 Python 项目管理器或 Supervisor 管理 Gunicorn，并用网站配置中的反向代理把域名转发到 `127.0.0.1:8000`。</p>
+          <p>静态文件目录应指向 `staticfiles`，数据库和媒体文件需要定期备份。</p>
+        </section>
+      </div>
+      <aside class="col-lg-4">
+        <div class="side-panel">
+          <h2 class="h5">部署文档</h2>
+          <p class="text-secondary">完整宝塔面板部署步骤见项目文档：</p>
+          <code>docs/deploy_baota_panel.md</code>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

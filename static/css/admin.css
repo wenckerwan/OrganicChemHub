@@ -1,0 +1,56 @@
+:root {
+  --primary: #0f766e;
+  --secondary: #20413d;
+  --accent: #a15c38;
+  --primary-fg: #ffffff;
+  --body-bg: #f6f8f7;
+  --body-fg: #1f2933;
+  --link-fg: #0f766e;
+  --link-selected-fg: #0b5f59;
+  --hairline-color: #d8dee8;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#header {
+  background: #132926;
+  box-shadow: 0 10px 30px rgba(19, 41, 38, 0.16);
+}
+
+.och-admin-brand {
+  display: grid;
+  gap: 0.15rem;
+  line-height: 1.2;
+}
+
+.och-admin-brand strong {
+  font-size: 1.05rem;
+  letter-spacing: 0;
+}
+
+.och-admin-brand span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+}
+
+div.breadcrumbs {
+  background: #20413d;
+}
+
+.module,
+fieldset.module,
+.inline-group {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.button,
+input[type="submit"],
+input[type="button"],
+.submit-row input,
+a.button {
+  border-radius: 6px;
+}

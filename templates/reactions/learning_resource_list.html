@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load search_extras %}
+
+{% block title %}学习资料 | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="page-band py-4 border-bottom">
+  <div class="container">
+    <h1 class="h2 mb-3">学习资料</h1>
+    <form class="row g-2 align-items-end" method="get">
+      <div class="col-lg-4">
+        <label class="form-label" for="q">关键词</label>
+        <input id="q" class="form-control" name="q" value="{{ query }}" type="search" placeholder="真题、习题、章节、年份">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="category">分类</label>
+        <select id="category" class="form-select" name="category">
+          <option value="">全部分类</option>
+          {% for value,label in category_choices %}
+            <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="has_answer">答案</label>
+        <select id="has_answer" class="form-select" name="has_answer">
+          <option value="">全部</option>
+          <option value="1" {% if has_answer == "1" %}selected{% endif %}>含答案</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="sort">排序</label>
+        <select id="sort" class="form-select" name="sort">
+          <option value="title" {% if selected_sort == "title" %}selected{% endif %}>标题</option>
+          <option value="year" {% if selected_sort == "year" %}selected{% endif %}>年份</option>
+          <option value="category" {% if selected_sort == "category" %}selected{% endif %}>分类</option>
+          <option value="size" {% if selected_sort == "size" %}selected{% endif %}>大小</option>
+          <option value="updated" {% if selected_sort == "updated" %}selected{% endif %}>更新</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-grid">
+        <button class="btn btn-dark" type="submit">
+          <i class="bi bi-search me-1"></i>搜索
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="resource-table border">
+      <div class="resource-row resource-head">
+        <span>资料</span>
+        <span>分类</span>
+        <span>年份</span>
+        <span>类型</span>
+        <span>大小</span>
+      </div>
+      {% for resource in resources %}
+        <article class="resource-row">
+          <div>
+            <strong aria-label="{{ resource.title }}">{{ resource.title|highlight_query:query }}</strong>
+            <p class="text-muted small mb-0">{{ resource.relative_path|highlight_query:query }}</p>
+          </div>
+          <span>{{ resource.get_category_display }}</span>
+          <span>{{ resource.year|default:"-" }}</span>
+          <span>{{ resource.file_type }}</span>
+          <span>{{ resource.size_label }}</span>
+        </article>
+      {% empty %}
+        <div class="empty-state m-3">暂无匹配的学习资料索引。</div>
+        <div class="recommend-panel m-3">
+          <h2 class="h5">推荐查看</h2>
+          <div class="list-group">
+            {% for resource in recommended_resources %}
+              <a class="list-group-item list-group-item-action" href="{% url 'learning_resource_list' %}?q={{ resource.title|urlencode }}">{{ resource.title }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% include "reactions/partials/pagination.html" %}
+  </div>
+</section>
+{% endblock %}

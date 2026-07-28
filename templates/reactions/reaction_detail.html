@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ reaction.name_zh }} | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="page-band detail-hero">
+  <div class="container">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+      <div>
+        <h1 class="h2 mb-1">{{ reaction.name_zh }}</h1>
+        <p class="lead text-secondary mb-2">{{ reaction.name_en }}</p>
+        {% if reaction.aliases %}<p class="text-muted mb-0">别名：{{ reaction.aliases }}</p>{% endif %}
+      </div>
+      <div class="detail-badges">
+        {% if reaction.reaction_type %}<span>{{ reaction.reaction_type.name }}</span>{% endif %}
+        {% for tag in reaction.tags.all %}<span>{{ tag.name }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        {% if reaction.summary %}
+          <section class="detail-section">
+            <h2>概述</h2>
+            <p>{{ reaction.summary|linebreaksbr }}</p>
+          </section>
+        {% endif %}
+        {% if reaction.equation_smiles %}
+          <section class="detail-section">
+            {% include "reactions/partials/structure_viewer.html" with smiles=reaction.equation_smiles mode="reaction" title="反应结构式" %}
+          </section>
+        {% endif %}
+        {% if reaction.condition %}
+          <section class="detail-section">
+            <h2>条件</h2>
+            <p>{{ reaction.condition|linebreaksbr }}</p>
+          </section>
+        {% endif %}
+        {% if reaction.mechanism %}
+          <section class="detail-section">
+            <h2>机理</h2>
+            <p>{{ reaction.mechanism|linebreaksbr }}</p>
+          </section>
+        {% endif %}
+        {% if reaction.exam_tips %}
+          <section class="detail-section">
+            <h2>考点</h2>
+            <p>{{ reaction.exam_tips|linebreaksbr }}</p>
+          </section>
+        {% endif %}
+      </div>
+      <aside class="col-lg-4">
+        <div class="side-panel">
+          <h2 class="h5">适用范围</h2>
+          <p class="text-secondary">{{ reaction.scope|default:"暂无记录"|linebreaksbr }}</p>
+          <h2 class="h5 mt-4">限制</h2>
+          <p class="text-secondary">{{ reaction.limitations|default:"暂无记录"|linebreaksbr }}</p>
+          <h2 class="h5 mt-4">参考来源</h2>
+          <p class="text-secondary">{{ reaction.reference|default:"暂无记录"|linebreaksbr }}</p>
+        </div>
+        <div class="side-panel mt-3">
+          <h2 class="h5">相关路线</h2>
+          <div class="list-group list-group-flush">
+            {% for route in reaction.routes.all %}
+              <a class="list-group-item px-0" href="{{ route.get_absolute_url }}">{{ route.target_product }}</a>
+            {% empty %}
+              <span class="text-muted">暂无关联路线</span>
+            {% endfor %}
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% load search_extras %}
+<article class="reaction-card h-100">
+  <div class="d-flex justify-content-between gap-3 align-items-start mb-2">
+    <div>
+      <h3 class="h5 mb-1"><a href="{{ reaction.get_absolute_url }}" aria-label="{{ reaction.name_zh }}">{{ reaction.name_zh|highlight_query:query }}</a></h3>
+      <p class="text-muted mb-0" aria-label="{{ reaction.name_en }}">{{ reaction.name_en|highlight_query:query }}</p>
+    </div>
+    {% if reaction.reaction_type %}
+      <span class="badge rounded-pill text-bg-light">{{ reaction.reaction_type.name }}</span>
+    {% endif %}
+  </div>
+  {% if reaction.summary %}
+    <p class="text-secondary mb-3">{{ reaction.summary|truncatechars:120|highlight_query:query }}</p>
+  {% endif %}
+  {% if reaction.equation_smiles %}
+    <div class="mini-smiles" aria-label="反应 SMILES">{{ reaction.equation_smiles|truncatechars:48 }}</div>
+  {% endif %}
+  <div class="tag-row">
+    {% for tag in reaction.tags.all %}
+      <span>{{ tag.name }}</span>
+    {% endfor %}
+  </div>
+</article>

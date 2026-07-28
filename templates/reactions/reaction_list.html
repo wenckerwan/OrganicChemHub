@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load search_extras %}
+
+{% block title %}人名反应 | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="page-band py-4 border-bottom">
+  <div class="container">
+    <h1 class="h2 mb-3">人名反应</h1>
+    <form class="row g-2 align-items-end" method="get">
+      <div class="col-lg-4">
+        <label class="form-label" for="q">关键词</label>
+        <input id="q" class="form-control" name="q" value="{{ query }}" type="search" placeholder="名称、试剂、条件、考点">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="type">类型</label>
+        <select id="type" class="form-select" name="type">
+          <option value="">全部类型</option>
+          {% for type in reaction_types %}
+            <option value="{{ type.slug }}" {% if selected_type == type.slug %}selected{% endif %}>{{ type.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="tag">标签</label>
+        <select id="tag" class="form-select" name="tag">
+          <option value="">全部标签</option>
+          {% for tag in tags %}
+            <option value="{{ tag.slug }}" {% if selected_tag == tag.slug %}selected{% endif %}>{{ tag.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="functional_group">官能团</label>
+        <select id="functional_group" class="form-select" name="functional_group">
+          <option value="">全部官能团</option>
+          {% for group in functional_groups %}
+            <option value="{{ group.pk }}" {% if selected_functional_group == group.pk|stringformat:"s" %}selected{% endif %}>{{ group.name_zh }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label" for="sort">排序</label>
+        <select id="sort" class="form-select" name="sort">
+          <option value="name" {% if selected_sort == "name" %}selected{% endif %}>名称</option>
+          <option value="type" {% if selected_sort == "type" %}selected{% endif %}>类型</option>
+          <option value="updated" {% if selected_sort == "updated" %}selected{% endif %}>更新</option>
+        </select>
+      </div>
+      <div class="col-md-1 d-grid">
+        <button class="btn btn-dark" type="submit" aria-label="筛选">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+      <div class="col-12">
+        <label class="form-check form-check-inline mb-0">
+          <input class="form-check-input" type="checkbox" name="exam" value="1" {% if exam_filter == "1" %}checked{% endif %}>
+          <span class="form-check-label">只看考研高频</span>
+        </label>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row g-3">
+      {% for reaction in reactions %}
+        <div class="col-md-6 col-xl-4">
+          {% include "reactions/partials/reaction_card.html" with reaction=reaction query=query %}
+        </div>
+      {% empty %}
+        <div class="col-12">
+          <div class="empty-state">没有找到匹配的已发布反应。</div>
+          <div class="recommend-panel mt-3">
+            <h2 class="h5">推荐查看</h2>
+            <div class="row g-3">
+              {% for reaction in recommended_reactions %}
+                <div class="col-md-4">{% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}</div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% include "reactions/partials/pagination.html" %}
+  </div>
+</section>
+{% endblock %}

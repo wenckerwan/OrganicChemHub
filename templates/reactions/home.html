@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}OrganicChemHub | 有机化学资料库{% endblock %}
+
+{% block content %}
+<section class="home-search">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <p class="eyebrow mb-2">Organic chemistry reference</p>
+        <h1 class="display-5 fw-semibold mb-3">把人名反应、考点和路线放在同一个学习台面上</h1>
+        <p class="lead text-secondary mb-4">面向本科有机化学与考研复习的人名反应、结构式、考点提示和合成路线查询。</p>
+        <form class="search-panel" action="{% url 'reaction_list' %}" method="get">
+          <div class="input-group input-group-lg">
+            <input class="form-control" name="q" type="search" placeholder="输入反应名称、试剂、官能团或考点" aria-label="搜索反应">
+            <button class="btn btn-primary-ink" type="submit">
+              <i class="bi bi-search me-1"></i>搜索反应
+            </button>
+          </div>
+        </form>
+        <div class="hero-metrics">
+          <span><strong>{{ featured_reactions|length }}</strong> 最近更新</span>
+          <span><strong>{{ featured_routes|length }}</strong> 路线入口</span>
+          <span><strong>{{ reaction_types|length }}</strong> 反应分类</span>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="quick-panel">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h5 mb-0">快速入口</h2>
+            <span class="badge text-bg-light">0.35</span>
+          </div>
+          <div class="d-grid gap-2">
+            <a class="quick-link" href="{% url 'reaction_list' %}">
+              <i class="bi bi-diagram-3 me-2"></i>浏览人名反应
+            </a>
+            <a class="quick-link" href="{% url 'route_list' %}">
+              <i class="bi bi-signpost-split me-2"></i>浏览合成路线
+            </a>
+            <a class="quick-link" href="/admin/">
+              <i class="bi bi-pencil-square me-2"></i>进入后台维护
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="content-band">
+  <div class="container">
+    <div class="section-title">
+      <h2>最近更新的人名反应</h2>
+      <a href="{% url 'reaction_list' %}">查看全部</a>
+    </div>
+    <div class="row g-3">
+      {% for reaction in featured_reactions %}
+        <div class="col-md-6 col-xl-4">
+          {% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}
+        </div>
+      {% empty %}
+        <div class="col-12">
+          <div class="empty-state">暂无已发布反应，请先在后台录入数据。</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="content-band bg-soft">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="section-title">
+          <h2>合成路线</h2>
+          <a href="{% url 'route_list' %}">查看全部</a>
+        </div>
+        <div class="list-group route-list">
+          {% for route in featured_routes %}
+            <a class="list-group-item list-group-item-action" href="{{ route.get_absolute_url }}">
+              <div class="d-flex justify-content-between gap-3">
+                <strong>{{ route.target_product }}</strong>
+                <span class="text-muted small">{{ route.get_difficulty_display }}</span>
+              </div>
+              {% if route.summary %}<p class="mb-0 text-secondary small">{{ route.summary|truncatechars:100 }}</p>{% endif %}
+            </a>
+          {% empty %}
+            <div class="empty-state bg-white">暂无已发布路线。</div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="taxonomy-panel">
+          <h2 class="h5">学习资料</h2>
+          <div class="list-group list-group-flush mb-4">
+            {% for resource in learning_resources %}
+              <a class="list-group-item px-0" href="{% url 'learning_resource_list' %}?q={{ resource.title|urlencode }}">
+                {{ resource.title }}
+              </a>
+            {% empty %}
+              <span class="text-muted">暂无资料索引</span>
+            {% endfor %}
+          </div>
+          <h2 class="h5">分类</h2>
+          <div class="tag-cloud mb-4">
+            {% for type in reaction_types %}
+              <a href="{% url 'reaction_list' %}?type={{ type.slug }}">{{ type.name }}</a>
+            {% empty %}
+              <span class="text-muted">暂无反应类型</span>
+            {% endfor %}
+          </div>
+          <h2 class="h5">标签</h2>
+          <div class="tag-cloud">
+            {% for tag in tags %}
+              <a href="{% url 'reaction_list' %}?tag={{ tag.slug }}">{{ tag.name }}</a>
+            {% empty %}
+              <span class="text-muted">暂无标签</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

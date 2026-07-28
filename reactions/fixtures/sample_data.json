@@ -1,0 +1,132 @@
+[
+  {
+    "model": "reactions.reactiontype",
+    "pk": 1,
+    "fields": {
+      "name": "碳链增长",
+      "slug": "chain-extension",
+      "description": "用于增加碳骨架或形成新的碳碳键的反应。",
+      "sort_order": 10
+    }
+  },
+  {
+    "model": "reactions.reactiontype",
+    "pk": 2,
+    "fields": {
+      "name": "氧化还原",
+      "slug": "redox",
+      "description": "涉及氧化态变化的有机反应。",
+      "sort_order": 20
+    }
+  },
+  {
+    "model": "reactions.tag",
+    "pk": 1,
+    "fields": {
+      "name": "考研高频",
+      "slug": "exam-high-frequency",
+      "description": "常见于本科考试和考研复习的重点反应。"
+    }
+  },
+  {
+    "model": "reactions.tag",
+    "pk": 2,
+    "fields": {
+      "name": "羰基化学",
+      "slug": "carbonyl-chemistry",
+      "description": "与醛、酮、羧酸及其衍生物相关的反应。"
+    }
+  },
+  {
+    "model": "reactions.functionalgroup",
+    "pk": 1,
+    "fields": {
+      "name_zh": "羰基",
+      "name_en": "Carbonyl",
+      "smarts": "[CX3]=[OX1]",
+      "description": "醛、酮、羧酸及其衍生物中的关键官能团。"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 1,
+    "fields": {
+      "name_zh": "维蒂希反应",
+      "name_en": "Wittig Reaction",
+      "slug": "wittig-reaction",
+      "aliases": "Wittig olefination",
+      "reaction_type": 1,
+      "tags": [1, 2],
+      "functional_groups": [1],
+      "equation_smiles": "C=O.CPPh3>>C=C",
+      "summary": "醛或酮与膦叶立德反应生成烯烃，是羰基化合物转化为烯烃的重要方法。",
+      "condition": "常见条件为膦盐在强碱作用下生成膦叶立德，再与醛酮反应。",
+      "mechanism": "膦叶立德进攻羰基碳，经过甜菜碱或氧杂膦杂环丁烷中间体，最终生成烯烃和三苯基氧膦。",
+      "scope": "适用于多种醛和酮，常用于构建碳碳双键。",
+      "limitations": "空间位阻、叶立德稳定性和底物结构会影响 E/Z 选择性。",
+      "exam_tips": "常考羰基到烯烃的转化、膦叶立德来源和副产物三苯基氧膦。",
+      "reference": "基础有机化学教材相关章节。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 2,
+    "fields": {
+      "name_zh": "傅克酰基化反应",
+      "name_en": "Friedel-Crafts Acylation",
+      "slug": "friedel-crafts-acylation",
+      "aliases": "F-C acylation",
+      "reaction_type": 1,
+      "tags": [1, 2],
+      "functional_groups": [1],
+      "equation_smiles": "c1ccccc1.CC(=O)Cl>>CC(=O)c1ccccc1",
+      "summary": "芳烃在 Lewis 酸催化下与酰卤或酸酐反应，生成芳香酮。",
+      "condition": "常用无水 AlCl3 等 Lewis 酸，反应需控制水分。",
+      "mechanism": "酰卤与 Lewis 酸生成酰基正离子等亲电物种，芳环发生亲电取代并脱质子恢复芳香性。",
+      "scope": "适合制备芳香酮，是芳环引入酰基的经典方法。",
+      "limitations": "强失活芳环反应困难，且条件对水分敏感。",
+      "exam_tips": "常考酰基正离子、芳香亲电取代定位效应和芳香酮产物判断。",
+      "reference": "基础有机化学教材芳香亲电取代章节。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.syntheticroute",
+    "pk": 1,
+    "fields": {
+      "target_product": "苯乙酮",
+      "target_smiles": "CC(=O)c1ccccc1",
+      "slug": "acetophenone",
+      "summary": "从苯出发，经傅克酰基化制备苯乙酮的基础路线。",
+      "advantages": "步骤短，目标产物明确，适合基础合成题。",
+      "disadvantages": "需要无水 Lewis 酸条件，对强失活芳环不适用。",
+      "difficulty": "beginner",
+      "source": "基础有机化学芳香亲电取代章节。",
+      "related_reactions": [2],
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.routestep",
+    "pk": 1,
+    "fields": {
+      "route": 1,
+      "step_number": 1,
+      "title": "傅克酰基化",
+      "reactant_smiles": "c1ccccc1",
+      "product_smiles": "CC(=O)c1ccccc1",
+      "reagents": "乙酰氯，AlCl3",
+      "condition": "无水条件",
+      "yield_text": "",
+      "related_reactions": [2],
+      "note": "芳环发生亲电取代，引入乙酰基。"
+    }
+  }
+]

@@ -1,0 +1,13 @@
+<div class="structure-viewer" data-chem-viewer="{{ mode|default:'molecule' }}" data-smiles="{{ smiles }}" aria-label="{{ title|default:'化学结构式' }}">
+  <div class="structure-viewer__head">
+    <span>{{ title|default:"结构式" }}</span>
+    <span class="structure-viewer__status" data-chem-status>等待渲染</span>
+  </div>
+  <div class="structure-viewer__stage" data-chem-stage>
+    <span class="structure-viewer__placeholder">正在加载结构式...</span>
+  </div>
+  <details class="structure-viewer__raw">
+    <summary>查看 SMILES</summary>
+    <pre>{{ smiles }}</pre>
+  </details>
+</div>
