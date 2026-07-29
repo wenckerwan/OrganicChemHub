@@ -1,5 +1,5 @@
 from django.conf import settings
-from .models import Message
+from .models import Message, NavItem
 
 
 def app_version(request):
@@ -9,3 +9,7 @@ def app_version(request):
     else:
         ctx["unread_message_count"] = 0
     return ctx
+
+
+def nav_items(request):
+    return {"nav_items": NavItem.objects.filter(is_active=True)}

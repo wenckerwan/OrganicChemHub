@@ -8,7 +8,7 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.template.response import TemplateResponse
 
-from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Message, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
+from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Message, NavItem, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -67,6 +67,13 @@ class TagAdmin(admin.ModelAdmin):
 class FunctionalGroupAdmin(admin.ModelAdmin):
     list_display = ("name_zh", "name_en", "smarts")
     search_fields = ("name_zh", "name_en", "smarts", "description")
+
+
+@admin.register(NavItem)
+class NavItemAdmin(admin.ModelAdmin):
+    list_display = ("label", "url_name", "sort_order", "is_active")
+    list_editable = ("sort_order", "is_active")
+    list_filter = ("is_active",)
 
 
 @admin.register(Reaction)

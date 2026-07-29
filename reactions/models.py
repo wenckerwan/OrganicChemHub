@@ -70,6 +70,23 @@ class ReactionType(models.Model):
         return self.name
 
 
+class NavItem(models.Model):
+    label = models.CharField("菜单名称", max_length=50)
+    url_name = models.CharField("URL 名称", max_length=100, help_text="Django URL name，例如 reaction_list")
+    url_params = models.CharField("URL 参数", max_length=200, blank=True, help_text="查询参数，例如 ?tag=exam-high-frequency")
+    sort_order = models.PositiveIntegerField("排序", default=0)
+    is_active = models.BooleanField("前台显示", default=True)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["sort_order", "pk"]
+        verbose_name = "导航菜单"
+        verbose_name_plural = "导航菜单"
+
+    def __str__(self):
+        return self.label
+
+
 class Tag(models.Model):
     name = models.CharField("标签名称", max_length=50, unique=True)
     slug = models.SlugField("URL 标识", max_length=80, unique=True)
