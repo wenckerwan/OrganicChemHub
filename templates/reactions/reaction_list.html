@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load search_extras %}
 
-{% block title %}人名反应 | OrganicChemHub{% endblock %}
+{% block title %}{% if is_common_view %}常见反应{% else %}人名反应{% endif %} | OrganicChemHub{% endblock %}
 
 {% block content %}
 <section class="reaction-map-hero">
   <div class="container">
     <div class="reaction-map-hero__copy">
-      <p class="eyebrow mb-2">Organic name reactions</p>
-      <h1>人名反应</h1>
-      <p>已收录在化学学习中常见的人名反应，适合按名称、官能团、机理考点和合成用途快速查询。</p>
+      <p class="eyebrow mb-2">{% if is_common_view %}Common reactions{% else %}Organic name reactions{% endif %}</p>
+      <h1>{% if is_common_view %}常见反应{% else %}人名反应{% endif %}</h1>
+      <p>{% if is_common_view %}考研高频和常见人名反应汇总，适合按考点重点复习。{% else %}已收录在化学学习中常见的人名反应，适合按名称、官能团、机理考点和合成用途快速查询。{% endif %}</p>
     </div>
   </div>
 </section>

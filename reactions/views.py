@@ -143,6 +143,21 @@ class ReactionListView(ListView):
         return context
 
 
+class CommonReactionListView(ReactionListView):
+    """Dedicated view for exam-high-frequency / common reactions."""
+
+    def get_queryset(self):
+        queryset = Reaction.published.select_related("reaction_type").prefetch_related("tags", "functional_groups")
+        queryset = queryset.filter(tags__slug__in=["exam-high-frequency", "postgraduate-exam-key"])
+        return queryset.distinct().order_by("name_en", "name_zh")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["exam_filter"] = "1"
+        context["is_common_view"] = True
+        return context
+
+
 class ReactionDetailView(DetailView):
     model = Reaction
     template_name = "reactions/reaction_detail.html"
