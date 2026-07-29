@@ -26,6 +26,9 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'learning_resource_list' %}">学习资料</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'deploy_guide' %}">部署引导</a></li>
           <li class="nav-item"><a class="nav-link" href="/admin/">后台管理</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#feedback">
+            <i class="bi bi-chat-dots"></i> 反馈
+          </a></li>
         </ul>
         <form class="d-flex compact-search" action="{% url 'reaction_list' %}" method="get">
           <input class="form-control" type="search" name="q" placeholder="搜索反应、试剂、考点" aria-label="搜索反应">

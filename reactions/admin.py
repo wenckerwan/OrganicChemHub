@@ -8,7 +8,7 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.template.response import TemplateResponse
 
-from .models import FunctionalGroup, LearningResource, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
+from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -438,3 +438,31 @@ class LearningResourceAdmin(admin.ModelAdmin):
         for obj in queryset:
             writer.writerow([obj.title, obj.category, obj.year, obj.file_type, obj.size_bytes, obj.has_answer, obj.status])
         return response
+
+
+@admin.register(Announcement)
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ("title", "is_active", "created_at")
+    list_filter = ("is_active",)
+    search_fields = ("title", "content")
+    fieldsets = (
+        ("公告内容", {"fields": ("title", "content", "is_active")}),
+    )
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ("name", "email", "short_content", "is_read", "created_at")
+    list_filter = ("is_read", "created_at")
+    search_fields = ("name", "email", "content")
+    readonly_fields = ("name", "email", "content", "created_at")
+    actions = ("mark_as_read",)
+
+    @admin.display(description="反馈内容")
+    def short_content(self, obj):
+        return obj.content[:80] + ("..." if len(obj.content) > 80 else "")
+
+    @admin.action(description="标记为已读")
+    def mark_as_read(self, request, queryset):
+        updated = queryset.update(is_read=True)
+        self.message_user(request, f"已将 {updated} 条反馈标记为已读。")

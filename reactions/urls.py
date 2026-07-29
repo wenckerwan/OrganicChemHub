@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     DeployGuideView,
+    FeedbackView,
     HomeView,
     LearningResourceListView,
     ReactionDetailView,
@@ -13,6 +14,7 @@ from .views import (
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
+    path("feedback/", FeedbackView.as_view(), name="feedback"),
     path("deploy/", DeployGuideView.as_view(), name="deploy_guide"),
     path("reactions/", ReactionListView.as_view(), name="reaction_list"),
     path("reactions/<slug:slug>/", ReactionDetailView.as_view(), name="reaction_detail"),

@@ -363,3 +363,34 @@ class LearningResource(models.Model):
         if self.size_bytes >= 1024:
             return f"{self.size_bytes / 1024:.1f} KB"
         return f"{self.size_bytes} B"
+
+
+class Announcement(models.Model):
+    title = models.CharField("公告标题", max_length=200)
+    content = models.TextField("公告内容")
+    is_active = models.BooleanField("显示", default=True)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "公告"
+        verbose_name_plural = "公告"
+
+    def __str__(self):
+        return self.title
+
+
+class Feedback(models.Model):
+    name = models.CharField("名称", max_length=100)
+    email = models.EmailField("电子邮件", max_length=200, blank=True)
+    content = models.TextField("反馈内容")
+    is_read = models.BooleanField("已读", default=False)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "意见反馈"
+        verbose_name_plural = "意见反馈"
+
+    def __str__(self):
+        return f"{self.name} - {self.content[:50]}"

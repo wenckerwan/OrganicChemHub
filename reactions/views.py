@@ -1,7 +1,8 @@
 from django.db.models import Count, Q
-from django.views.generic import DetailView, ListView, TemplateView
+from django.shortcuts import redirect
+from django.views.generic import DetailView, ListView, TemplateView, View
 
-from .models import FunctionalGroup, LearningResource, Reaction, ReactionType, SyntheticRoute, Tag
+from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Reaction, ReactionType, SyntheticRoute, Tag
 
 
 class HomeView(TemplateView):
@@ -16,6 +17,7 @@ class HomeView(TemplateView):
         context["learning_resources"] = LearningResource.published.order_by("-updated_at")[:5]
         context["reaction_types"] = ReactionType.objects.all()[:12]
         context["tags"] = Tag.objects.all()[:12]
+        context["announcements"] = Announcement.objects.filter(is_active=True)[:5]
         return context
 
 
@@ -180,3 +182,13 @@ class LearningResourceListView(ListView):
         context["category_choices"] = LearningResource.Category.choices
         context["recommended_resources"] = LearningResource.published.order_by("-updated_at")[:5]
         return context
+
+
+class FeedbackView(View):
+    def post(self, request):
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        content = request.POST.get("content", "").strip()
+        if name and content:
+            Feedback.objects.create(name=name, email=email, content=content)
+        return redirect("home")
