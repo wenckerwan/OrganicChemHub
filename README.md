@@ -79,6 +79,13 @@ python manage.py collectstatic --noinput
 
 ## 版本历史
 
+### 1.2 后台工具增强（2026-07-29）
+
+- **CSV 导出**：Reaction、SyntheticRoute、LearningResource 三个列表页新增「导出选中为 CSV」操作，一键下载为 Excel 可打开的 UTF-8 CSV 文件。
+- **内容质量仪表盘**：后台新增 `/admin/reactions/reaction/dashboard/` 页面，卡片展示总反应数、已发布/草稿/归档数、缺图片/摘要/条件/来源的反应数量，以及最近更新的反应列表。
+- **CSV 导入补充字段**：`import_reactions_csv` 命令新增 `aliases`、`mechanism`、`scope`、`limitations` 字段覆盖。
+- **测试全部通过**：44 项。
+
 ### 0.9 彻底移除 SMILES（2026-07-29）
 
 - **数据库删除所有 SMILES 字段**：`Reaction.equation_smiles`、`SyntheticRoute.target_smiles`、`RouteStep.reactant_smiles`、`RouteStep.product_smiles` 全部移除。

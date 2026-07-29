@@ -1,6 +1,12 @@
+import csv
+
 from django.contrib import admin
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
+from django.urls import path, reverse
 from django.utils.html import format_html
+from django.utils import timezone
+from django.template.response import TemplateResponse
 
 from .models import FunctionalGroup, LearningResource, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
 
@@ -65,7 +71,7 @@ class FunctionalGroupAdmin(admin.ModelAdmin):
 
 @admin.register(Reaction)
 class ReactionAdmin(PublicationActionMixin, admin.ModelAdmin):
-    actions = ("publish_selected", "archive_selected")
+    actions = ("publish_selected", "archive_selected", "export_selected_as_csv")
     date_hierarchy = "updated_at"
     list_display = (
         "name_zh",
@@ -177,6 +183,83 @@ class ReactionAdmin(PublicationActionMixin, admin.ModelAdmin):
     def archive_selected(self, request, queryset):
         self._archive_selected(request, queryset)
 
+    @admin.display(description="图片状态")
+    def image_status_tag(self, obj):
+        if obj.get_equation_img_src():
+            return format_html('<span style="color:#0f766e;font-weight:700;">✔</span>')
+        return format_html('<span style="color:#a15c38;font-weight:700;">✗</span>')
+
+    @admin.action(description="导出选中的反应为 CSV")
+    def export_selected_as_csv(self, request, queryset):
+        response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+        response["Content-Disposition"] = "attachment; filename=reactions_export.csv"
+
+        writer = csv.writer(response)
+        writer.writerow([
+            "name_zh", "name_en", "slug", "reaction_type",
+            "aliases", "summary", "condition", "mechanism",
+            "scope", "limitations", "exam_tips", "reference",
+            "status", "has_image",
+        ])
+
+        for rxn in queryset.select_related("reaction_type"):
+            writer.writerow([
+                rxn.name_zh, rxn.name_en, rxn.slug,
+                rxn.reaction_type.name if rxn.reaction_type else "",
+                rxn.aliases, rxn.summary, rxn.condition,
+                rxn.mechanism, rxn.scope,
+                rxn.limitations, rxn.exam_tips, rxn.reference,
+                rxn.status,
+                "Y" if rxn.get_equation_img_src() else "",
+            ])
+
+        return response
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path("dashboard/", self.dashboard_view, name="reactions_dashboard"),
+        ]
+        return custom_urls + urls
+
+    def dashboard_view(self, request):
+        now = timezone.now()
+
+        total = Reaction.objects.count()
+        published = Reaction.objects.filter(status=Reaction.Status.PUBLISHED).count()
+        drafts = Reaction.objects.filter(status=Reaction.Status.DRAFT).count()
+        archived = Reaction.objects.filter(status=Reaction.Status.ARCHIVED).count()
+
+        # Quality checks
+        missing_image = sum(1 for r in Reaction.objects.all() if not r.get_equation_img_src())
+        missing_summary = Reaction.objects.filter(summary="").count()
+        missing_condition = Reaction.objects.filter(condition="").count()
+        missing_reference = Reaction.objects.filter(reference="").count()
+        missing_type = Reaction.objects.filter(reaction_type__isnull=True).count()
+
+        recent_reactions = Reaction.objects.order_by("-updated_at")[:10]
+
+        routes_total = SyntheticRoute.objects.count()
+        resources_total = LearningResource.objects.count()
+
+        context = {
+            **admin.site.each_context(request),
+            "title": "内容质量仪表盘",
+            "total": total,
+            "published": published,
+            "drafts": drafts,
+            "archived": archived,
+            "missing_image": missing_image,
+            "missing_summary": missing_summary,
+            "missing_condition": missing_condition,
+            "missing_reference": missing_reference,
+            "missing_type": missing_type,
+            "recent_reactions": recent_reactions,
+            "routes_total": routes_total,
+            "resources_total": resources_total,
+        }
+        return TemplateResponse(request, "admin/reactions/dashboard.html", context)
+
 
 class RouteStepInline(admin.TabularInline):
     model = RouteStep
@@ -198,7 +281,7 @@ class RouteStepInline(admin.TabularInline):
 
 @admin.register(SyntheticRoute)
 class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
-    actions = ("publish_selected", "archive_selected")
+    actions = ("publish_selected", "archive_selected", "export_selected_as_csv")
     date_hierarchy = "updated_at"
     list_display = (
         "target_product",
@@ -258,6 +341,20 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
     def archive_selected(self, request, queryset):
         self._archive_selected(request, queryset)
 
+    @admin.action(description="导出选中的路线为 CSV")
+    def export_selected_as_csv(self, request, queryset):
+        response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+        response["Content-Disposition"] = "attachment; filename=routes_export.csv"
+        writer = csv.writer(response)
+        writer.writerow(["target_product", "slug", "difficulty", "summary", "advantages", "disadvantages", "source", "step_count", "status"])
+        for obj in queryset:
+            writer.writerow([
+                obj.target_product, obj.slug, obj.difficulty, obj.summary,
+                obj.advantages, obj.disadvantages, obj.source,
+                obj.steps.count(), obj.status,
+            ])
+        return response
+
 
 @admin.register(RouteStep)
 class RouteStepAdmin(admin.ModelAdmin):
@@ -311,7 +408,7 @@ class LearningResourceAdmin(admin.ModelAdmin):
     search_fields = ("title", "relative_path", "local_path", "source_folder")
     readonly_fields = ("created_at", "updated_at", "size_label")
     date_hierarchy = "updated_at"
-    actions = ("publish_selected", "archive_selected")
+    actions = ("publish_selected", "archive_selected", "export_selected_as_csv")
     fieldsets = (
         ("基础信息", {"fields": ("title", "category", "year", "status", "has_answer")}),
         ("文件信息", {"fields": ("file_type", "size_bytes", "size_label", "relative_path", "local_path", "source_folder")}),
@@ -331,3 +428,13 @@ class LearningResourceAdmin(admin.ModelAdmin):
     def archive_selected(self, request, queryset):
         updated_count = queryset.update(status=LearningResource.Status.ARCHIVED)
         self.message_user(request, f"已归档 {updated_count} 条资料索引。", fail_silently=True)
+
+    @admin.action(description="导出选中的资料为 CSV")
+    def export_selected_as_csv(self, request, queryset):
+        response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+        response["Content-Disposition"] = "attachment; filename=learning_resources_export.csv"
+        writer = csv.writer(response)
+        writer.writerow(["title", "category", "year", "file_type", "size_bytes", "has_answer", "status"])
+        for obj in queryset:
+            writer.writerow([obj.title, obj.category, obj.year, obj.file_type, obj.size_bytes, obj.has_answer, obj.status])
+        return response
