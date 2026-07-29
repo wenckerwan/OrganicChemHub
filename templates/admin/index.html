@@ -1,0 +1,42 @@
+{% extends "admin/index.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div id="content-main">
+  <!-- 快捷入口卡片 -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:32px;">
+    <a href="{% url 'admin:reactions_reaction_add' %}" style="display:block;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+      <div style="font-size:1.5rem;margin-bottom:4px;">➕</div>
+      <strong style="color:#0f766e;">新增反应</strong>
+      <p style="margin:4px 0 0;font-size:0.85rem;color:#6b7280;">录入一个新的反应</p>
+    </a>
+    <a href="{% url 'admin:reactions_reaction_changelist' %}" style="display:block;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+      <div style="font-size:1.5rem;margin-bottom:4px;">📋</div>
+      <strong style="color:#0f766e;">反应列表</strong>
+      <p style="margin:4px 0 0;font-size:0.85rem;color:#6b7280;">查看和管理所有反应</p>
+    </a>
+    <a href="{% url 'admin:reactions_route_add' %}" style="display:block;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+      <div style="font-size:1.5rem;margin-bottom:4px;">🧪</div>
+      <strong style="color:#0f766e;">新增路线</strong>
+      <p style="margin:4px 0 0;font-size:0.85rem;color:#6b7280;">添加合成路线</p>
+    </a>
+    <a href="{% url 'admin:reactions_feedback_changelist' %}?status__exact=pending" style="display:block;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+      <div style="font-size:1.5rem;margin-bottom:4px;">💬</div>
+      <strong style="color:#0f766e;">待处理反馈</strong>
+      <p style="margin:4px 0 0;font-size:0.85rem;color:#6b7280;">查看用户反馈</p>
+    </a>
+    <a href="/admin/reactions/reaction/dashboard/" style="display:block;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+      <div style="font-size:1.5rem;margin-bottom:4px;">📊</div>
+      <strong style="color:#0f766e;">内容仪表盘</strong>
+      <p style="margin:4px 0 0;font-size:0.85rem;color:#6b7280;">数据统计与质量分析</p>
+    </a>
+    <a href="{% url 'admin:reactions_announcement_add' %}" style="display:block;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:box-shadow 0.15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+      <div style="font-size:1.5rem;margin-bottom:4px;">📢</div>
+      <strong style="color:#0f766e;">发布公告</strong>
+      <p style="margin:4px 0 0;font-size:0.85rem;color:#6b7280;">创建公告消息</p>
+    </a>
+  </div>
+
+  {{ block.super }}
+</div>
+{% endblock %}
