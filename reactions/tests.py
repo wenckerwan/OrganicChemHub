@@ -9,10 +9,10 @@ from django.urls import reverse
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from .admin import ReactionAdmin, SyntheticRouteAdmin
-from .models import FunctionalGroup, LearningResource, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
-from .services.search import build_querystring
-from .templatetags.search_extras import highlight_query
+from reactions.admin import ReactionAdmin, SyntheticRouteAdmin
+from reactions.models import FunctionalGroup, LearningResource, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
+from reactions.services.search import build_querystring
+from reactions.templatetags.search_extras import highlight_query
 
 
 class ReactionModelTests(TestCase):

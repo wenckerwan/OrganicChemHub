@@ -1,0 +1,15 @@
+<ul style="list-style:none;padding-left:16px;margin:4px 0;">
+{% for key, value in node.items %}
+  {% if key != "__pk" and key != "__title" %}
+    <li>
+      <strong>📁 {{ key }}</strong>
+      {% include "admin/reactions/tree_branch.html" with node=value %}
+    </li>
+  {% endif %}
+{% endfor %}
+{% if node.__pk %}
+  <li>
+    📄 <a href="{% url 'admin:reactions_learningresource_change' node.__pk %}">{{ node.__title }}</a>
+  </li>
+{% endif %}
+</ul>

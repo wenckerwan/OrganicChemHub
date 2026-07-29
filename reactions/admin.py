@@ -1,6 +1,10 @@
 import csv
 
-from django.contrib import admin
+from django import forms
+from django.contrib import admin, messages
+from django.contrib.admin.models import LogEntry
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.urls import path, reverse
@@ -8,7 +12,7 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.template.response import TemplateResponse
 
-from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Message, NavItem, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
+from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Message, NavItem, OpLog, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -48,6 +52,20 @@ class PublicationActionMixin:
         self.message_user(request, f"已归档 {archived_count} 条内容。", fail_silently=True)
 
 
+# ── Unregister default User admin, register enhanced version ──
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    list_display = ("username", "email", "is_staff", "is_active", "date_joined", "last_login")
+    list_filter = ("is_staff", "is_active", "date_joined")
+    search_fields = ("username", "email")
+    fieldsets = UserAdmin.fieldsets + (
+        ("学习数据", {"fields": (), "description": "查看用户的收藏、笔记、学习进度等学习数据。"}),
+    )
+
+
 @admin.register(ReactionType)
 class ReactionTypeAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "sort_order")
@@ -66,7 +84,9 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(FunctionalGroup)
 class FunctionalGroupAdmin(admin.ModelAdmin):
     list_display = ("name_zh", "name_en", "smarts")
+    list_editable = ("name_en", "smarts")
     search_fields = ("name_zh", "name_en", "smarts", "description")
+    list_per_page = 25
 
 
 @admin.register(NavItem)
@@ -237,7 +257,6 @@ class ReactionAdmin(PublicationActionMixin, admin.ModelAdmin):
         drafts = Reaction.objects.filter(status=Reaction.Status.DRAFT).count()
         archived = Reaction.objects.filter(status=Reaction.Status.ARCHIVED).count()
 
-        # Quality checks
         missing_image = sum(1 for r in Reaction.objects.all() if not r.get_equation_img_src())
         missing_summary = Reaction.objects.filter(summary="").count()
         missing_condition = Reaction.objects.filter(condition="").count()
@@ -249,21 +268,40 @@ class ReactionAdmin(PublicationActionMixin, admin.ModelAdmin):
         routes_total = SyntheticRoute.objects.count()
         resources_total = LearningResource.objects.count()
 
+        # ── Trend data: reactions created per day for last 14 days ──
+        from django.db.models import Count
+        from django.db.models.functions import TruncDate
+        trend_raw = (
+            Reaction.objects.filter(created_at__gte=now - timezone.timedelta(days=14))
+            .annotate(date=TruncDate("created_at"))
+            .values("date")
+            .annotate(count=Count("id"))
+            .order_by("date")
+        )
+        trend_dates = []
+        trend_counts = []
+        for entry in trend_raw:
+            trend_dates.append(entry["date"].strftime("%m-%d"))
+            trend_counts.append(entry["count"])
+
+        # ── Distribution by reaction type ──
+        type_dist = (
+            Reaction.objects.values("reaction_type__name")
+            .annotate(count=Count("id"))
+            .order_by("-count")
+        )
+
         context = {
             **admin.site.each_context(request),
             "title": "内容质量仪表盘",
-            "total": total,
-            "published": published,
-            "drafts": drafts,
-            "archived": archived,
-            "missing_image": missing_image,
-            "missing_summary": missing_summary,
-            "missing_condition": missing_condition,
-            "missing_reference": missing_reference,
+            "total": total, "published": published, "drafts": drafts, "archived": archived,
+            "missing_image": missing_image, "missing_summary": missing_summary,
+            "missing_condition": missing_condition, "missing_reference": missing_reference,
             "missing_type": missing_type,
             "recent_reactions": recent_reactions,
-            "routes_total": routes_total,
-            "resources_total": resources_total,
+            "routes_total": routes_total, "resources_total": resources_total,
+            "trend_dates": trend_dates, "trend_counts": trend_counts,
+            "type_dist": type_dist,
         }
         return TemplateResponse(request, "admin/reactions/dashboard.html", context)
 
@@ -421,6 +459,27 @@ class LearningResourceAdmin(admin.ModelAdmin):
         ("文件信息", {"fields": ("file_type", "size_bytes", "size_label", "relative_path", "local_path", "source_folder")}),
         ("时间", {"fields": ("created_at", "updated_at")}),
     )
+    change_list_template = "admin/reactions/learningresource_change_list.html"
+
+    @admin.display(description="文件大小")
+    def size_label(self, obj):
+        return obj.size_label()
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        # Build a simple tree from local_path
+        tree = {}
+        for res in LearningResource.objects.all().order_by("local_path"):
+            parts = res.local_path.replace("\\", "/").split("/")
+            node = tree
+            for part in parts:
+                node = node.setdefault(part, {})
+            # Mark leaf with resource info
+            if node is not None:
+                node["__pk"] = res.pk
+                node["__title"] = res.title
+        extra_context["file_tree"] = tree
+        return super().changelist_view(request, extra_context=extra_context)
 
     @admin.display(description="文件大小")
     def size_label(self, obj):
@@ -544,3 +603,45 @@ class MessageAdmin(admin.ModelAdmin):
     @admin.action(description="标记为已读")
     def mark_as_read(self, request, queryset):
         queryset.update(is_read=True)
+
+    @admin.action(description="发送站内消息给所选用户")
+    def send_message_to_users(self, request, queryset):
+        if "apply" in request.POST:
+            form = SendMessageForm(request.POST)
+            form.fields["recipient"].choices = [(u.pk, str(u)) for u in queryset]
+            if form.is_valid():
+                title = form.cleaned_data["title"]
+                content = form.cleaned_data["content"]
+                for user in queryset:
+                    Message.objects.create(
+                        recipient=user, title=title, content=content,
+                        msg_type=Message.Type.SYSTEM,
+                    )
+                self.message_user(request, f"已向 {queryset.count()} 位用户发送消息。")
+                return redirect(request.path)
+        else:
+            form = SendMessageForm()
+            form.fields["recipient"].choices = [(u.pk, str(u)) for u in queryset]
+        return TemplateResponse(request, "admin/send_message.html", {"form": form, "users": queryset})
+
+
+class SendMessageForm(forms.Form):
+    _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    recipient = forms.ChoiceField(label="接收用户", choices=[])
+    title = forms.CharField(label="消息标题", max_length=200)
+    content = forms.CharField(label="消息内容", widget=forms.Textarea)
+
+
+@admin.register(OpLog)
+class OpLogAdmin(admin.ModelAdmin):
+    list_display = ("user", "action", "model_name", "object_repr", "created_at")
+    list_filter = ("action", "model_name", "created_at")
+    search_fields = ("user__username", "object_repr", "detail")
+    readonly_fields = ("user", "action", "model_name", "object_repr", "detail", "ip", "created_at")
+    date_hierarchy = "created_at"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

@@ -349,7 +349,7 @@ class LearningResource(models.Model):
     year = models.PositiveIntegerField("年份", null=True, blank=True)
     file_type = models.CharField("文件类型", max_length=20)
     size_bytes = models.PositiveBigIntegerField("文件大小", default=0)
-    local_path = models.TextField("本地路径", unique=True)
+    local_path = models.TextField("本地路径", unique=True, help_text="如需树形展示，按 分类/年份/文件名 的目录结构组织路径")
     relative_path = models.TextField("相对路径", blank=True)
     source_folder = models.CharField("来源文件夹", max_length=120, blank=True)
     has_answer = models.BooleanField("含答案", default=False)
@@ -465,6 +465,25 @@ class Message(models.Model):
 
     def __str__(self):
         return f"[{self.get_msg_type_display()}] {self.title}"
+
+
+class OpLog(models.Model):
+    """Admin action audit log."""
+    user = models.ForeignKey("auth.User", verbose_name="操作人", on_delete=models.SET_NULL, null=True)
+    action = models.CharField("操作", max_length=50)
+    model_name = models.CharField("模型", max_length=50)
+    object_repr = models.CharField("对象", max_length=200, blank=True)
+    detail = models.TextField("详情", blank=True)
+    ip = models.GenericIPAddressField("IP", blank=True, null=True)
+    created_at = models.DateTimeField("操作时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "操作日志"
+        verbose_name_plural = "操作日志"
+
+    def __str__(self):
+        return f"{self.user} {self.action} {self.object_repr}"
 
 
 class Favorite(models.Model):
