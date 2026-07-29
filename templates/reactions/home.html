@@ -170,14 +170,12 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <div class="col-lg-5">
         <div class="taxonomy-panel">
-          <h2 class="h5">学习资料</h2>
-          <div class="list-group list-group-flush mb-4">
-            {% for resource in learning_resources %}
-              <a class="list-group-item px-0" href="{% url 'learning_resource_list' %}?q={{ resource.title|urlencode }}">
-                {{ resource.title }}
-              </a>
+          <h2 class="h5">官能团反应</h2>
+          <div class="tag-cloud mb-4">
+            {% for fg in functional_groups %}
+              <a href="{% url 'reaction_list' %}?functional_group={{ fg.pk }}">{{ fg.name_zh }}</a>
             {% empty %}
-              <span class="text-muted">暂无资料索引</span>
+              <span class="text-muted">暂无官能团</span>
             {% endfor %}
           </div>
           <h2 class="h5">分类</h2>

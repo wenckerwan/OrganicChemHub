@@ -53,9 +53,9 @@ class HomeView(TemplateView):
             Reaction.published.select_related("reaction_type").prefetch_related("tags").order_by("-updated_at")[:6]
         )
         context["featured_routes"] = SyntheticRoute.published.order_by("-updated_at")[:4]
-        context["learning_resources"] = LearningResource.published.order_by("-updated_at")[:5]
         context["reaction_types"] = ReactionType.objects.all()[:12]
         context["tags"] = Tag.objects.all()[:12]
+        context["functional_groups"] = FunctionalGroup.objects.all()[:12]
         now = timezone.now()
         context["announcements"] = Announcement.objects.filter(
             is_active=True,
