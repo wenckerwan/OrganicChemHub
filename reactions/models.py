@@ -390,9 +390,29 @@ class Announcement(models.Model):
 
 
 class Feedback(models.Model):
+    class Category(models.TextChoices):
+        CONTENT = "content", "内容纠错"
+        FEATURE = "feature", "功能建议"
+        DATA = "data", "数据补充"
+        USAGE = "usage", "使用问题"
+        OTHER = "other", "其他"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "待处理"
+        PROCESSING = "processing", "处理中"
+        RESOLVED = "resolved", "已处理"
+        CLOSED = "closed", "已关闭"
+
+    user = models.ForeignKey("auth.User", verbose_name="用户", on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField("名称", max_length=100)
     email = models.EmailField("电子邮件", max_length=200, blank=True)
+    category = models.CharField("类型", max_length=20, choices=Category.choices, default=Category.OTHER)
     content = models.TextField("反馈内容")
+    status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.PENDING)
+    reply = models.TextField("管理员回复", blank=True, help_text="此回复将对用户可见")
+    internal_note = models.TextField("内部备注", blank=True, help_text="仅管理员可见")
+    handled_by = models.ForeignKey("auth.User", verbose_name="处理人", on_delete=models.SET_NULL, null=True, blank=True, related_name="handled_feedbacks")
+    handled_at = models.DateTimeField("处理时间", blank=True, null=True)
     is_read = models.BooleanField("已读", default=False)
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
 
@@ -402,7 +422,32 @@ class Feedback(models.Model):
         verbose_name_plural = "意见反馈"
 
     def __str__(self):
-        return f"{self.name} - {self.content[:50]}"
+        return f"{self.get_category_display()} - {self.name} - {self.content[:50]}"
+
+
+class Message(models.Model):
+    class Type(models.TextChoices):
+        ANNOUNCEMENT = "announcement", "公告通知"
+        FEEDBACK_REPLY = "feedback_reply", "反馈回复"
+        FEEDBACK_STATUS = "feedback_status", "反馈状态更新"
+        REVIEW_NOTICE = "review_notice", "审核通知"
+        SYSTEM = "system", "系统提醒"
+
+    recipient = models.ForeignKey("auth.User", verbose_name="接收人", on_delete=models.CASCADE)
+    msg_type = models.CharField("消息类型", max_length=30, choices=Type.choices)
+    title = models.CharField("标题", max_length=200)
+    content = models.TextField("内容")
+    is_read = models.BooleanField("已读", default=False)
+    related_url = models.CharField("相关链接", max_length=500, blank=True)
+    created_at = models.DateTimeField("发送时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "站内消息"
+        verbose_name_plural = "站内消息"
+
+    def __str__(self):
+        return f"[{self.get_msg_type_display()}] {self.title}"
 
 
 class Favorite(models.Model):

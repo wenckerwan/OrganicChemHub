@@ -8,7 +8,7 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.template.response import TemplateResponse
 
-from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
+from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Message, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -453,20 +453,87 @@ class AnnouncementAdmin(admin.ModelAdmin):
         }),
     )
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # 发布公告时推送站内消息给所有用户
+        if obj.is_active:
+            from django.contrib.auth.models import User
+            users = User.objects.all()
+            for user in users:
+                Message.objects.create(
+                    recipient=user,
+                    msg_type=Message.Type.ANNOUNCEMENT,
+                    title=obj.title,
+                    content=obj.content,
+                )
+
 
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ("name", "email", "short_content", "is_read", "created_at")
-    list_filter = ("is_read", "created_at")
-    search_fields = ("name", "email", "content")
+    list_display = ("name", "category", "short_content", "status", "is_read", "created_at")
+    list_filter = ("category", "status", "is_read", "created_at")
+    search_fields = ("name", "email", "content", "reply")
     readonly_fields = ("name", "email", "content", "created_at")
-    actions = ("mark_as_read",)
+    actions = ("mark_as_processing", "mark_as_resolved", "mark_as_closed")
+
+    fieldsets = (
+        ("反馈信息", {"fields": ("name", "email", "category", "content", "status", "created_at")}),
+        ("管理员回复", {
+            "fields": ("reply",),
+            "description": "回复内容将对用户可见，保存后自动生成站内消息通知用户。",
+        }),
+        ("内部备注", {
+            "classes": ("collapse",),
+            "fields": ("internal_note",),
+            "description": "仅管理员可见，用户不会看到此内容。",
+        }),
+    )
 
     @admin.display(description="反馈内容")
     def short_content(self, obj):
         return obj.content[:80] + ("..." if len(obj.content) > 80 else "")
 
+    def save_model(self, request, obj, form, change):
+        # 如果填写了回复，生成站内消息
+        reply = form.cleaned_data.get("reply", "").strip()
+        if reply and obj.user:
+            Message.objects.create(
+                recipient=obj.user,
+                msg_type=Message.Type.FEEDBACK_REPLY,
+                title="您的反馈已回复",
+                content=f"管理员回复了您的反馈「{obj.content[:50]}」：\n\n{reply}",
+            )
+        # 状态变更通知
+        if change and "status" in form.changed_data and obj.user:
+            Message.objects.create(
+                recipient=obj.user,
+                msg_type=Message.Type.FEEDBACK_STATUS,
+                title="您的反馈状态已更新",
+                content=f"您的反馈「{obj.content[:50]}」状态已更新为：{obj.get_status_display()}",
+            )
+        super().save_model(request, obj, form, change)
+
+    @admin.action(description="标记为处理中")
+    def mark_as_processing(self, request, queryset):
+        queryset.update(status=Feedback.Status.PROCESSING)
+
+    @admin.action(description="标记为已处理")
+    def mark_as_resolved(self, request, queryset):
+        queryset.update(status=Feedback.Status.RESOLVED)
+
+    @admin.action(description="标记为已关闭")
+    def mark_as_closed(self, request, queryset):
+        queryset.update(status=Feedback.Status.CLOSED)
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ("recipient", "msg_type", "title", "is_read", "created_at")
+    list_filter = ("msg_type", "is_read", "created_at")
+    search_fields = ("recipient__username", "title", "content")
+    readonly_fields = ("recipient", "msg_type", "title", "content", "created_at")
+    actions = ("mark_as_read",)
+
     @admin.action(description="标记为已读")
     def mark_as_read(self, request, queryset):
-        updated = queryset.update(is_read=True)
-        self.message_user(request, f"已将 {updated} 条反馈标记为已读。")
+        queryset.update(is_read=True)

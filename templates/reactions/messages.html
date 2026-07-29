@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}消息中心 | OrganicChemHub{% endblock %}
+{% block content %}
+<section class="py-4">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h3 mb-0">消息中心</h1>
+      <form method="post" action="{% url 'mark_all_read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-secondary">全部标记已读</button>
+      </form>
+    </div>
+
+    <!-- 类型筛选 -->
+    <div class="mb-3 d-flex gap-2 flex-wrap">
+      <a href="{% url 'messages' %}" class="btn btn-sm {% if not selected_type %}btn-primary-ink{% else %}btn-outline-secondary{% endif %}">全部</a>
+      {% for key, label in type_choices %}
+        <a href="{% url 'messages' %}?type={{ key }}" class="btn btn-sm {% if selected_type == key %}btn-primary-ink{% else %}btn-outline-secondary{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+
+    <!-- 消息列表 -->
+    {% if messages %}
+      <div class="list-group">
+        {% for msg in messages %}
+          <a href="{% url 'message_detail' msg.pk %}" class="list-group-item list-group-item-action d-flex gap-3 align-items-start">
+            <div class="mt-1">
+              {% if msg.is_read %}
+                <i class="bi bi-envelope-open text-muted"></i>
+              {% else %}
+                <i class="bi bi-envelope-fill" style="color:#0f766e;"></i>
+              {% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between">
+                <strong>{{ msg.title }}</strong>
+                <small class="text-muted">{{ msg.created_at|date:"Y-m-d H:i" }}</small>
+              </div>
+              <p class="mb-0 text-secondary small">{{ msg.content|truncatechars:120 }}</p>
+              <span class="badge bg-light text-dark mt-1">{{ msg.get_msg_type_display }}</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">暂无消息。</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

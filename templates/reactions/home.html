@@ -194,8 +194,18 @@ document.addEventListener('DOMContentLoaded', function() {
           <form action="{% url 'feedback' %}" method="post">
             {% csrf_token %}
             <div class="mb-3">
+              <label class="form-label" for="feedback_category">反馈类型</label>
+              <select class="form-select" id="feedback_category" name="category">
+                <option value="content">内容纠错</option>
+                <option value="feature">功能建议</option>
+                <option value="data">数据补充</option>
+                <option value="usage">使用问题</option>
+                <option value="other" selected>其他</option>
+              </select>
+            </div>
+            <div class="mb-3">
               <label class="form-label" for="feedback_name">名称 <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="feedback_name" name="name" required maxlength="100" placeholder="您的称呼">
+              <input type="text" class="form-control" id="feedback_name" name="name" required maxlength="100" placeholder="您的称呼" value="{{ user.username|default:'' }}">
             </div>
             <div class="mb-3">
               <label class="form-label" for="feedback_email">电子邮件</label>

@@ -31,6 +31,40 @@
           <div class="text-muted small">待复习</div>
         </div>
       </div>
+      <div class="col-md-3">
+        <div class="quick-panel text-center">
+          <div class="fs-2 fw-bold" style="color:#dc2626;">{{ user_feedbacks.count }}</div>
+          <div class="text-muted small">我的反馈</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 我的反馈 -->
+    <div class="quick-panel mb-4">
+      <h2 class="h5 mb-3">我的反馈</h2>
+      {% if user_feedbacks %}
+        <div class="list-group list-group-flush">
+          {% for fb in user_feedbacks %}
+            <div class="list-group-item px-0">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <span class="badge bg-light text-dark me-1">{{ fb.get_category_display }}</span>
+                  <span class="badge {% if fb.status == 'pending' %}bg-warning{% elif fb.status == 'processing' %}bg-info{% elif fb.status == 'resolved' %}bg-success{% else %}bg-secondary{% endif %}">{{ fb.get_status_display }}</span>
+                  <small class="text-muted ms-2">{{ fb.created_at|date:"Y-m-d" }}</small>
+                </div>
+              </div>
+              <p class="mb-1 mt-1">{{ fb.content|truncatechars:120 }}</p>
+              {% if fb.reply %}
+                <div class="bg-light p-2 rounded small mt-1">
+                  <strong>管理员回复：</strong>{{ fb.reply|linebreaksbr }}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">暂无反馈。</p>
+      {% endif %}
     </div>
 
     <div class="row g-4">

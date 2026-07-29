@@ -4,6 +4,26 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
+from django.views.generic import DetailView, ListView, TemplateView, View
+
+from .models import (
+    Announcement,
+    Favorite,
+    Feedback,
+    FunctionalGroup,
+    LearningResource,
+    Message,
+    Reaction,
+    ReactionType,
+    RouteStep,
+    StudyNote,
+    StudyProgress,
+    SyntheticRoute,
+    Tag,
+)
+from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import DetailView, ListView, TemplateView, View
@@ -261,8 +281,15 @@ class FeedbackView(View):
         name = request.POST.get("name", "").strip()
         email = request.POST.get("email", "").strip()
         content = request.POST.get("content", "").strip()
+        category = request.POST.get("category", Feedback.Category.OTHER)
         if name and content:
-            Feedback.objects.create(name=name, email=email, content=content)
+            Feedback.objects.create(
+                name=name,
+                email=email,
+                content=content,
+                category=category,
+                user=request.user if request.user.is_authenticated else None,
+            )
         return redirect("home")
 
 
@@ -331,4 +358,45 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         context["notes_count"] = context["notes"].count()
         context["learned_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).count()
         context["review_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).count()
+        context["user_feedbacks"] = Feedback.objects.filter(user=user).order_by("-created_at")
         return context
+
+
+class MessageListView(LoginRequiredMixin, ListView):
+    template_name = "reactions/messages.html"
+    context_object_name = "messages"
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = Message.objects.filter(recipient=self.request.user)
+        msg_type = self.request.GET.get("type", "").strip()
+        if msg_type:
+            qs = qs.filter(msg_type=msg_type)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["selected_type"] = self.request.GET.get("type", "").strip()
+        context["type_choices"] = Message.Type.choices
+        return context
+
+
+class MessageDetailView(LoginRequiredMixin, DetailView):
+    template_name = "reactions/message_detail.html"
+    context_object_name = "msg"
+
+    def get_queryset(self):
+        return Message.objects.filter(recipient=self.request.user)
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if not obj.is_read:
+            obj.is_read = True
+            obj.save(update_fields=["is_read"])
+        return obj
+
+
+class MarkAllMessagesReadView(LoginRequiredMixin, View):
+    def post(self, request):
+        Message.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        return redirect("messages")
