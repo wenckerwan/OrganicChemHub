@@ -52,9 +52,6 @@
 function dismissAnnouncement(pk) {
   var item = document.querySelector('.announcement-item[data-id="' + pk + '"]');
   if (item) item.style.display = 'none';
-  try {
-    localStorage.setItem('och_dismissed_announcement_' + pk, '1');
-  } catch(e) {}
 }
 {% if popup_announcements %}
 document.addEventListener('DOMContentLoaded', function() {
