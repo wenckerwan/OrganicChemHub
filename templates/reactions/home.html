@@ -17,7 +17,7 @@
         </strong>
         <p class="mb-0 text-secondary small">{{ ann.content|linebreaksbr }}</p>
       </div>
-      <button type="button" class="btn-close btn-close-sm mt-1" aria-label="关闭" onclick="dismissAnnouncement('{{ ann.pk }}')"></button>
+      <button type="button" class="btn-close btn-close-sm mt-1" aria-label="关闭" onclick="this.closest('.announcement-item').style.display='none'"></button>
     </div>
     {% endfor %}
   </div>
