@@ -4,20 +4,65 @@
 
 {% block content %}
 {% if announcements %}
-<section class="py-3" style="background:#fff8ed;border-bottom:1px solid #eadfcf;">
+<section class="py-3" id="announcements-section" style="background:#fff8ed;border-bottom:1px solid #eadfcf;">
   <div class="container">
     {% for ann in announcements %}
-    <div class="d-flex align-items-start gap-2 mb-1{% if not forloop.last %} border-bottom pb-2 mb-2{% endif %}">
+    <div class="d-flex align-items-start gap-2 mb-1{% if not forloop.last %} border-bottom pb-2 mb-2{% endif %} announcement-item" data-id="{{ ann.pk }}">
       <i class="bi bi-megaphone flex-shrink-0 mt-1" style="color:#a15c38;"></i>
-      <div>
-        <strong style="color:#7b4a2b;">{{ ann.title }}</strong>
+      <div class="flex-grow-1">
+        <strong style="color:#7b4a2b;">
+          {% if ann.importance == "high" %}<span class="badge bg-danger me-1">重要</span>{% endif %}
+          {% if ann.is_pinned %}<span class="badge bg-warning text-dark me-1">置顶</span>{% endif %}
+          {{ ann.title }}
+        </strong>
         <p class="mb-0 text-secondary small">{{ ann.content|linebreaksbr }}</p>
       </div>
+      <button type="button" class="btn-close btn-close-sm mt-1" aria-label="关闭" onclick="dismissAnnouncement('{{ ann.pk }}')"></button>
     </div>
     {% endfor %}
   </div>
 </section>
 {% endif %}
+
+{% if popup_announcements %}
+<div class="modal fade" id="importantModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#dc2626;color:#fff;">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>重要公告</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {% for ann in popup_announcements %}
+        <div class="mb-3">
+          <h6>{{ ann.title }}</h6>
+          <p class="text-secondary mb-0 small">{{ ann.content|linebreaksbr }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary-ink" data-bs-dismiss="modal">我知道了</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+function dismissAnnouncement(pk) {
+  var item = document.querySelector('.announcement-item[data-id="' + pk + '"]');
+  if (item) item.style.display = 'none';
+  try {
+    localStorage.setItem('och_dismissed_announcement_' + pk, '1');
+  } catch(e) {}
+}
+{% if popup_announcements %}
+document.addEventListener('DOMContentLoaded', function() {
+  var modal = new bootstrap.Modal(document.getElementById('importantModal'));
+  modal.show();
+});
+{% endif %}
+</script>
 <section class="home-search">
   <div class="container">
     <div class="row align-items-center g-4">

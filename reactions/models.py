@@ -366,18 +366,27 @@ class LearningResource(models.Model):
 
 
 class Announcement(models.Model):
+    class Importance(models.TextChoices):
+        LOW = "low", "普通"
+        HIGH = "high", "重要"
+
     title = models.CharField("公告标题", max_length=200)
     content = models.TextField("公告内容")
+    importance = models.CharField("重要性", max_length=10, choices=Importance.choices, default=Importance.LOW)
+    is_pinned = models.BooleanField("置顶", default=False, help_text="置顶公告始终显示在顶部，且不设显示时限")
     is_active = models.BooleanField("显示", default=True)
+    show_from = models.DateTimeField("开始显示", blank=True, null=True, help_text="非置顶公告：在此时间之后才显示")
+    show_until = models.DateTimeField("截止显示", blank=True, null=True, help_text="非置顶公告：在此时间之后自动隐藏")
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-is_pinned", "-created_at"]
         verbose_name = "公告"
         verbose_name_plural = "公告"
 
     def __str__(self):
-        return self.title
+        prefix = "📌 " if self.is_pinned else ""
+        return f"{prefix}{self.title}"
 
 
 class Feedback(models.Model):

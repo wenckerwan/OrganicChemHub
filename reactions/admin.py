@@ -442,11 +442,15 @@ class LearningResourceAdmin(admin.ModelAdmin):
 
 @admin.register(Announcement)
 class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ("title", "is_active", "created_at")
-    list_filter = ("is_active",)
+    list_display = ("title", "importance", "is_pinned", "is_active", "show_from", "show_until", "created_at")
+    list_filter = ("importance", "is_pinned", "is_active")
     search_fields = ("title", "content")
     fieldsets = (
-        ("公告内容", {"fields": ("title", "content", "is_active")}),
+        ("公告内容", {"fields": ("title", "content", "importance")}),
+        ("显示设置", {
+            "fields": ("is_pinned", "is_active", "show_from", "show_until"),
+            "description": "置顶公告不受时间限制，始终显示在顶部。非置顶公告可设置显示起止时间。",
+        }),
     )
 
 
