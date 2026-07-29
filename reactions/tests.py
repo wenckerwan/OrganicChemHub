@@ -23,7 +23,6 @@ class ReactionModelTests(TestCase):
             name_en="Wittig Reaction",
             slug="wittig-reaction",
             reaction_type=reaction_type,
-            equation_smiles="C=O.CPPh3>>C=C",
             status=Reaction.Status.PUBLISHED,
         )
 
@@ -80,24 +79,71 @@ class ReactionModelTests(TestCase):
         self.assertEqual(reaction.get_publication_missing_fields(), [])
         self.assertEqual(reaction.content_completeness(), "3/3")
 
+    def test_reaction_structure_image_source_prefers_uploaded_file_then_url(self):
+        reaction = Reaction(
+            name_zh="维蒂希反应",
+            name_en="Wittig Reaction",
+            slug="wittig-reaction",
+            structure_image_url="/static/img/reactions/wittig.png",
+        )
+
+        self.assertEqual(reaction.get_structure_image_src(), "/static/img/reactions/wittig.png")
+
+        reaction.structure_image = "reaction_structures/uploaded-wittig.png"
+
+        self.assertEqual(reaction.get_structure_image_src(), "/media/reaction_structures/uploaded-wittig.png")
+
+    def test_get_equation_img_uses_equation_img_first(self):
+        reaction = Reaction(
+            name_zh="测试",
+            name_en="Test Reaction",
+            slug="test-eq-priority",
+            structure_image_url="/static/images/legacy.svg",
+        )
+
+        self.assertEqual(reaction.get_equation_img_src(), "/static/images/legacy.svg")
+
+        # When equation_img is uploaded, it takes priority
+        reaction.equation_img = "reaction_images/reaction_test_eq_priority_equation.svg"
+        self.assertTrue(reaction.get_equation_img_src().endswith("reaction_images/reaction_test_eq_priority_equation.svg"))
+
+    def test_reaction_new_image_getters_return_empty_by_default(self):
+        reaction = Reaction(
+            name_zh="测试",
+            name_en="Test Reaction",
+            slug="test-reaction",
+        )
+
+        self.assertEqual(reaction.get_equation_img_src(), "")
+        self.assertEqual(reaction.get_mechanism_img_src(), "")
+        self.assertEqual(reaction.get_thumbnail_img_src(), "")
+
+    def test_get_equation_img_falls_back_to_structure_image_url(self):
+        reaction = Reaction(
+            name_zh="测试",
+            name_en="Test Reaction",
+            slug="test-fallback",
+            structure_image_url="/static/images/legacy.svg",
+        )
+
+        self.assertEqual(reaction.get_equation_img_src(), "/static/images/legacy.svg")
+
 
 class SyntheticRouteModelTests(TestCase):
     def test_route_steps_order_by_step_number(self):
         route = SyntheticRoute.objects.create(
             target_product="苯乙酮",
-            target_smiles="CC(=O)c1ccccc1",
             slug="acetophenone",
             status=SyntheticRoute.Status.PUBLISHED,
         )
-        RouteStep.objects.create(route=route, step_number=2, title="氧化", product_smiles="CC(=O)c1ccccc1")
-        RouteStep.objects.create(route=route, step_number=1, title="烷基化", product_smiles="CC(O)c1ccccc1")
+        RouteStep.objects.create(route=route, step_number=2, title="氧化")
+        RouteStep.objects.create(route=route, step_number=1, title="烷基化")
 
         self.assertEqual([step.title for step in route.steps.all()], ["烷基化", "氧化"])
 
     def test_incomplete_published_route_without_steps_fails_validation(self):
         route = SyntheticRoute.objects.create(
             target_product="苯乙酮",
-            target_smiles="CC(=O)c1ccccc1",
             slug="acetophenone-route-draft",
             summary="从苯出发。",
         )
@@ -111,7 +157,6 @@ class SyntheticRouteModelTests(TestCase):
     def test_route_content_completeness_includes_steps(self):
         route = SyntheticRoute.objects.create(
             target_product="苯乙酮",
-            target_smiles="CC(=O)c1ccccc1",
             slug="acetophenone-complete-route",
             summary="从苯出发。",
         )
@@ -182,14 +227,12 @@ class AdminMaintenanceTests(TestCase):
     def test_route_admin_publish_selected_skips_routes_without_steps(self):
         complete = SyntheticRoute.objects.create(
             target_product="完整路线",
-            target_smiles="CCO",
             slug="complete-route",
             summary="摘要。",
         )
         RouteStep.objects.create(route=complete, step_number=1, title="第一步")
         incomplete = SyntheticRoute.objects.create(
             target_product="不完整路线",
-            target_smiles="CCN",
             slug="incomplete-route-admin",
             summary="摘要。",
         )
@@ -205,7 +248,6 @@ class AdminMaintenanceTests(TestCase):
     def test_route_admin_step_count_column_returns_step_total(self):
         route = SyntheticRoute.objects.create(
             target_product="苯乙酮",
-            target_smiles="CC(=O)c1ccccc1",
             slug="acetophenone-admin-column",
             summary="摘要。",
         )
@@ -232,7 +274,8 @@ class PublicViewTests(TestCase):
             reaction_type=self.reaction_type,
             condition="膦叶立德与醛酮反应",
             summary="醛酮转化为烯烃的经典反应。",
-            equation_smiles="C=O.CPPh3>>C=C",
+            structure_image_url="/static/img/reactions/lecture_001.png",
+            structure_image_caption="讲义结构式示例",
             status=Reaction.Status.PUBLISHED,
         )
         self.reaction.tags.add(self.tag)
@@ -259,7 +302,7 @@ class PublicViewTests(TestCase):
         )
         self.route = SyntheticRoute.objects.create(
             target_product="苯乙酮",
-            target_smiles="CC(=O)c1ccccc1",
+            target_structure_image_url="/static/img/reactions/lecture_002.png",
             slug="acetophenone",
             summary="从苯出发的基础路线。",
             status=SyntheticRoute.Status.PUBLISHED,
@@ -271,11 +314,10 @@ class PublicViewTests(TestCase):
             title="Friedel-Crafts 酰基化",
             reagents="乙酰氯，AlCl3",
             condition="无水条件",
-            product_smiles="CC(=O)c1ccccc1",
+            product_structure_image_url="/static/img/reactions/lecture_003.png",
         )
         self.long_route = SyntheticRoute.objects.create(
             target_product="乙醇",
-            target_smiles="CCO",
             slug="ethanol",
             summary="两步路线。",
             difficulty=SyntheticRoute.Difficulty.ADVANCED,
@@ -296,6 +338,14 @@ class PublicViewTests(TestCase):
 
         self.assertContains(response, "维蒂希反应")
         self.assertNotContains(response, "未发布反应")
+
+    def test_reaction_list_uses_reference_browser_layout(self):
+        response = self.client.get(reverse("reaction_list"))
+
+        self.assertContains(response, 'class="reaction-browser"')
+        self.assertContains(response, 'class="reaction-browser__sidebar"')
+        self.assertContains(response, 'class="reaction-browser__content"')
+        self.assertContains(response, "已收录在化学学习中常见的人名反应")
 
     def test_reaction_list_filters_by_functional_group(self):
         response = self.client.get(reverse("reaction_list"), {"functional_group": self.functional_group.pk})
@@ -333,13 +383,20 @@ class PublicViewTests(TestCase):
         self.assertContains(response, "Wittig Reaction")
         self.assertContains(response, "醛酮转化为烯烃")
 
-    def test_reaction_detail_includes_chemical_structure_viewer(self):
+    def test_reaction_detail_uses_structure_image_instead_of_online_renderer(self):
         response = self.client.get(reverse("reaction_detail", kwargs={"slug": "wittig-reaction"}))
 
-        self.assertContains(response, 'data-chem-viewer="reaction"')
-        self.assertContains(response, 'data-smiles="C=O.CPPh3&gt;&gt;C=C"')
-        self.assertContains(response, "smiles-drawer")
-        self.assertContains(response, "chem-structure.js")
+        self.assertContains(response, 'class="structure-image-frame"')
+        self.assertContains(response, 'src="/static/img/reactions/lecture_001.png"')
+        self.assertContains(response, "讲义结构式示例")
+
+    def test_reaction_detail_shows_fallback_when_no_image(self):
+        self.reaction.structure_image_url = ""
+        self.reaction.save(update_fields=["structure_image_url"])
+
+        response = self.client.get(reverse("reaction_detail", kwargs={"slug": "wittig-reaction"}))
+
+        self.assertNotContains(response, 'src="/static/img/reactions/lecture_001.png"')
 
     def test_draft_reaction_returns_404(self):
         response = self.client.get(reverse("reaction_detail", kwargs={"slug": "hidden-reaction"}))
@@ -370,13 +427,11 @@ class PublicViewTests(TestCase):
         self.assertContains(response, "Friedel-Crafts 酰基化")
         self.assertContains(response, "维蒂希反应")
 
-    def test_route_detail_includes_target_and_step_structure_viewers(self):
+    def test_route_detail_uses_structure_images_instead_of_online_renderer(self):
         response = self.client.get(reverse("route_detail", kwargs={"slug": "acetophenone"}))
 
-        self.assertContains(response, 'data-chem-viewer="molecule"')
-        self.assertContains(response, 'data-smiles="CC(=O)c1ccccc1"', count=2)
-        self.assertContains(response, "smiles-drawer")
-        self.assertContains(response, "chem-structure.js")
+        self.assertContains(response, 'src="/static/img/reactions/lecture_002.png"')
+        self.assertContains(response, 'src="/static/img/reactions/lecture_003.png"')
 
     def test_deploy_guide_loads(self):
         response = self.client.get(reverse("deploy_guide"))
@@ -393,6 +448,14 @@ class CommonReactionFixtureTests(TestCase):
         self.assertGreaterEqual(Reaction.published.count(), 10)
         response = self.client.get(reverse("reaction_list"), {"q": "Diels"})
         self.assertContains(response, "Diels-Alder")
+
+    def test_exam_reactions_fixture_adds_common_postgraduate_reactions(self):
+        call_command("loaddata", "common_reactions", "exam_reactions", verbosity=0)
+
+        self.assertGreaterEqual(Reaction.published.count(), 40)
+        response = self.client.get(reverse("reaction_list"), {"q": "Sandmeyer"})
+        self.assertContains(response, "Sandmeyer Reaction")
+        self.assertContains(response, "重氮盐")
 
 
 class LearningResourceTests(TestCase):

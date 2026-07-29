@@ -1,13 +1,18 @@
 {% load search_extras %}
 {% if is_paginated %}
-  <nav class="mt-4" aria-label="分页">
-    <ul class="pagination">
+  <nav class="pagination-shell" aria-label="分页">
+    <ul class="pagination mb-0">
       {% if page_obj.has_previous %}
         <li class="page-item"><a class="page-link" href="?{% querystring_replace page=page_obj.previous_page_number %}">上一页</a></li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">上一页</span></li>
       {% endif %}
-      <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+      <li class="page-item disabled"><span class="page-link">共 {{ page_obj.paginator.num_pages }} 页</span></li>
       {% if page_obj.has_next %}
         <li class="page-item"><a class="page-link" href="?{% querystring_replace page=page_obj.next_page_number %}">下一页</a></li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">下一页</span></li>
       {% endif %}
     </ul>
   </nav>

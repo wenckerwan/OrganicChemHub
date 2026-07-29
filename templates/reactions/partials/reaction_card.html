@@ -12,8 +12,14 @@
   {% if reaction.summary %}
     <p class="text-secondary mb-3">{{ reaction.summary|truncatechars:120|highlight_query:query }}</p>
   {% endif %}
-  {% if reaction.equation_smiles %}
-    <div class="mini-smiles" aria-label="反应 SMILES">{{ reaction.equation_smiles|truncatechars:48 }}</div>
+  {% if reaction.get_thumbnail_img_src %}
+    <div class="mini-thumb">
+      <img src="{{ reaction.get_thumbnail_img_src }}" alt="{{ reaction.name_zh }}" onerror="this.onerror=null;this.parentElement.style.display='none'">
+    </div>
+  {% elif reaction.get_equation_img_src %}
+    <div class="mini-thumb">
+      <img src="{{ reaction.get_equation_img_src }}" alt="{{ reaction.name_zh }}" onerror="this.onerror=null;this.parentElement.style.display='none'">
+    </div>
   {% endif %}
   <div class="tag-row">
     {% for tag in reaction.tags.all %}

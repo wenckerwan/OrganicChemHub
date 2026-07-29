@@ -1,0 +1,931 @@
+[
+  {
+    "model": "reactions.reaction",
+    "pk": 201,
+    "fields": {
+      "name_zh": "频哪醇重排",
+      "name_en": "Pinacol Rearrangement",
+      "slug": "exam-pinacol-rearrangement",
+      "aliases": "Pinacol-pinacolone rearrangement",
+      "reaction_type": 104,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "邻二醇在酸性条件下经碳正离子和基团迁移生成羰基化合物。",
+      "condition": "强酸或 Lewis 酸促进，常伴随脱水和重排。",
+      "mechanism": "先质子化羟基并失水，随后相邻基团迁移，最后形成酮或醛。",
+      "scope": "常用于考查重排方向、迁移能力和羰基产物判断。",
+      "limitations": "迁移基团选择受稳定碳正离子和立体因素影响。",
+      "exam_tips": "优先形成更稳定碳正离子，常比较芳基、氢、烷基的迁移倾向。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z",
+      "structure_image_url": "/static/img/reactions/lecture_pinacol.png",
+      "structure_image_caption": "来自用户自制《有机化学复习讲义》的临时结构式图片，正式发布前可在后台替换。"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 202,
+    "fields": {
+      "name_zh": "盖布瑞尔合成",
+      "name_en": "Gabriel Synthesis",
+      "slug": "exam-gabriel-synthesis",
+      "aliases": "Gabriel amine synthesis",
+      "reaction_type": 105,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        103
+      ],
+      "summary": "邻苯二甲酰亚胺盐与卤代烃发生取代，水解或肼解后制备伯胺。",
+      "condition": "碱生成酰亚胺负离子，再与一级卤代烃反应，最后脱保护。",
+      "mechanism": "本质是氮负离子对卤代烃的 SN2 取代，随后裂解释放伯胺。",
+      "scope": "适合制备一级脂肪胺，避免多烷基化。",
+      "limitations": "三级、位阻大的卤代烃不适合 SN2 步骤。",
+      "exam_tips": "常考只能得到伯胺，以及卤代烃位阻对反应的影响。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 203,
+    "fields": {
+      "name_zh": "狄克曼缩合",
+      "name_en": "Dieckmann Condensation",
+      "slug": "exam-dieckmann-condensation",
+      "aliases": "Intramolecular Claisen condensation",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "二酯分子内 Claisen 缩合，生成环状 β-酮酸酯。",
+      "condition": "使用与酯基相匹配的醇盐碱，反应后酸化。",
+      "mechanism": "酯 α 位成负离子后发生分子内酰基取代。",
+      "scope": "常用于构建五元环或六元环 β-酮酸酯。",
+      "limitations": "成环大小和底物构象影响产率。",
+      "exam_tips": "先找两个酯基距离，再判断能否形成稳定五、六元环。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 204,
+    "fields": {
+      "name_zh": "珀金反应",
+      "name_en": "Perkin Reaction",
+      "slug": "exam-perkin-reaction",
+      "aliases": "Perkin condensation",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101,
+        102
+      ],
+      "summary": "芳香醛与酸酐在羧酸盐作用下缩合生成 α,β-不饱和芳香酸。",
+      "condition": "酸酐和相应羧酸盐加热。",
+      "mechanism": "酸酐 α 位形成负离子后与醛缩合，再消除生成烯酸。",
+      "scope": "常用于合成肉桂酸及其衍生物。",
+      "limitations": "脂肪醛和无合适 α 氢的底物适用性较差。",
+      "exam_tips": "注意产物通常是芳基取代的 α,β-不饱和羧酸。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 205,
+    "fields": {
+      "name_zh": "克脑文盖尔缩合",
+      "name_en": "Knoevenagel Condensation",
+      "slug": "exam-knoevenagel-condensation",
+      "aliases": "Knoevenagel reaction",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "活泼亚甲基化合物与醛酮缩合生成取代烯烃。",
+      "condition": "常用弱碱、有机胺或铵盐催化。",
+      "mechanism": "活泼亚甲基去质子化后加成羰基，再脱水形成 C=C。",
+      "scope": "常见底物包括丙二酸酯、氰乙酸酯、乙酰乙酸酯。",
+      "limitations": "底物活泼氢酸性和羰基位阻会影响反应。",
+      "exam_tips": "抓住活泼亚甲基和脱水形成双键这两个关键词。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 206,
+    "fields": {
+      "name_zh": "雷福马茨基反应",
+      "name_en": "Reformatsky Reaction",
+      "slug": "exam-reformatsky-reaction",
+      "aliases": "Reformatsky addition",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101,
+        103
+      ],
+      "summary": "α-卤代酯与醛酮在锌作用下加成，生成 β-羟基酯。",
+      "condition": "锌粉或活化锌，醚类溶剂中反应，随后酸化。",
+      "mechanism": "形成有机锌试剂后对羰基亲核加成。",
+      "scope": "用于温和构建 C-C 键并引入酯基。",
+      "limitations": "对水和酸敏感，底物位阻会降低效率。",
+      "exam_tips": "产物关键词是 β-羟基酯，区别于 Grignard 反应更温和。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 207,
+    "fields": {
+      "name_zh": "沃尔夫-凯惜纳还原",
+      "name_en": "Wolff-Kishner Reduction",
+      "slug": "exam-wolff-kishner-reduction",
+      "aliases": "Wolff Kishner reduction",
+      "reaction_type": 103,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "醛酮在肼和强碱高温条件下被还原为亚甲基。",
+      "condition": "NH2NH2、KOH 或强碱，乙二醇等高沸点溶剂加热。",
+      "mechanism": "羰基先生成腙，再在碱性条件下脱氮还原。",
+      "scope": "适合对酸敏感底物的羰基脱氧还原。",
+      "limitations": "强碱和高温条件不适合碱敏感底物。",
+      "exam_tips": "与 Clemmensen 还原对比：Wolff-Kishner 是碱性条件。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 208,
+    "fields": {
+      "name_zh": "克莱门森还原",
+      "name_en": "Clemmensen Reduction",
+      "slug": "exam-clemmensen-reduction",
+      "aliases": "Clemmensen deoxygenation",
+      "reaction_type": 103,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "醛酮在锌汞齐和盐酸条件下还原为亚甲基。",
+      "condition": "Zn(Hg)、浓盐酸，加热。",
+      "mechanism": "在金属酸性体系中完成羰基脱氧还原。",
+      "scope": "常用于芳香酮还原为烷基芳烃。",
+      "limitations": "酸敏感底物不适合该条件。",
+      "exam_tips": "与 Wolff-Kishner 对比：Clemmensen 是酸性条件。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 209,
+    "fields": {
+      "name_zh": "罗森蒙德还原",
+      "name_en": "Rosenmund Reduction",
+      "slug": "exam-rosenmund-reduction",
+      "aliases": "Rosenmund reaction",
+      "reaction_type": 103,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "酰氯在被毒化的钯催化剂上选择性加氢还原为醛。",
+      "condition": "H2、Pd/BaSO4，常加入喹啉或硫化物抑制过还原。",
+      "mechanism": "酰氯催化氢解得到醛，毒化催化剂避免进一步还原成醇。",
+      "scope": "用于由羧酸衍生物制备醛。",
+      "limitations": "反应需控制过还原，普通羧酸不能直接使用。",
+      "exam_tips": "关键词是酰氯到醛，催化剂要被毒化。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 210,
+    "fields": {
+      "name_zh": "伯奇还原",
+      "name_en": "Birch Reduction",
+      "slug": "exam-birch-reduction",
+      "aliases": "Birch reduction of arenes",
+      "reaction_type": 103,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        102
+      ],
+      "summary": "芳香环在液氨、碱金属和醇存在下被部分还原为 1,4-环己二烯。",
+      "condition": "Na、Li 或 K，液氨，醇作质子源。",
+      "mechanism": "单电子转移、质子化、再单电子转移和质子化交替进行。",
+      "scope": "常用于芳香环的部分还原。",
+      "limitations": "取代基电子效应会影响双键位置。",
+      "exam_tips": "重点判断给电子/吸电子取代基对产物双键位置的影响。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z",
+      "structure_image_url": "/static/img/reactions/lecture_birch.png",
+      "structure_image_caption": "来自用户自制《有机化学复习讲义》的临时结构式图片，正式发布前可在后台替换。"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 211,
+    "fields": {
+      "name_zh": "奥本诺尔氧化",
+      "name_en": "Oppenauer Oxidation",
+      "slug": "exam-oppenauer-oxidation",
+      "aliases": "Oppenauer oxidation",
+      "reaction_type": 102,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "二级醇在铝醇盐和酮受氢体存在下被氧化为酮。",
+      "condition": "Al(O-i-Pr)3 和过量丙酮等受氢体。",
+      "mechanism": "通过铝配位和氢转移完成可逆氧化还原。",
+      "scope": "常用于温和氧化二级醇。",
+      "limitations": "一级醇和易发生副反应的底物需谨慎。",
+      "exam_tips": "与 Meerwein-Ponndorf-Verley 还原互为逆过程。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z",
+      "structure_image_url": "/static/img/reactions/lecture_oppenauer.png",
+      "structure_image_caption": "来自用户自制《有机化学复习讲义》的临时结构式图片，正式发布前可在后台替换。"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 212,
+    "fields": {
+      "name_zh": "斯文氧化",
+      "name_en": "Swern Oxidation",
+      "slug": "exam-swern-oxidation",
+      "aliases": "Swern oxidation",
+      "reaction_type": 102,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "醇在 DMSO、草酰氯和叔胺条件下温和氧化为醛或酮。",
+      "condition": "DMSO、(COCl)2，低温后加入 Et3N。",
+      "mechanism": "活化 DMSO 与醇形成中间体，经碱促进消除得到羰基。",
+      "scope": "一级醇到醛，二级醇到酮，条件温和。",
+      "limitations": "反应低温操作，副产物气味明显。",
+      "exam_tips": "常考一级醇不继续氧化为羧酸。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 213,
+    "fields": {
+      "name_zh": "琼斯氧化",
+      "name_en": "Jones Oxidation",
+      "slug": "exam-jones-oxidation",
+      "aliases": "Chromic acid oxidation",
+      "reaction_type": 102,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "铬酸体系将一级醇氧化为羧酸、二级醇氧化为酮。",
+      "condition": "CrO3/H2SO4 或重铬酸盐酸性体系。",
+      "mechanism": "形成铬酸酯后发生消除和进一步氧化。",
+      "scope": "强氧化条件，常用于醇的彻底氧化。",
+      "limitations": "酸敏感和易过氧化底物不适合。",
+      "exam_tips": "与 PCC、Swern 区分：Jones 可把一级醇氧化到羧酸。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 214,
+    "fields": {
+      "name_zh": "芬克尔斯坦反应",
+      "name_en": "Finkelstein Reaction",
+      "slug": "exam-finkelstein-reaction",
+      "aliases": "Halogen exchange reaction",
+      "reaction_type": 105,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        103
+      ],
+      "summary": "卤代烃与碘化钠等发生卤素交换，常将氯代或溴代烃转化为碘代烃。",
+      "condition": "NaI/丙酮，生成 NaCl 或 NaBr 沉淀推动反应。",
+      "mechanism": "典型 SN2 卤素交换。",
+      "scope": "一级卤代烃反应较好。",
+      "limitations": "三级卤代烃和位阻大的底物不利于 SN2。",
+      "exam_tips": "注意丙酮中无机盐沉淀推动平衡。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 215,
+    "fields": {
+      "name_zh": "桑德迈尔反应",
+      "name_en": "Sandmeyer Reaction",
+      "slug": "exam-sandmeyer-reaction",
+      "aliases": "Diazonium substitution",
+      "reaction_type": 105,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        102,
+        103
+      ],
+      "summary": "芳香重氮盐在亚铜盐作用下被 Cl、Br、CN 等取代。",
+      "condition": "芳胺先重氮化，再用 CuCl、CuBr 或 CuCN 等试剂处理。",
+      "mechanism": "重氮盐经单电子转移和芳基自由基过程完成取代。",
+      "scope": "用于由芳胺间接制备芳基卤化物或芳腈。",
+      "limitations": "重氮盐热稳定性有限，通常低温制备。",
+      "exam_tips": "重氮盐是核心中间体，注意不同铜盐对应不同取代基。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 216,
+    "fields": {
+      "name_zh": "加特曼-科赫甲酰化",
+      "name_en": "Gattermann-Koch Formylation",
+      "slug": "exam-gattermann-koch-formylation",
+      "aliases": "Gattermann Koch reaction",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101,
+        102
+      ],
+      "summary": "芳烃在 CO、HCl 和 Lewis 酸作用下发生甲酰化生成芳香醛。",
+      "condition": "CO/HCl，AlCl3/CuCl 等 Lewis 酸体系。",
+      "mechanism": "形成甲酰化亲电体后发生芳香亲电取代。",
+      "scope": "常用于苯环引入甲酰基。",
+      "limitations": "强失活芳环不易反应。",
+      "exam_tips": "与 Friedel-Crafts 酰基化对比，产物是芳香醛。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z",
+      "structure_image_url": "/static/img/reactions/lecture_gattermann_koch.png",
+      "structure_image_caption": "来自用户自制《有机化学复习讲义》的临时结构式图片，正式发布前可在后台替换。"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 217,
+    "fields": {
+      "name_zh": "瑞穆尔-悌曼反应",
+      "name_en": "Reimer-Tiemann Reaction",
+      "slug": "exam-reimer-tiemann-reaction",
+      "aliases": "Reimer Tiemann formylation",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101,
+        102
+      ],
+      "summary": "酚在氯仿和强碱作用下邻位甲酰化，生成水杨醛类化合物。",
+      "condition": "CHCl3、NaOH 或 KOH，随后酸化。",
+      "mechanism": "二氯卡宾参与芳环亲电取代，水解后形成醛基。",
+      "scope": "酚类邻位甲酰化的经典反应。",
+      "limitations": "对位也可能形成副产物，取代基影响定位。",
+      "exam_tips": "关键词是酚、氯仿、强碱、邻羟基苯甲醛。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 218,
+    "fields": {
+      "name_zh": "科尔贝-施密特反应",
+      "name_en": "Kolbe-Schmitt Reaction",
+      "slug": "exam-kolbe-schmitt-reaction",
+      "aliases": "Kolbe Schmitt carboxylation",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101,
+        102
+      ],
+      "summary": "酚盐与二氧化碳在加压加热下羧化，酸化后生成羟基苯甲酸。",
+      "condition": "酚钠、CO2、加压加热，随后酸化。",
+      "mechanism": "酚盐活化芳环后对 CO2 发生羧化。",
+      "scope": "常用于制备水杨酸。",
+      "limitations": "定位受酚盐和反应条件影响。",
+      "exam_tips": "常考水杨酸合成路线，是阿司匹林合成的前置反应。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 219,
+    "fields": {
+      "name_zh": "汉斯狄克反应",
+      "name_en": "Hunsdiecker Reaction",
+      "slug": "exam-hunsdiecker-reaction",
+      "aliases": "Borodin-Hunsdiecker reaction",
+      "reaction_type": 105,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        103
+      ],
+      "summary": "羧酸银盐与卤素反应发生脱羧卤化，生成少一个碳的卤代烃。",
+      "condition": "羧酸银盐、Br2 或 Cl2，惰性溶剂。",
+      "mechanism": "自由基脱羧并捕获卤素。",
+      "scope": "用于羧酸降碳制备卤代烃。",
+      "limitations": "底物和银盐制备会影响反应实用性。",
+      "exam_tips": "产物比原羧酸少一个羧基碳，是高频判断点。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 220,
+    "fields": {
+      "name_zh": "赫尔-沃尔哈德-泽林斯基反应",
+      "name_en": "Hell-Volhard-Zelinsky Reaction",
+      "slug": "exam-hell-volhard-zelinsky-reaction",
+      "aliases": "HVZ reaction",
+      "reaction_type": 105,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101,
+        103
+      ],
+      "summary": "羧酸在卤素和磷作用下发生 α-卤代。",
+      "condition": "Br2/PBr3 或 Cl2/PCl3，随后水解。",
+      "mechanism": "羧酸转化为酰卤后烯醇化，再发生 α 位卤代。",
+      "scope": "用于制备 α-卤代羧酸。",
+      "limitations": "需要羧酸 α 位有氢。",
+      "exam_tips": "常考羧酸 α-H 被卤代，以及后续可转化为 α-羟基酸或 α-氨基酸。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 221,
+    "fields": {
+      "name_zh": "曼尼希反应",
+      "name_en": "Mannich Reaction",
+      "slug": "exam-mannich-reaction",
+      "aliases": "Mannich condensation",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "含活泼氢化合物、醛和胺发生三组分反应，生成 β-氨基羰基化合物。",
+      "condition": "醛、胺和可烯醇化羰基化合物，酸性或缓冲条件。",
+      "mechanism": "胺和醛形成亚胺鎓离子，烯醇或烯醇负离子进攻。",
+      "scope": "用于形成 C-C 键并引入氨甲基。",
+      "limitations": "多官能团底物可能产生区域选择性问题。",
+      "exam_tips": "抓住亚胺鎓离子和 β-氨基羰基产物。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 222,
+    "fields": {
+      "name_zh": "罗宾逊成环反应",
+      "name_en": "Robinson Annulation",
+      "slug": "exam-robinson-annulation",
+      "aliases": "Robinson annelation",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "Michael 加成和分子内羟醛缩合串联形成环己烯酮骨架。",
+      "condition": "碱催化，常以甲基乙烯基酮等为 Michael 受体。",
+      "mechanism": "先 1,4-加成形成二羰基，再分子内羟醛缩合和脱水。",
+      "scope": "用于构建六元环和稠环骨架。",
+      "limitations": "底物构型和反应位点会影响区域选择性。",
+      "exam_tips": "分两步看：Michael 加成，再羟醛缩合关环。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 223,
+    "fields": {
+      "name_zh": "斯托克烯胺反应",
+      "name_en": "Stork Enamine Reaction",
+      "slug": "exam-stork-enamine-reaction",
+      "aliases": "Stork enamine alkylation",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101,
+        103
+      ],
+      "summary": "醛酮与二级胺形成烯胺，烯胺作为亲核体进行烷基化或酰基化。",
+      "condition": "二级胺形成烯胺后与卤代烃或酰化试剂反应，最后水解。",
+      "mechanism": "烯胺等价于羰基 α 位负离子，反应后水解再生羰基。",
+      "scope": "用于羰基化合物 α 位选择性官能团化。",
+      "limitations": "位阻和副反应会影响选择性。",
+      "exam_tips": "烯胺是羰基 α 位亲核体的保护型等价物。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 224,
+    "fields": {
+      "name_zh": "威廉姆森醚合成",
+      "name_en": "Williamson Ether Synthesis",
+      "slug": "exam-williamson-ether-synthesis",
+      "aliases": "Williamson reaction",
+      "reaction_type": 105,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        103
+      ],
+      "summary": "醇盐或酚盐与卤代烃 SN2 反应生成醚。",
+      "condition": "醇钠、酚钠等强亲核体与一级卤代烃反应。",
+      "mechanism": "亲核取代形成 C-O 键。",
+      "scope": "适用于合成不对称醚和芳基烷基醚。",
+      "limitations": "三级卤代烃易发生消除，不适合作为烷基化试剂。",
+      "exam_tips": "逆合成时把醚断成醇盐和位阻较小的卤代烃。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 225,
+    "fields": {
+      "name_zh": "库尔提斯重排",
+      "name_en": "Curtius Rearrangement",
+      "slug": "exam-curtius-rearrangement",
+      "aliases": "Curtius degradation",
+      "reaction_type": 104,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "酰基叠氮加热重排为异氰酸酯，水解后得到少一个碳的胺。",
+      "condition": "酰基叠氮热分解，随后水、醇或胺捕获异氰酸酯。",
+      "mechanism": "酰基叠氮失氮并发生 1,2-迁移形成异氰酸酯。",
+      "scope": "用于羧酸衍生物到胺、氨基甲酸酯或脲的转化。",
+      "limitations": "叠氮化物操作需注意安全。",
+      "exam_tips": "与 Hofmann 重排类似，产物胺少一个羰基碳。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 226,
+    "fields": {
+      "name_zh": "施密特重排",
+      "name_en": "Schmidt Rearrangement",
+      "slug": "exam-schmidt-rearrangement",
+      "aliases": "Schmidt reaction",
+      "reaction_type": 104,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "羧酸、酮或醛与叠氮酸在强酸中反应，发生迁移并形成胺或酰胺。",
+      "condition": "HN3 或叠氮化物/强酸体系。",
+      "mechanism": "叠氮参与形成重排中间体，随后基团迁移并放出氮气。",
+      "scope": "酮可转化为酰胺，羧酸可降解为胺。",
+      "limitations": "强酸和叠氮条件限制底物适用性。",
+      "exam_tips": "注意酮的 Schmidt 重排常生成酰胺，迁移基团由底物决定。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 227,
+    "fields": {
+      "name_zh": "沃尔夫重排",
+      "name_en": "Wolff Rearrangement",
+      "slug": "exam-wolff-rearrangement",
+      "aliases": "Arndt-Eistert related rearrangement",
+      "reaction_type": 104,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "α-重氮酮在光、热或银盐催化下重排生成烯酮。",
+      "condition": "光照、加热或 Ag+ 催化，随后被水、醇或胺捕获。",
+      "mechanism": "α-重氮酮失氮并发生 1,2-迁移生成烯酮。",
+      "scope": "常见于 Arndt-Eistert 同系化反应中。",
+      "limitations": "重氮化合物制备和安全性限制应用。",
+      "exam_tips": "关键词是 α-重氮酮、烯酮和同系化。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 228,
+    "fields": {
+      "name_zh": "克莱森重排",
+      "name_en": "Claisen Rearrangement",
+      "slug": "exam-claisen-rearrangement",
+      "aliases": "Claisen [3,3]-sigmatropic rearrangement",
+      "reaction_type": 104,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        102
+      ],
+      "summary": "烯丙基乙烯基醚或芳基烯丙基醚经 [3,3] 迁移重排形成新的 C-C 键。",
+      "condition": "加热，部分底物可 Lewis 酸促进。",
+      "mechanism": "协同的 [3,3]-σ 迁移重排。",
+      "scope": "芳基烯丙基醚可生成邻烯丙基酚。",
+      "limitations": "底物构象和取代会影响区域选择性。",
+      "exam_tips": "按六元环过渡态画箭头，注意键的断裂和新 C-C 键形成。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 229,
+    "fields": {
+      "name_zh": "科普重排",
+      "name_en": "Cope Rearrangement",
+      "slug": "exam-cope-rearrangement",
+      "aliases": "Cope [3,3]-sigmatropic rearrangement",
+      "reaction_type": 104,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [],
+      "summary": "1,5-二烯体系受热发生 [3,3]-σ 迁移重排。",
+      "condition": "加热，部分体系可通过氧阴离子 Cope 变体降低温度。",
+      "mechanism": "协同周环反应，经六元环过渡态迁移。",
+      "scope": "用于烯烃骨架重排和 C-C 键位置调整。",
+      "limitations": "平衡位置和构象控制反应结果。",
+      "exam_tips": "与 Claisen 重排同属 [3,3] 迁移，但 Cope 是二烯体系。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 230,
+    "fields": {
+      "name_zh": "弗里斯重排",
+      "name_en": "Fries Rearrangement",
+      "slug": "exam-fries-rearrangement",
+      "aliases": "Fries migration",
+      "reaction_type": 104,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101,
+        102
+      ],
+      "summary": "芳基酯在 Lewis 酸作用下发生酰基迁移，生成邻或对羟基芳酮。",
+      "condition": "AlCl3、BF3 等 Lewis 酸，加热或控制温度。",
+      "mechanism": "酰基正离子或配位中间体参与芳香亲电取代。",
+      "scope": "用于制备羟基芳酮。",
+      "limitations": "邻/对位比例受温度、溶剂和取代基影响。",
+      "exam_tips": "注意它不是普通酯水解，而是 O-酰基迁移到芳环上。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 231,
+    "fields": {
+      "name_zh": "达参反应",
+      "name_en": "Darzens Reaction",
+      "slug": "exam-darzens-reaction",
+      "aliases": "Darzens glycidic ester condensation",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102,
+        103
+      ],
+      "functional_groups": [
+        101,
+        103
+      ],
+      "summary": "α-卤代酯与醛酮在碱作用下生成缩水甘油酸酯。",
+      "condition": "碱促进 α-卤代酯成负离子，与羰基加成后分子内取代关环。",
+      "mechanism": "羰基加成和分子内 SN2 形成环氧酯。",
+      "scope": "用于合成环氧酯及进一步转化。",
+      "limitations": "底物位阻和碱性条件影响选择性。",
+      "exam_tips": "产物含环氧和酯，常与 Reformatsky 产物 β-羟基酯区分。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  },
+  {
+    "model": "reactions.reaction",
+    "pk": 232,
+    "fields": {
+      "name_zh": "汉奇吡啶合成",
+      "name_en": "Hantzsch Pyridine Synthesis",
+      "slug": "exam-hantzsch-pyridine-synthesis",
+      "aliases": "Hantzsch dihydropyridine synthesis",
+      "reaction_type": 101,
+      "tags": [
+        101,
+        102
+      ],
+      "functional_groups": [
+        101
+      ],
+      "summary": "醛、β-酮酸酯和氨源缩合生成二氢吡啶，氧化后可得吡啶衍生物。",
+      "condition": "醛、乙酰乙酸酯类和氨或铵盐加热缩合。",
+      "mechanism": "多组分缩合、环化和脱水形成含氮六元环。",
+      "scope": "常用于合成取代二氢吡啶和吡啶。",
+      "limitations": "不同羰基组分组合会影响取代模式。",
+      "exam_tips": "记住三组分：醛、β-酮酸酯、氨源。",
+      "reference": "参考 DrugFuture Organic Name Reactions 目录及基础有机化学教材整理。",
+      "status": "published",
+      "created_at": "2026-07-28T00:00:00Z",
+      "updated_at": "2026-07-28T00:00:00Z"
+    }
+  }
+]

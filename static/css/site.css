@@ -211,22 +211,309 @@ a:hover {
   text-wrap: pretty;
 }
 
-.mini-smiles {
-  background: #f6f8f7;
+.mini-thumb {
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+.mini-thumb img {
+  background: #fff;
   border: 1px solid #e3e9e6;
   border-radius: 6px;
-  color: #59666f;
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 0.78rem;
-  margin-bottom: 0.85rem;
-  overflow: hidden;
-  padding: 0.45rem 0.55rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-height: 80px;
+  max-width: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.reaction-result-item__thumb {
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+.reaction-result-item__thumb img {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  height: 60px;
+  max-width: 100%;
+  object-fit: contain;
+  padding: 2px;
+  width: 80px;
 }
 
 .content-band {
   padding: 3.5rem 0;
+}
+
+.reaction-map-hero {
+  background:
+    linear-gradient(90deg, rgba(22, 54, 154, 0.96), rgba(38, 66, 176, 0.9)),
+    repeating-linear-gradient(90deg, transparent 0 9rem, rgba(255, 255, 255, 0.08) 9rem 9.1rem);
+  color: #fff;
+  overflow: hidden;
+  padding: 2.6rem 0 3rem;
+  position: relative;
+}
+
+.reaction-map-hero::before {
+  color: rgba(255, 255, 255, 0.09);
+  content: "Li Be B C N O F Na Mg Al Si P S Cl K Ca Cr Mn Fe Co Ni Cu Zn";
+  font-size: clamp(3rem, 7vw, 7rem);
+  font-weight: 800;
+  left: 0;
+  letter-spacing: 0;
+  line-height: 1;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0.2rem;
+  white-space: nowrap;
+}
+
+.reaction-map-hero::after {
+  color: rgba(255, 255, 255, 0.34);
+  content: "C=O  +  Nu-  ->  C-C";
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: clamp(1.5rem, 3vw, 3.4rem);
+  font-weight: 800;
+  position: absolute;
+  right: 10vw;
+  top: 2.1rem;
+}
+
+.reaction-map-hero__copy {
+  margin-left: clamp(0rem, 4vw, 4rem);
+  max-width: 46rem;
+  position: relative;
+  z-index: 1;
+}
+
+.reaction-map-hero h1 {
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  font-weight: 900;
+  margin: 0 0 0.45rem;
+}
+
+.reaction-map-hero p {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 1.12rem;
+  margin: 0;
+}
+
+.reaction-map-hero .eyebrow {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.reaction-browser-wrap {
+  background: #eef3f8;
+  padding: 1rem 0 3rem;
+}
+
+.reaction-browser {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(17rem, 24rem) minmax(0, 1fr);
+  margin-top: -0.25rem;
+}
+
+.reaction-browser__sidebar,
+.reaction-browser__content {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(216, 226, 223, 0.7);
+  border-radius: 8px;
+  box-shadow: 0 18px 42px rgba(18, 36, 52, 0.08);
+}
+
+.reaction-browser__sidebar {
+  padding: 1rem;
+  position: sticky;
+  top: 5rem;
+}
+
+.reaction-browser__search {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.reaction-browser__search .input-group {
+  flex-wrap: nowrap;
+}
+
+.reaction-browser__search .form-control,
+.reaction-browser__search .btn {
+  min-height: 2.75rem;
+}
+
+.reset-link {
+  color: var(--och-muted);
+  font-weight: 700;
+  justify-self: end;
+  margin-top: -3.45rem;
+  padding: 0.8rem 0 0.8rem 0.8rem;
+  position: relative;
+  right: -3.2rem;
+}
+
+.reaction-browser__filters {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.reaction-browser__filters .form-select {
+  border-color: #e1e8ee;
+  color: #435160;
+}
+
+.browser-check {
+  color: #435160;
+  margin: 0.1rem 0 0;
+}
+
+.reaction-index {
+  display: grid;
+  gap: 0.2rem;
+  margin-top: 1rem;
+  max-height: 45rem;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+.reaction-index::-webkit-scrollbar {
+  width: 0.45rem;
+}
+
+.reaction-index::-webkit-scrollbar-thumb {
+  background: #d6e0e8;
+  border-radius: 999px;
+}
+
+.reaction-index a {
+  border-radius: 6px;
+  color: #42505f;
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 700;
+  overflow: hidden;
+  padding: 0.55rem 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reaction-index a:hover,
+.reaction-index a:focus {
+  background: #edf4fb;
+  color: #0c55a0;
+  text-decoration: none;
+}
+
+.reaction-browser__content {
+  padding: 1.6rem;
+}
+
+.browser-result-head {
+  align-items: start;
+  border-bottom: 1px solid #e5ebf0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+}
+
+.browser-result-head h2 {
+  font-size: 1.4rem;
+  font-weight: 900;
+  margin: 0 0 0.25rem;
+}
+
+.browser-result-head p {
+  color: var(--och-muted);
+  margin: 0;
+}
+
+.browser-result-head p span {
+  color: #0c55a0;
+  font-weight: 800;
+  margin-left: 0.5rem;
+}
+
+.browser-result-head__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.browser-result-head__chips span {
+  background: #edf4fb;
+  border-radius: 999px;
+  color: #0c55a0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.35rem 0.65rem;
+}
+
+.reaction-result-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.reaction-result-item {
+  background: #fff;
+  border: 1px solid #e1e8ee;
+  border-radius: 8px;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 18rem);
+  padding: 1rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.reaction-result-item:hover {
+  border-color: #bfd4e8;
+  box-shadow: 0 14px 30px rgba(18, 36, 52, 0.08);
+  transform: translateY(-1px);
+}
+
+.reaction-result-item__title {
+  color: #0c55a0;
+  display: inline-block;
+  font-size: 1.12rem;
+  font-weight: 900;
+  margin-bottom: 0.2rem;
+}
+
+.reaction-result-item h3 {
+  color: #435160;
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin: 0 0 0.55rem;
+}
+
+.reaction-result-item p {
+  color: #4f5d6b;
+  margin: 0 0 0.8rem;
+}
+
+
+.pagination-shell {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin-top: 1.4rem;
+}
+
+.pagination-shell .page-link {
+  border-color: #dfe8ef;
+  color: #0c55a0;
+  font-weight: 800;
+  min-width: 2.8rem;
+  text-align: center;
+}
+
+.pagination-shell .active .page-link {
+  background: #0c55a0;
+  border-color: #0c55a0;
 }
 
 .section-title {
@@ -366,87 +653,39 @@ a:hover {
   padding: 1rem;
 }
 
+.structure-image-stage {
+  background: #fff;
+  min-height: 10rem;
+}
+
 .structure-viewer__placeholder {
   color: var(--och-muted);
 }
 
-.structure-viewer__raw {
-  border-top: 1px solid #eadfcf;
-  padding: 0.75rem 1rem;
-}
-
-.structure-viewer__raw summary {
-  color: var(--och-accent-strong);
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.structure-viewer__raw pre {
-  background: #172026;
-  border-radius: 6px;
-  color: #e9f5ef;
-  margin: 0.7rem 0 0;
-  overflow-x: auto;
-  padding: 0.75rem;
-  white-space: pre-wrap;
-}
-
-.molecule-tile {
+.structure-image-frame {
   align-items: center;
-  background: #fff;
-  border: 1px solid #e7ded2;
-  border-radius: 8px;
   display: grid;
   justify-items: center;
   margin: 0;
-  min-height: 12.5rem;
+  width: 100%;
+}
+
+.structure-image-frame img {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  display: block;
+  max-height: 34rem;
+  max-width: 100%;
+  object-fit: contain;
   padding: 0.75rem;
-  width: min(17rem, 100%);
 }
 
-.molecule-tile svg {
-  height: 10.6rem;
-  max-width: 100%;
-  width: 16.25rem;
-}
-
-.molecule-tile figcaption {
+.structure-image-frame figcaption {
   color: var(--och-muted);
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 0.74rem;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.molecule-tile.is-invalid {
-  border-style: dashed;
-}
-
-.reaction-arrow {
-  align-items: center;
-  color: var(--och-warm);
-  display: grid;
-  font-weight: 800;
-  gap: 0.25rem;
-  justify-items: center;
-  min-width: 4rem;
-}
-
-.reaction-arrow span::before {
-  content: "->";
-  font-size: 1.8rem;
-}
-
-.reaction-arrow small {
-  color: var(--och-muted);
-  font-size: 0.75rem;
-  max-width: 8rem;
-  overflow: hidden;
+  font-size: 0.84rem;
+  margin-top: 0.6rem;
   text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .timeline {
@@ -547,15 +786,31 @@ a:hover {
     display: none;
   }
 
+  .reaction-browser {
+    grid-template-columns: 1fr;
+  }
+
+  .reaction-browser__sidebar {
+    position: static;
+  }
+
+  .reaction-index {
+    max-height: 18rem;
+  }
+
+  .reaction-result-item {
+    grid-template-columns: 1fr;
+  }
+
   .structure-viewer__stage {
     justify-content: stretch;
   }
 
-  .molecule-tile {
-    width: 100%;
+  .structure-image-frame img {
+    padding: 0.4rem;
   }
 
-  .reaction-arrow {
-    width: 100%;
+  .reaction-result-item__thumb {
+    margin-left: 0;
   }
 }

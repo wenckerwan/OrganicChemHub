@@ -1,6 +1,34 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
+from django.utils.deconstruct import deconstructible
+
+
+@deconstructible
+class ReactionImageUploadTo:
+    """Upload-to callable that renames uploaded images per v0.5 convention.
+
+    Produces paths like: media/reaction_images/reaction_{slug}_equation.svg
+    """
+    def __init__(self, suffix):
+        self.suffix = suffix
+
+    def __call__(self, instance, filename):
+        slug = getattr(instance, "slug", None) or str(instance.pk or "new")
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "svg"
+        return f"reaction_images/reaction_{slug}_{self.suffix}.{ext}"
+
+    def __eq__(self, other):
+        return isinstance(other, ReactionImageUploadTo) and self.suffix == other.suffix
+
+    def __hash__(self):
+        return hash(self.suffix)
+
+
+def first_image_source(uploaded_file, image_url):
+    if uploaded_file:
+        return uploaded_file.url
+    return image_url.strip()
 
 
 class PublishedQuerySet(models.QuerySet):
@@ -98,7 +126,21 @@ class Reaction(models.Model):
         blank=True,
         related_name="reactions",
     )
-    equation_smiles = models.TextField("反应 SMILES", blank=True, help_text="建议格式：反应物>>生成物")
+    equation_img = models.FileField(
+        "反应方程式图片", upload_to=ReactionImageUploadTo("equation"), blank=True,
+        help_text="上传反应方程式的 SVG 或 PNG 图片"
+    )
+    mechanism_img = models.FileField(
+        "反应机理图片", upload_to=ReactionImageUploadTo("mechanism"), blank=True,
+        help_text="上传机理图的 SVG 或 PNG 图片"
+    )
+    thumbnail_img = models.FileField(
+        "缩略图", upload_to=ReactionImageUploadTo("thumbnail"), blank=True,
+        help_text="上传缩略图，用于列表页和卡片展示"
+    )
+    structure_image = models.FileField("结构式图片", upload_to="reaction_structures/", blank=True)
+    structure_image_url = models.CharField("结构式图片 URL", max_length=500, blank=True)
+    structure_image_caption = models.CharField("结构式图片说明", max_length=200, blank=True)
     summary = models.TextField("简要说明", blank=True)
     condition = models.TextField("反应条件", blank=True)
     mechanism = models.TextField("机理说明", blank=True)
@@ -129,6 +171,18 @@ class Reaction(models.Model):
 
     def get_absolute_url(self):
         return reverse("reaction_detail", kwargs={"slug": self.slug})
+
+    def get_structure_image_src(self):
+        return first_image_source(self.structure_image, self.structure_image_url)
+
+    def get_equation_img_src(self):
+        return self.equation_img.url if self.equation_img else self.structure_image_url if self.structure_image_url.strip() else ""
+
+    def get_mechanism_img_src(self):
+        return self.mechanism_img.url if self.mechanism_img else ""
+
+    def get_thumbnail_img_src(self):
+        return self.thumbnail_img.url if self.thumbnail_img else self.get_equation_img_src()
 
     def get_publication_missing_fields(self):
         return [field for field in self.PUBLICATION_REQUIRED_FIELDS if not getattr(self, field, "").strip()]
@@ -163,7 +217,11 @@ class SyntheticRoute(models.Model):
         ADVANCED = "advanced", "进阶"
 
     target_product = models.CharField("目标产物", max_length=200)
-    target_smiles = models.CharField("目标产物 SMILES", max_length=300, blank=True)
+    target_structure_image = models.FileField("目标产物结构式图片", upload_to="route_structures/", blank=True,
+        help_text="上传目标产物结构式的 SVG 或 PNG 图片")
+    target_structure_image_url = models.CharField("目标产物结构式图片 URL", max_length=500, blank=True,
+        help_text="已有图床路径时填写，例如 /static/images/routes/route_xxx.svg")
+    target_structure_image_caption = models.CharField("目标产物结构式说明", max_length=200, blank=True)
     slug = models.SlugField("URL 标识", max_length=140, unique=True)
     summary = models.TextField("路线摘要", blank=True)
     advantages = models.TextField("优点", blank=True)
@@ -193,6 +251,9 @@ class SyntheticRoute(models.Model):
 
     def get_absolute_url(self):
         return reverse("route_detail", kwargs={"slug": self.slug})
+
+    def get_target_structure_image_src(self):
+        return first_image_source(self.target_structure_image, self.target_structure_image_url)
 
     def get_publication_missing_fields(self):
         missing_fields = []
@@ -224,8 +285,13 @@ class RouteStep(models.Model):
     route = models.ForeignKey(SyntheticRoute, verbose_name="所属路线", on_delete=models.CASCADE, related_name="steps")
     step_number = models.PositiveIntegerField("步骤序号")
     title = models.CharField("步骤标题", max_length=100)
-    reactant_smiles = models.TextField("反应物 SMILES", blank=True)
-    product_smiles = models.TextField("产物 SMILES", blank=True)
+    reactant_structure_image = models.FileField("反应物结构式图片", upload_to="route_step_structures/", blank=True,
+        help_text="上传反应物结构式的 SVG 或 PNG")
+    reactant_structure_image_url = models.CharField("反应物结构式图片 URL", max_length=500, blank=True)
+    product_structure_image = models.FileField("产物结构式图片", upload_to="route_step_structures/", blank=True,
+        help_text="上传产物结构式的 SVG 或 PNG")
+    product_structure_image_url = models.CharField("产物结构式图片 URL", max_length=500, blank=True)
+    structure_image_caption = models.CharField("步骤结构式说明", max_length=200, blank=True)
     reagents = models.TextField("试剂", blank=True)
     condition = models.TextField("条件", blank=True)
     yield_text = models.CharField("产率", max_length=50, blank=True)
@@ -240,6 +306,12 @@ class RouteStep(models.Model):
 
     def __str__(self):
         return f"{self.route.target_product} - Step {self.step_number}: {self.title}"
+
+    def get_reactant_structure_image_src(self):
+        return first_image_source(self.reactant_structure_image, self.reactant_structure_image_url)
+
+    def get_product_structure_image_src(self):
+        return first_image_source(self.product_structure_image, self.product_structure_image_url)
 
 
 class LearningResource(models.Model):

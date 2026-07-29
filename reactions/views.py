@@ -74,6 +74,7 @@ class ReactionListView(ListView):
         context["reaction_types"] = ReactionType.objects.all()
         context["tags"] = Tag.objects.all()
         context["functional_groups"] = FunctionalGroup.objects.all()
+        context["reaction_index"] = self.object_list.order_by("name_en", "name_zh")[:120]
         context["recommended_reactions"] = Reaction.published.select_related("reaction_type").prefetch_related("tags")[
             :3
         ]
@@ -102,7 +103,6 @@ class RouteListView(ListView):
         if query:
             queryset = queryset.filter(
                 Q(target_product__icontains=query)
-                | Q(target_smiles__icontains=query)
                 | Q(summary__icontains=query)
                 | Q(source__icontains=query)
                 | Q(related_reactions__name_zh__icontains=query)

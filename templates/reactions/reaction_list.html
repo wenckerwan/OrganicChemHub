@@ -4,86 +4,125 @@
 {% block title %}人名反应 | OrganicChemHub{% endblock %}
 
 {% block content %}
-<section class="page-band py-4 border-bottom">
+<section class="reaction-map-hero">
   <div class="container">
-    <h1 class="h2 mb-3">人名反应</h1>
-    <form class="row g-2 align-items-end" method="get">
-      <div class="col-lg-4">
-        <label class="form-label" for="q">关键词</label>
-        <input id="q" class="form-control" name="q" value="{{ query }}" type="search" placeholder="名称、试剂、条件、考点">
-      </div>
-      <div class="col-md-2">
-        <label class="form-label" for="type">类型</label>
-        <select id="type" class="form-select" name="type">
-          <option value="">全部类型</option>
-          {% for type in reaction_types %}
-            <option value="{{ type.slug }}" {% if selected_type == type.slug %}selected{% endif %}>{{ type.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-2">
-        <label class="form-label" for="tag">标签</label>
-        <select id="tag" class="form-select" name="tag">
-          <option value="">全部标签</option>
-          {% for tag in tags %}
-            <option value="{{ tag.slug }}" {% if selected_tag == tag.slug %}selected{% endif %}>{{ tag.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-2">
-        <label class="form-label" for="functional_group">官能团</label>
-        <select id="functional_group" class="form-select" name="functional_group">
-          <option value="">全部官能团</option>
-          {% for group in functional_groups %}
-            <option value="{{ group.pk }}" {% if selected_functional_group == group.pk|stringformat:"s" %}selected{% endif %}>{{ group.name_zh }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-1">
-        <label class="form-label" for="sort">排序</label>
-        <select id="sort" class="form-select" name="sort">
-          <option value="name" {% if selected_sort == "name" %}selected{% endif %}>名称</option>
-          <option value="type" {% if selected_sort == "type" %}selected{% endif %}>类型</option>
-          <option value="updated" {% if selected_sort == "updated" %}selected{% endif %}>更新</option>
-        </select>
-      </div>
-      <div class="col-md-1 d-grid">
-        <button class="btn btn-dark" type="submit" aria-label="筛选">
-          <i class="bi bi-search"></i>
-        </button>
-      </div>
-      <div class="col-12">
-        <label class="form-check form-check-inline mb-0">
-          <input class="form-check-input" type="checkbox" name="exam" value="1" {% if exam_filter == "1" %}checked{% endif %}>
-          <span class="form-check-label">只看考研高频</span>
-        </label>
-      </div>
-    </form>
+    <div class="reaction-map-hero__copy">
+      <p class="eyebrow mb-2">Organic name reactions</p>
+      <h1>人名反应</h1>
+      <p>已收录在化学学习中常见的人名反应，适合按名称、官能团、机理考点和合成用途快速查询。</p>
+    </div>
   </div>
 </section>
 
-<section class="py-4">
+<section class="reaction-browser-wrap">
   <div class="container">
-    <div class="row g-3">
-      {% for reaction in reactions %}
-        <div class="col-md-6 col-xl-4">
-          {% include "reactions/partials/reaction_card.html" with reaction=reaction query=query %}
-        </div>
-      {% empty %}
-        <div class="col-12">
-          <div class="empty-state">没有找到匹配的已发布反应。</div>
-          <div class="recommend-panel mt-3">
-            <h2 class="h5">推荐查看</h2>
-            <div class="row g-3">
-              {% for reaction in recommended_reactions %}
-                <div class="col-md-4">{% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}</div>
+    <div class="reaction-browser">
+      <aside class="reaction-browser__sidebar" aria-label="人名反应目录">
+        <form class="reaction-browser__search" method="get">
+          <div class="input-group">
+            <input id="q" class="form-control" name="q" value="{{ query }}" type="search" placeholder="请输入">
+            <button class="btn btn-primary-ink" type="submit" aria-label="搜索">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+          <a class="reset-link" href="{% url 'reaction_list' %}">重置</a>
+          <div class="reaction-browser__filters">
+            <select id="type" class="form-select" name="type" aria-label="类型">
+              <option value="">全部类型</option>
+              {% for type in reaction_types %}
+                <option value="{{ type.slug }}" {% if selected_type == type.slug %}selected{% endif %}>{{ type.name }}</option>
               {% endfor %}
-            </div>
+            </select>
+            <select id="tag" class="form-select" name="tag" aria-label="标签">
+              <option value="">全部标签</option>
+              {% for tag in tags %}
+                <option value="{{ tag.slug }}" {% if selected_tag == tag.slug %}selected{% endif %}>{{ tag.name }}</option>
+              {% endfor %}
+            </select>
+            <select id="functional_group" class="form-select" name="functional_group" aria-label="官能团">
+              <option value="">全部官能团</option>
+              {% for group in functional_groups %}
+                <option value="{{ group.pk }}" {% if selected_functional_group == group.pk|stringformat:"s" %}selected{% endif %}>{{ group.name_zh }}</option>
+              {% endfor %}
+            </select>
+            <select id="sort" class="form-select" name="sort" aria-label="排序">
+              <option value="name" {% if selected_sort == "name" %}selected{% endif %}>按名称</option>
+              <option value="type" {% if selected_sort == "type" %}selected{% endif %}>按类型</option>
+              <option value="updated" {% if selected_sort == "updated" %}selected{% endif %}>按更新</option>
+            </select>
+            <label class="form-check browser-check">
+              <input class="form-check-input" type="checkbox" name="exam" value="1" {% if exam_filter == "1" %}checked{% endif %}>
+              <span class="form-check-label">只看考研高频</span>
+            </label>
+          </div>
+        </form>
+        <div class="reaction-index">
+          {% for item in reaction_index %}
+            <a href="{{ item.get_absolute_url }}" title="{{ item.name_zh }}">
+              <span>{{ item.name_en|default:item.name_zh }}</span>
+            </a>
+          {% empty %}
+            <span class="text-muted">暂无已发布反应</span>
+          {% endfor %}
+        </div>
+      </aside>
+
+      <section class="reaction-browser__content" aria-label="查询结果">
+        <div class="browser-result-head">
+          <div>
+            <h2>查询结果</h2>
+            <p>
+              {% if query %}关键词“{{ query }}”{% else %}全部已发布反应{% endif %}
+              <span>共 {{ paginator.count }} 条</span>
+            </p>
+          </div>
+          <div class="browser-result-head__chips">
+            {% if selected_type %}<span>类型：{{ selected_type }}</span>{% endif %}
+            {% if selected_tag %}<span>标签：{{ selected_tag }}</span>{% endif %}
+            {% if exam_filter == "1" %}<span>考研高频</span>{% endif %}
           </div>
         </div>
-      {% endfor %}
+
+        <div class="reaction-result-list">
+          {% for reaction in reactions %}
+            <article class="reaction-result-item">
+              <div class="reaction-result-item__main">
+                <a class="reaction-result-item__title" href="{{ reaction.get_absolute_url }}">{{ reaction.name_en|highlight_query:query }}</a>
+                <h3>{{ reaction.name_zh|highlight_query:query }}</h3>
+                {% if reaction.summary %}
+                  <p>{{ reaction.summary|highlight_query:query }}</p>
+                {% endif %}
+                <div class="tag-row">
+                  {% if reaction.reaction_type %}<span>{{ reaction.reaction_type.name }}</span>{% endif %}
+                  {% for tag in reaction.tags.all %}<span>{{ tag.name }}</span>{% endfor %}
+                </div>
+              </div>
+              {% if reaction.get_thumbnail_img_src %}
+                <div class="reaction-result-item__thumb">
+                  <img src="{{ reaction.get_thumbnail_img_src }}" alt="{{ reaction.name_zh }}" onerror="this.onerror=null;this.parentElement.style.display='none'">
+                </div>
+              {% elif reaction.get_equation_img_src %}
+                <div class="reaction-result-item__thumb">
+                  <img src="{{ reaction.get_equation_img_src }}" alt="{{ reaction.name_zh }}" onerror="this.onerror=null;this.parentElement.style.display='none'">
+                </div>
+              {% endif %}
+            </article>
+          {% empty %}
+            <div class="empty-state">没有找到匹配的已发布反应。</div>
+            <div class="recommend-panel mt-3">
+              <h2 class="h5">推荐查看</h2>
+              <div class="row g-3">
+                {% for reaction in recommended_reactions %}
+                  <div class="col-md-4">{% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}</div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        {% include "reactions/partials/pagination.html" %}
+      </section>
     </div>
-    {% include "reactions/partials/pagination.html" %}
   </div>
 </section>
 {% endblock %}

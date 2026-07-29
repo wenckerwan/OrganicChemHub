@@ -9,3 +9,5 @@ db.sqlite3
 htmlcov/
 staticfiles/
 media/
+backups/
+scripts/__pycache__/

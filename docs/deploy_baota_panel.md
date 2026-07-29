@@ -52,6 +52,7 @@ env_path.write_text(text, encoding="utf-8")
 PY
 python manage.py migrate
 python manage.py loaddata common_reactions
+python manage.py loaddata exam_reactions
 python manage.py collectstatic --noinput
 python manage.py createsuperuser
 ```
@@ -92,6 +93,11 @@ location /static/ {
     alias /www/wwwroot/chem.wencker.top/staticfiles/;
     expires 30d;
     access_log off;
+}
+
+location /media/ {
+    alias /www/wwwroot/chem.wencker.top/media/;
+    expires 7d;
 }
 ```
 
@@ -150,6 +156,8 @@ git pull
 source .venv/bin/activate
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 python manage.py migrate
+python manage.py loaddata common_reactions
+python manage.py loaddata exam_reactions
 python manage.py collectstatic --noinput
 ```
 
@@ -159,12 +167,13 @@ python manage.py collectstatic --noinput
 
 - 打开域名显示 502：检查 Gunicorn/Supervisor 是否运行，端口是否为 `127.0.0.1:8000`。
 - 静态样式不显示：检查 `collectstatic` 是否执行，Nginx `/static/` 是否指向 `staticfiles`。
+- 后台上传的结构式图片不显示：检查 Nginx `/media/` 是否指向 `/www/wwwroot/chem.wencker.top/media/`。
 - 后台无法登录：确认 `python manage.py migrate` 已执行，并已创建超级管理员。
 - 表单提交出现 CSRF 错误：检查 `.env` 中 `DJANGO_CSRF_TRUSTED_ORIGINS` 是否包含当前访问协议和域名。
-- 搜索没有内容：执行 `python manage.py loaddata common_reactions`，并确认内容状态为“已发布”。
+- 搜索没有内容：执行 `python manage.py loaddata common_reactions exam_reactions`，并确认内容状态为“已发布”。
 
 ## 10. 备份建议
 
 - 宝塔计划任务每日备份 `/www/wwwroot/chem.wencker.top/db.sqlite3`。
-- 更新代码前备份 `.env` 和 `db.sqlite3`。
+- 更新代码前备份 `.env`、`db.sqlite3` 和 `media/`。
 - 大批量导入学习资料索引前，先备份数据库。

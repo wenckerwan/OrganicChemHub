@@ -41,6 +41,8 @@ OrganicChemHub 0.1 已完成基础资料库能力：
 | 0.2 | 内容维护增强 | 提升后台录入效率和内容规范性 |
 | 0.3 | 搜索与分类增强 | 让学生更快找到目标反应和路线 |
 | 0.35 | UI 与前端结构式展示 | 提升网站观感，并用前端库渲染 SMILES |
+| 0.36 | 查询页与考研反应扩充 | 借鉴目录式查询体验，并扩充考研常见反应 |
+| 0.37 | 图片结构式与后台维护 | 改为图片优先展示，并支持后台上传替换 |
 | 0.4 | RDKit 结构能力 | 将结构式校验、缓存和子结构基础能力移到后端 |
 | 0.5 | 学习专题 | 从查询工具扩展为复习辅助工具 |
 | 0.6 | 数据导入导出 | 支持批量录入和批量维护 |
@@ -139,6 +141,40 @@ python manage.py collectstatic --noinput
 ```
 
 然后重启 Gunicorn/Supervisor。
+
+### 5.0.1 0.36 已完成的查询页和内容扩充
+
+- 人名反应查询页调整为“蓝色页眉 + 左侧滚动目录 + 右侧结果区”。
+- 分页控件显示上一页、当前页、总页数和下一页。
+- 新增 `exam_reactions` fixture，包含 32 条考研常见人名反应。
+- 内容来源方式：参考 DrugFuture Organic Name Reactions 的反应目录，以及基础有机化学教材常见考点重新整理中文摘要、条件、机理和考点；不复制原站正文和反应图片。
+
+服务器更新后执行：
+
+```bash
+cd /www/wwwroot/chem.wencker.top
+source .venv/bin/activate
+python manage.py loaddata exam_reactions
+python manage.py collectstatic --noinput
+```
+
+### 5.0.2 0.37 已完成的图片结构式能力
+
+- 详情页不再加载在线 SMILES 渲染脚本。
+- 反应详情、路线目标产物、路线步骤均支持“上传图片优先，其次图片 URL，最后 SMILES 占位”。
+- 后台增加结构式图片上传、图片 URL、说明文字和预览。
+- 从用户自制《有机化学复习讲义》中提取部分可明确匹配的人名反应图片，作为临时结构式素材。
+- 生产部署需要配置 `/media/`，用于访问后台上传的结构式图片。
+
+服务器更新后执行：
+
+```bash
+cd /www/wwwroot/chem.wencker.top
+source .venv/bin/activate
+python manage.py migrate
+python manage.py loaddata common_reactions exam_reactions
+python manage.py collectstatic --noinput
+```
 
 ### 5.1 目标
 

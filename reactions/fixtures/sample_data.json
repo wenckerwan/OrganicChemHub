@@ -56,9 +56,13 @@
       "slug": "wittig-reaction",
       "aliases": "Wittig olefination",
       "reaction_type": 1,
-      "tags": [1, 2],
-      "functional_groups": [1],
-      "equation_smiles": "C=O.CPPh3>>C=C",
+      "tags": [
+        1,
+        2
+      ],
+      "functional_groups": [
+        1
+      ],
       "summary": "醛或酮与膦叶立德反应生成烯烃，是羰基化合物转化为烯烃的重要方法。",
       "condition": "常见条件为膦盐在强碱作用下生成膦叶立德，再与醛酮反应。",
       "mechanism": "膦叶立德进攻羰基碳，经过甜菜碱或氧杂膦杂环丁烷中间体，最终生成烯烃和三苯基氧膦。",
@@ -80,9 +84,13 @@
       "slug": "friedel-crafts-acylation",
       "aliases": "F-C acylation",
       "reaction_type": 1,
-      "tags": [1, 2],
-      "functional_groups": [1],
-      "equation_smiles": "c1ccccc1.CC(=O)Cl>>CC(=O)c1ccccc1",
+      "tags": [
+        1,
+        2
+      ],
+      "functional_groups": [
+        1
+      ],
       "summary": "芳烃在 Lewis 酸催化下与酰卤或酸酐反应，生成芳香酮。",
       "condition": "常用无水 AlCl3 等 Lewis 酸，反应需控制水分。",
       "mechanism": "酰卤与 Lewis 酸生成酰基正离子等亲电物种，芳环发生亲电取代并脱质子恢复芳香性。",
@@ -100,14 +108,15 @@
     "pk": 1,
     "fields": {
       "target_product": "苯乙酮",
-      "target_smiles": "CC(=O)c1ccccc1",
       "slug": "acetophenone",
       "summary": "从苯出发，经傅克酰基化制备苯乙酮的基础路线。",
       "advantages": "步骤短，目标产物明确，适合基础合成题。",
       "disadvantages": "需要无水 Lewis 酸条件，对强失活芳环不适用。",
       "difficulty": "beginner",
       "source": "基础有机化学芳香亲电取代章节。",
-      "related_reactions": [2],
+      "related_reactions": [
+        2
+      ],
       "status": "published",
       "created_at": "2026-07-28T00:00:00Z",
       "updated_at": "2026-07-28T00:00:00Z"
@@ -120,12 +129,12 @@
       "route": 1,
       "step_number": 1,
       "title": "傅克酰基化",
-      "reactant_smiles": "c1ccccc1",
-      "product_smiles": "CC(=O)c1ccccc1",
       "reagents": "乙酰氯，AlCl3",
       "condition": "无水条件",
       "yield_text": "",
-      "related_reactions": [2],
+      "related_reactions": [
+        2
+      ],
       "note": "芳环发生亲电取代，引入乙酰基。"
     }
   }

@@ -29,9 +29,27 @@
             <p>{{ reaction.summary|linebreaksbr }}</p>
           </section>
         {% endif %}
-        {% if reaction.equation_smiles %}
+        {% if reaction.get_equation_img_src or reaction.get_structure_image_src %}
           <section class="detail-section">
-            {% include "reactions/partials/structure_viewer.html" with smiles=reaction.equation_smiles mode="reaction" title="反应结构式" %}
+            <h2>反应方程式</h2>
+            <figure class="structure-image-frame">
+              {% if reaction.get_equation_img_src %}
+                <img src="{{ reaction.get_equation_img_src }}" alt="反应方程式" onerror="this.onerror=null;this.outerHTML='<span class=\&quot;structure-viewer__placeholder\&quot;>图片加载失败</span>'">
+              {% elif reaction.get_structure_image_src %}
+                <img src="{{ reaction.get_structure_image_src }}" alt="反应结构式" onerror="this.onerror=null;this.outerHTML='<span class=\&quot;structure-viewer__placeholder\&quot;>图片加载失败</span>'">
+              {% endif %}
+              {% if reaction.structure_image_caption %}
+                <figcaption>{{ reaction.structure_image_caption }}</figcaption>
+              {% endif %}
+            </figure>
+          </section>
+        {% endif %}
+        {% if reaction.get_mechanism_img_src %}
+          <section class="detail-section">
+            <h2>反应机理</h2>
+            <figure class="structure-image-frame">
+              <img src="{{ reaction.get_mechanism_img_src }}" alt="反应机理" onerror="this.onerror=null;this.outerHTML='<span class=\&quot;structure-viewer__placeholder\&quot;>图片加载失败</span>'">
+            </figure>
           </section>
         {% endif %}
         {% if reaction.condition %}

@@ -1,0 +1,20 @@
+name_zh,name_en,equation_smiles,reaction_type_slug,summary,condition,exam_tips,reference,status
+# ── 现有 18 条缺图反应（补 SMILES） ──
+Gabriel 合成,Gabriel Synthesis,,carbon-carbon-bond-formation,邻苯二甲酰亚胺法制备伯胺，原料为卤代烃,,考研高频,基础有机化学,draft
+Dieckmann 缩合,Dieckmann Condensation,,carbon-carbon-bond-formation,二酯分子内克莱森缩合形成环状β-酮酯,,考研高频,基础有机化学,draft
+Perkin 反应,Perkin Reaction,,carbon-carbon-bond-formation,芳香醛与酸酐在碱作用下缩合生成肉桂酸类化合物,,考研高频,基础有机化学,draft
+Knoevenagel 缩合,Knoevenagel Condensation,,carbon-carbon-bond-formation,醛酮与活泼亚甲基化合物在弱碱作用下缩合,,考研高频,基础有机化学,draft
+Reformatsky 反应,Reformatsky Reaction,,carbon-carbon-bond-formation,醛酮与α-卤代酸酯在锌粉作用下缩合生成β-羟基酯,,考研高频,基础有机化学,draft
+Sandmeyer 反应,Sandmeyer Reaction,,substitution-elimination,重氮盐在卤化亚铜作用下转化为卤代芳烃,,考研高频,基础有机化学,draft
+Reimer-Tiemann 反应,Reimer-Tiemann Reaction,,substitution-elimination,苯酚在氯仿和强碱作用下在邻位引入醛基,,考研高频,基础有机化学,draft
+Kolbe-Schmitt 反应,Kolbe-Schmitt Reaction,,substitution-elimination,苯酚钠与二氧化碳在高温高压下反应生成水杨酸,,考研高频,基础有机化学,draft
+Mannich 反应,Mannich Reaction,,carbon-carbon-bond-formation,含活泼氢的化合物与甲醛和胺缩合生成β-氨基化合物,,考研高频,基础有机化学,draft
+Robinson 环化,Robinson Annulation,,carbon-carbon-bond-formation,Michael加成后分子内Aldol缩合构建环己烯酮骨架,,考研高阶,基础有机化学,draft
+Stork 烯胺反应,Stork Enamine Reaction,,carbon-carbon-bond-formation,烯胺作为亲核试剂与烷基化试剂或酰卤反应,,考研高频,基础有机化学,draft
+Schmidt 重排,Schmidt Rearrangement,,rearrangement-reactions,叠氮酸在酸催化下与羰基化合物反应生成酰胺或胺,,考研高频,基础有机化学,draft
+Wolff 重排,Wolff Rearrangement,,rearrangement-reactions,α-重氮酮在光照或银盐催化下发生Wolff重排生成烯酮,,考研高频,基础有机化学,draft
+Claisen 重排,Claisen Rearrangement,,rearrangement-reactions,烯丙基芳基醚在高温下重排为邻位烯丙基苯酚,,考研高频,基础有机化学,draft
+Cope 重排,Cope Rearrangement,,rearrangement-reactions,1,5-二烯在加热条件下发生[3,3]σ重排,,考研高频,基础有机化学,draft
+Fries 重排,Fries Rearrangement,,rearrangement-reactions,酚酯在Lewis酸催化下加热重排为邻位或对位酰基苯酚,,考研高频,基础有机化学,draft
+Darzens 反应,Darzens Reaction,,carbon-carbon-bond-formation,醛酮与α-卤代酯在碱作用下缩合生成缩水甘油酸酯,,考研高频,基础有机化学,draft
+Hantzsch 吡啶合成,Hantzsch Pyridine Synthesis,,carbon-carbon-bond-formation,β-酮酯与甲醛和氨缩合生成对称吡啶衍生物,,考研高频,基础有机化学,draft

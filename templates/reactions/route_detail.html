@@ -21,9 +21,9 @@
   <div class="container">
     <div class="row g-4">
       <div class="col-lg-8">
-        {% if route.target_smiles %}
+        {% if route.get_target_structure_image_src %}
           <section class="detail-section">
-            {% include "reactions/partials/structure_viewer.html" with smiles=route.target_smiles mode="molecule" title="目标产物结构式" %}
+            {% include "reactions/partials/structure_viewer.html" with image_src=route.get_target_structure_image_src caption=route.target_structure_image_caption title="目标产物结构式" %}
           </section>
         {% endif %}
         <section class="detail-section">
@@ -37,11 +37,11 @@
                   {% if step.reagents %}<p><strong>试剂：</strong>{{ step.reagents|linebreaksbr }}</p>{% endif %}
                   {% if step.condition %}<p><strong>条件：</strong>{{ step.condition|linebreaksbr }}</p>{% endif %}
                   {% if step.yield_text %}<p><strong>产率：</strong>{{ step.yield_text }}</p>{% endif %}
-                  {% if step.reactant_smiles %}
-                    {% include "reactions/partials/structure_viewer.html" with smiles=step.reactant_smiles mode="molecule" title="反应物结构式" %}
+                  {% if step.get_reactant_structure_image_src %}
+                    {% include "reactions/partials/structure_viewer.html" with image_src=step.get_reactant_structure_image_src caption=step.structure_image_caption title="反应物结构式" %}
                   {% endif %}
-                  {% if step.product_smiles %}
-                    {% include "reactions/partials/structure_viewer.html" with smiles=step.product_smiles mode="molecule" title="产物结构式" %}
+                  {% if step.get_product_structure_image_src %}
+                    {% include "reactions/partials/structure_viewer.html" with image_src=step.get_product_structure_image_src caption=step.structure_image_caption title="产物结构式" %}
                   {% endif %}
                   {% if step.note %}<p class="text-secondary">{{ step.note|linebreaksbr }}</p>{% endif %}
                   <div class="tag-row">

@@ -1,13 +1,20 @@
-<div class="structure-viewer" data-chem-viewer="{{ mode|default:'molecule' }}" data-smiles="{{ smiles }}" aria-label="{{ title|default:'化学结构式' }}">
+<div class="structure-viewer structure-viewer--image" aria-label="{{ title|default:'化学结构式' }}">
   <div class="structure-viewer__head">
     <span>{{ title|default:"结构式" }}</span>
-    <span class="structure-viewer__status" data-chem-status>等待渲染</span>
+    <span class="structure-viewer__status" data-state="{% if image_src %}ready{% else %}warning{% endif %}">
+      {% if image_src %}图片{% else %}待上传{% endif %}
+    </span>
   </div>
-  <div class="structure-viewer__stage" data-chem-stage>
-    <span class="structure-viewer__placeholder">正在加载结构式...</span>
+  <div class="structure-viewer__stage structure-image-stage">
+    {% if image_src %}
+      <figure class="structure-image-frame">
+        <img src="{{ image_src }}" alt="{{ title|default:'化学结构式' }}" onerror="this.onerror=null;this.outerHTML='<span class=\&quot;structure-viewer__placeholder\&quot;>图片加载失败</span>'">
+        {% if caption %}
+          <figcaption>{{ caption }}</figcaption>
+        {% endif %}
+      </figure>
+    {% else %}
+      <span class="structure-viewer__placeholder">暂未上传结构式图片</span>
+    {% endif %}
   </div>
-  <details class="structure-viewer__raw">
-    <summary>查看 SMILES</summary>
-    <pre>{{ smiles }}</pre>
-  </details>
 </div>
