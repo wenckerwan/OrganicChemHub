@@ -403,3 +403,68 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.content[:50]}"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey("auth.User", verbose_name="用户", on_delete=models.CASCADE)
+    reaction = models.ForeignKey(Reaction, verbose_name="反应", on_delete=models.CASCADE, null=True, blank=True)
+    route = models.ForeignKey(SyntheticRoute, verbose_name="路线", on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField("收藏时间", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "收藏"
+        verbose_name_plural = "收藏"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "reaction"], name="unique_fav_reaction"),
+            models.UniqueConstraint(fields=["user", "route"], name="unique_fav_route"),
+        ]
+
+    def __str__(self):
+        if self.reaction:
+            return f"{self.user.username} 收藏反应: {self.reaction.name_zh}"
+        if self.route:
+            return f"{self.user.username} 收藏路线: {self.route.target_product}"
+        return str(self.pk)
+
+
+class StudyNote(models.Model):
+    user = models.ForeignKey("auth.User", verbose_name="用户", on_delete=models.CASCADE)
+    reaction = models.ForeignKey(Reaction, verbose_name="反应", on_delete=models.CASCADE, null=True, blank=True)
+    route = models.ForeignKey(SyntheticRoute, verbose_name="路线", on_delete=models.CASCADE, null=True, blank=True)
+    content = models.TextField("笔记内容")
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        verbose_name = "学习笔记"
+        verbose_name_plural = "学习笔记"
+
+    def __str__(self):
+        target = self.reaction or self.route
+        return f"{self.user.username} 的笔记 - {target}"
+
+
+class StudyProgress(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "待学习"
+        LEARNED = "learned", "已学"
+        REVIEW = "review", "待复习"
+
+    user = models.ForeignKey("auth.User", verbose_name="用户", on_delete=models.CASCADE)
+    reaction = models.ForeignKey(Reaction, verbose_name="反应", on_delete=models.CASCADE, null=True, blank=True)
+    route = models.ForeignKey(SyntheticRoute, verbose_name="路线", on_delete=models.CASCADE, null=True, blank=True)
+    status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        verbose_name = "学习进度"
+        verbose_name_plural = "学习进度"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "reaction"], name="unique_progress_reaction"),
+            models.UniqueConstraint(fields=["user", "route"], name="unique_progress_route"),
+        ]
+
+    def __str__(self):
+        target = self.reaction or self.route
+        return f"{self.user.username} - {target} - {self.get_status_display()}"

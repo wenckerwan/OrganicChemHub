@@ -1,9 +1,27 @@
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import DetailView, ListView, TemplateView, View
 
-from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Reaction, ReactionType, SyntheticRoute, Tag
+from .models import (
+    Announcement,
+    Favorite,
+    Feedback,
+    FunctionalGroup,
+    LearningResource,
+    Reaction,
+    ReactionType,
+    RouteStep,
+    StudyNote,
+    StudyProgress,
+    SyntheticRoute,
+    Tag,
+)
 
 
 class HomeView(TemplateView):
@@ -20,10 +38,7 @@ class HomeView(TemplateView):
         context["tags"] = Tag.objects.all()[:12]
         now = timezone.now()
         context["announcements"] = Announcement.objects.filter(
-            is_active=True
-        ).extra(
-            where=["(is_pinned=1) OR ((show_from IS NULL OR show_from <= ?) AND (show_until IS NULL OR show_until >= ?))"],
-            params=[now, now],
+            is_active=True,
         )[:5]
         context["popup_announcements"] = Announcement.objects.filter(
             is_active=True, is_pinned=True, importance=Announcement.Importance.HIGH
@@ -33,6 +48,21 @@ class HomeView(TemplateView):
 
 class DeployGuideView(TemplateView):
     template_name = "reactions/deploy_guide.html"
+
+
+class RegisterView(TemplateView):
+    template_name = "registration/register.html"
+
+    def post(self, request):
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("home")
+        return self.render_to_response({"form": form})
+
+    def get(self, request, *args, **kwargs):
+        return self.render_to_response({"form": UserCreationForm()})
 
 
 class ReactionListView(ListView):
@@ -99,6 +129,22 @@ class ReactionDetailView(DetailView):
     context_object_name = "reaction"
     queryset = Reaction.published.select_related("reaction_type").prefetch_related("tags", "functional_groups", "routes")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        rxn = self.object
+        if user.is_authenticated:
+            context["is_favorited"] = Favorite.objects.filter(user=user, reaction=rxn).exists()
+            try:
+                context["user_note"] = StudyNote.objects.get(user=user, reaction=rxn)
+            except StudyNote.DoesNotExist:
+                context["user_note"] = None
+            try:
+                context["user_progress"] = StudyProgress.objects.get(user=user, reaction=rxn)
+            except StudyProgress.DoesNotExist:
+                context["user_progress"] = None
+        return context
+
 
 class RouteListView(ListView):
     model = SyntheticRoute
@@ -148,6 +194,22 @@ class RouteDetailView(DetailView):
     template_name = "reactions/route_detail.html"
     context_object_name = "route"
     queryset = SyntheticRoute.published.prefetch_related("related_reactions", "steps", "steps__related_reactions")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        route = self.object
+        if user.is_authenticated:
+            context["is_favorited"] = Favorite.objects.filter(user=user, route=route).exists()
+            try:
+                context["user_note"] = StudyNote.objects.get(user=user, route=route)
+            except StudyNote.DoesNotExist:
+                context["user_note"] = None
+            try:
+                context["user_progress"] = StudyProgress.objects.get(user=user, route=route)
+            except StudyProgress.DoesNotExist:
+                context["user_progress"] = None
+        return context
 
 
 class LearningResourceListView(ListView):
@@ -202,3 +264,71 @@ class FeedbackView(View):
         if name and content:
             Feedback.objects.create(name=name, email=email, content=content)
         return redirect("home")
+
+
+class ToggleFavoriteView(LoginRequiredMixin, View):
+    def post(self, request):
+        reaction_pk = request.POST.get("reaction")
+        route_pk = request.POST.get("route")
+        user = request.user
+        if reaction_pk:
+            fav, created = Favorite.objects.get_or_create(user=user, reaction_id=reaction_pk)
+            if not created:
+                fav.delete()
+        elif route_pk:
+            fav, created = Favorite.objects.get_or_create(user=user, route_id=route_pk)
+            if not created:
+                fav.delete()
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+class SaveNoteView(LoginRequiredMixin, View):
+    def post(self, request):
+        reaction_pk = request.POST.get("reaction")
+        route_pk = request.POST.get("route")
+        content = request.POST.get("content", "").strip()
+        if reaction_pk:
+            StudyNote.objects.update_or_create(
+                user=request.user, reaction_id=reaction_pk,
+                defaults={"content": content},
+            )
+        elif route_pk:
+            StudyNote.objects.update_or_create(
+                user=request.user, route_id=route_pk,
+                defaults={"content": content},
+            )
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+class UpdateProgressView(LoginRequiredMixin, View):
+    def post(self, request):
+        reaction_pk = request.POST.get("reaction")
+        route_pk = request.POST.get("route")
+        status = request.POST.get("status", StudyProgress.Status.PENDING)
+        user = request.user
+        if reaction_pk:
+            StudyProgress.objects.update_or_create(
+                user=user, reaction_id=reaction_pk,
+                defaults={"status": status},
+            )
+        elif route_pk:
+            StudyProgress.objects.update_or_create(
+                user=user, route_id=route_pk,
+                defaults={"status": status},
+            )
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+class ProfileView(LoginRequiredMixin, TemplateView):
+    template_name = "reactions/profile.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context["favorites"] = Favorite.objects.filter(user=user).select_related("reaction", "route").order_by("-created_at")
+        context["favorites_count"] = context["favorites"].count()
+        context["notes"] = StudyNote.objects.filter(user=user).select_related("reaction", "route").order_by("-updated_at")
+        context["notes_count"] = context["notes"].count()
+        context["learned_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).count()
+        context["review_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).count()
+        return context

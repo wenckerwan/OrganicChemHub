@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}个人中心 | OrganicChemHub{% endblock %}
+{% block content %}
+<section class="py-4">
+  <div class="container">
+    <h1 class="h3 mb-4">个人中心</h1>
+
+    <!-- 统计概览 -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="quick-panel text-center">
+          <div class="fs-2 fw-bold" style="color:#0f766e;">{{ favorites_count }}</div>
+          <div class="text-muted small">收藏</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="quick-panel text-center">
+          <div class="fs-2 fw-bold" style="color:#0369a1;">{{ notes_count }}</div>
+          <div class="text-muted small">笔记</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="quick-panel text-center">
+          <div class="fs-2 fw-bold" style="color:#15803d;">{{ learned_count }}</div>
+          <div class="text-muted small">已学</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="quick-panel text-center">
+          <div class="fs-2 fw-bold" style="color:#a16207;">{{ review_count }}</div>
+          <div class="text-muted small">待复习</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- 收藏列表 -->
+      <div class="col-lg-6">
+        <div class="quick-panel">
+          <h2 class="h5 mb-3">我的收藏</h2>
+          {% if favorites %}
+            <div class="list-group list-group-flush">
+              {% for fav in favorites %}
+                <a class="list-group-item px-0" href="
+                  {% if fav.reaction %}{{ fav.reaction.get_absolute_url }}
+                  {% elif fav.route %}{{ fav.route.get_absolute_url }}{% endif %}">
+                  {% if fav.reaction %}{{ fav.reaction.name_zh }}（{{ fav.reaction.name_en }}）
+                  {% elif fav.route %}{{ fav.route.target_product }}{% endif %}
+                  <span class="text-muted small ms-2">{{ fav.created_at|date:"Y-m-d" }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-0">暂无收藏，浏览反应或路线时点击 ♥ 收藏。</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 笔记列表 -->
+      <div class="col-lg-6">
+        <div class="quick-panel">
+          <h2 class="h5 mb-3">我的笔记</h2>
+          {% if notes %}
+            <div class="list-group list-group-flush">
+              {% for note in notes %}
+                <a class="list-group-item px-0" href="
+                  {% if note.reaction %}{{ note.reaction.get_absolute_url }}
+                  {% elif note.route %}{{ note.route.get_absolute_url }}{% endif %}">
+                  <strong>
+                    {% if note.reaction %}{{ note.reaction.name_zh }}
+                    {% elif note.route %}{{ note.route.target_product }}{% endif %}
+                  </strong>
+                  <p class="mb-0 text-secondary small">{{ note.content|truncatechars:80 }}</p>
+                  <span class="text-muted small">{{ note.updated_at|date:"Y-m-d" }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-0">暂无笔记。</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

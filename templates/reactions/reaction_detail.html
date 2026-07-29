@@ -11,9 +11,31 @@
         <p class="lead text-secondary mb-2">{{ reaction.name_en }}</p>
         {% if reaction.aliases %}<p class="text-muted mb-0">别名：{{ reaction.aliases }}</p>{% endif %}
       </div>
-      <div class="detail-badges">
-        {% if reaction.reaction_type %}<span>{{ reaction.reaction_type.name }}</span>{% endif %}
-        {% for tag in reaction.tags.all %}<span>{{ tag.name }}</span>{% endfor %}
+      <div class="d-flex align-items-center gap-2">
+        <div class="detail-badges">
+          {% if reaction.reaction_type %}<span>{{ reaction.reaction_type.name }}</span>{% endif %}
+          {% for tag in reaction.tags.all %}<span>{{ tag.name }}</span>{% endfor %}
+        </div>
+        {% if user.is_authenticated %}
+        <div class="d-flex gap-1">
+          <form method="post" action="{% url 'toggle_favorite' %}">
+            {% csrf_token %}
+            <input type="hidden" name="reaction" value="{{ reaction.pk }}">
+            <button type="submit" class="btn btn-sm {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %}" title="收藏">
+              <i class="bi bi-heart{% if not is_favorited %}-{% endif %}"></i>
+            </button>
+          </form>
+          <form method="post" action="{% url 'update_progress' %}">
+            {% csrf_token %}
+            <input type="hidden" name="reaction" value="{{ reaction.pk }}">
+            <select name="status" onchange="this.form.submit()" class="form-select form-select-sm" style="width:auto;">
+              <option value="pending" {% if user_progress.status == "pending" %}selected{% endif %}>待学习</option>
+              <option value="learned" {% if user_progress.status == "learned" %}selected{% endif %}>已学</option>
+              <option value="review" {% if user_progress.status == "review" %}selected{% endif %}>待复习</option>
+            </select>
+          </form>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -90,6 +112,17 @@
             {% endfor %}
           </div>
         </div>
+        {% if user.is_authenticated %}
+        <div class="side-panel mt-3">
+          <h2 class="h5">我的笔记</h2>
+          <form method="post" action="{% url 'save_note' %}">
+            {% csrf_token %}
+            <input type="hidden" name="reaction" value="{{ reaction.pk }}">
+            <textarea name="content" class="form-control" rows="4" placeholder="写下你的学习笔记……">{{ user_note.content|default:"" }}</textarea>
+            <button type="submit" class="btn btn-primary-ink btn-sm mt-2">保存笔记</button>
+          </form>
+        </div>
+        {% endif %}
       </aside>
     </div>
   </div>

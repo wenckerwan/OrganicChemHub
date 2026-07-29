@@ -72,6 +72,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "reactions.context_processors.app_version",
             ],
         },
     },
@@ -101,3 +102,8 @@ MEDIA_ROOT = BASE_DIR / "media"
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+APP_VERSION = "1.4"
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
