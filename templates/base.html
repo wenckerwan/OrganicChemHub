@@ -24,7 +24,9 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'reaction_list' %}">人名反应</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'route_list' %}">合成路线</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'learning_resource_list' %}">学习资料</a></li>
+          {% if user.is_staff %}
           <li class="nav-item"><a class="nav-link" href="{% url 'deploy_guide' %}">部署引导</a></li>
+          {% endif %}
           <li class="nav-item"><a class="nav-link" href="/admin/">后台管理</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#feedback">
             <i class="bi bi-chat-dots"></i> 反馈
