@@ -476,8 +476,9 @@ class LearningResourceAdmin(admin.ModelAdmin):
                 node = node.setdefault(part, {})
             # Mark leaf with resource info
             if node is not None:
-                node["__pk"] = res.pk
-                node["__title"] = res.title
+                node["item_pk"] = res.pk
+                node["item_title"] = res.title
+                node["is_leaf"] = True
         extra_context["file_tree"] = tree
         return super().changelist_view(request, extra_context=extra_context)
 

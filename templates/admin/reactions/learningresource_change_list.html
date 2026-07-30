@@ -9,7 +9,7 @@
       <h3 style="margin-top:0;">📂 目录树</h3>
       <ul style="list-style:none;padding-left:0;">
         {% for key, value in file_tree.items %}
-          {% if key != "__pk" and key != "__title" %}
+          {% if key != "item_pk" and key != "item_title" and key != "is_leaf" %}
             <li>
               <strong>📁 {{ key }}</strong>
               {% include "admin/reactions/tree_branch.html" with node=value %}
