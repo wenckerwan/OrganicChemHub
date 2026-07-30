@@ -12,7 +12,7 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.template.response import TemplateResponse
 
-from .models import Announcement, Feedback, FunctionalGroup, LearningResource, Message, NavItem, OpLog, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
+from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, LearningResource, Message, NavItem, OpLog, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -632,3 +632,17 @@ class OpLogAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+@admin.register(CommonReaction)
+class CommonReactionAdmin(admin.ModelAdmin):
+    list_display = ("name_zh", "sort_order", "status", "updated_at")
+    list_editable = ("sort_order",)
+    list_filter = ("status",)
+    search_fields = ("name_zh", "content")
+    prepopulated_fields = {"slug": ("name_zh",)}
+    fieldsets = (
+        ("基础信息", {"fields": ("name_zh", "slug", "status", "sort_order")}),
+        ("内容", {"fields": ("content",)}),
+        ("图片", {"fields": ("equation_img",)}),
+    )

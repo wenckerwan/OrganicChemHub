@@ -487,6 +487,28 @@ class OpLog(models.Model):
         return f"{self.user} {self.action} {self.object_repr}"
 
 
+class CommonReaction(models.Model):
+    """Non-person reactions — common/classic reactions like substitution, addition, elimination."""
+    Status = PublishStatus
+
+    name_zh = models.CharField("反应名称", max_length=100)
+    slug = models.SlugField("URL 标识", max_length=120, unique=True)
+    content = models.TextField("内容说明", blank=True, help_text="反应机理、要点说明等")
+    equation_img = models.FileField("反应方程式图片", upload_to="common_reactions/", blank=True)
+    sort_order = models.PositiveIntegerField("排序", default=0)
+    status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.DRAFT)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name_zh"]
+        verbose_name = "常见反应（非人名）"
+        verbose_name_plural = "常见反应（非人名）"
+
+    def __str__(self):
+        return self.name_zh
+
+
 class Favorite(models.Model):
     user = models.ForeignKey("auth.User", verbose_name="用户", on_delete=models.CASCADE)
     reaction = models.ForeignKey(Reaction, verbose_name="反应", on_delete=models.CASCADE, null=True, blank=True)

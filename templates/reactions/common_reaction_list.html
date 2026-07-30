@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load search_extras %}
+
+{% block title %}常见反应 | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="reaction-map-hero">
+  <div class="container">
+    <div class="reaction-map-hero__copy">
+      <p class="eyebrow mb-2">Common reactions</p>
+      <h1>常见反应</h1>
+      <p>考研常见反应汇总，涵盖人名反应和非人名的经典反应类型。</p>
+    </div>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+
+    <!-- 非人名的常见反应 -->
+    {% if common_reactions %}
+    <div class="section-title">
+      <h2>基础常见反应</h2>
+    </div>
+    <div class="row g-3 mb-5">
+      {% for cr in common_reactions %}
+        <div class="col-md-6 col-lg-4">
+          <div class="reaction-card h-100">
+            <h3 class="h5 mb-1">{{ cr.name_zh }}</h3>
+            {% if cr.equation_img %}
+              <div class="mini-thumb">
+                <img src="{{ cr.equation_img.url }}" alt="{{ cr.name_zh }}" style="max-height:80px;max-width:100%;object-fit:contain;">
+              </div>
+            {% endif %}
+            {% if cr.content %}
+              <p class="text-secondary small mb-0 mt-2">{{ cr.content|truncatechars:120 }}</p>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 常见的人名反应 -->
+    {% if reactions %}
+    <div class="section-title">
+      <h2>常见人名反应</h2>
+    </div>
+    <div class="row g-3">
+      {% for rxn in reactions %}
+        <div class="col-md-6 col-lg-4">
+          {% include "reactions/partials/reaction_card.html" with reaction=rxn query="" %}
+        </div>
+      {% empty %}
+        <div class="col-12">
+          <div class="empty-state">暂无已发布反应。</div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not common_reactions and not reactions %}
+    <div class="empty-state">暂无常见反应数据，请先在后台添加。</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

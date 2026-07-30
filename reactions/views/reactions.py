@@ -4,7 +4,7 @@ from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.views.generic import DetailView, ListView, View
 
-from ..models import Favorite, FunctionalGroup, Reaction, ReactionType, StudyNote, StudyProgress, Tag
+from ..models import CommonReaction, Favorite, FunctionalGroup, PublishStatus, Reaction, ReactionType, StudyNote, StudyProgress, Tag
 
 
 class ReactionListView(ListView):
@@ -59,17 +59,21 @@ class ReactionListView(ListView):
         return context
 
 
-class CommonReactionListView(ReactionListView):
-    """Dedicated view for common reactions (is_common=True)."""
+class CommonReactionListView(ListView):
+    """Dedicated view: common named reactions + non-person common reactions."""
+    model = Reaction
+    template_name = "reactions/common_reaction_list.html"
+    context_object_name = "reactions"
+    paginate_by = 20
 
     def get_queryset(self):
-        queryset = Reaction.published.select_related("reaction_type").prefetch_related("tags", "functional_groups")
-        return queryset.filter(is_common=True).distinct().order_by("name_en", "name_zh")
+        # Named reactions marked as common
+        return Reaction.published.filter(is_common=True).order_by("name_en", "name_zh")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["common_reactions"] = CommonReaction.objects.filter(status=PublishStatus.PUBLISHED).order_by("sort_order", "name_zh")
         context["is_common_view"] = True
-        context["exam_filter"] = ""
         return context
 
 
