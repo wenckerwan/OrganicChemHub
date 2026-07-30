@@ -459,27 +459,13 @@ class LearningResourceAdmin(admin.ModelAdmin):
         ("文件信息", {"fields": ("file_type", "size_bytes", "size_label", "relative_path", "local_path", "source_folder")}),
         ("时间", {"fields": ("created_at", "updated_at")}),
     )
-    change_list_template = "admin/reactions/learningresource_change_list.html"
+    change_list_template = None
 
     @admin.display(description="文件大小")
     def size_label(self, obj):
         return obj.size_label()
 
     def changelist_view(self, request, extra_context=None):
-        extra_context = extra_context or {}
-        # Build a simple tree from local_path
-        tree = {}
-        for res in LearningResource.objects.all().order_by("local_path"):
-            parts = res.local_path.replace("\\", "/").split("/")
-            node = tree
-            for part in parts:
-                node = node.setdefault(part, {})
-            # Mark leaf with resource info
-            if node is not None:
-                node["item_pk"] = res.pk
-                node["item_title"] = res.title
-                node["is_leaf"] = True
-        extra_context["file_tree"] = tree
         return super().changelist_view(request, extra_context=extra_context)
 
     @admin.display(description="文件大小")
