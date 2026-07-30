@@ -143,6 +143,7 @@ class Reaction(models.Model):
         blank=True,
         related_name="reactions",
     )
+    is_common = models.BooleanField("常见反应", default=False, help_text="勾选后该反应出现在常见反应列表中")
     equation_img = models.FileField(
         "反应方程式图片", upload_to=ReactionImageUploadTo("equation"), blank=True,
         help_text="上传反应方程式的 SVG 或 PNG 图片"

@@ -122,7 +122,7 @@ class ReactionAdmin(PublicationActionMixin, admin.ModelAdmin):
         "updated_at",
     )
     fieldsets = (
-        ("基础信息", {"fields": ("name_zh", "name_en", "slug", "aliases", "reaction_type", "status")}),
+        ("基础信息", {"fields": ("name_zh", "name_en", "slug", "aliases", "reaction_type", "status", "is_common")}),
         ("分类", {"fields": ("tags", "functional_groups")}),
         (
             "反应方程式图片",
