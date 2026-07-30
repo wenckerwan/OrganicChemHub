@@ -18,7 +18,6 @@ from .models import Announcement, Feedback, FunctionalGroup, LearningResource, M
 admin.site.site_header = "OrganicChemHub 管理后台"
 admin.site.site_title = "OrganicChemHub"
 admin.site.index_title = "有机化学资料库"
-admin.site.index_template = "admin/index.html"
 
 
 class PublicationActionMixin:
