@@ -1,0 +1,8 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module" style="padding:20px;max-width:760px;">
+  <h1>站内消息群发</h1>
+  <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit" class="default">发送</button></form>
+</div>
+{% endblock %}

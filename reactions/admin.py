@@ -12,6 +12,7 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.template.response import TemplateResponse
 
+from . import admin_tools
 from .admin_helpers import image_preview, thumbnail_img
 from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
 
@@ -772,3 +773,26 @@ class CommonReactionAdmin(admin.ModelAdmin):
         ("内容", {"fields": ("content",)}),
         ("图片", {"fields": ("equation_img",)}),
     )
+
+def _install_admin_tool_urls():
+    if getattr(admin.site, "_och_admin_tool_urls_registered", False):
+        return
+
+    original_get_urls = admin.site.get_urls
+
+    def get_urls():
+        custom_urls = [
+            path("reactions/dashboard/", admin.site.admin_view(admin_tools.dashboard_view), name="och_reactions_dashboard"),
+            path("reactions/import/", admin.site.admin_view(admin_tools.reaction_import_view), name="och_reactions_import"),
+            path("reactions/images/", admin.site.admin_view(admin_tools.image_maintenance_view), name="och_reactions_images"),
+            path("operations/messages/send/", admin.site.admin_view(admin_tools.message_broadcast_view), name="och_message_broadcast"),
+            path("operations/messages/cleanup/", admin.site.admin_view(admin_tools.message_cleanup_view), name="och_message_cleanup"),
+            path("resources/import-or-upload/", admin.site.admin_view(admin_tools.resource_upload_or_register_view), name="och_resource_import_or_upload"),
+        ]
+        return custom_urls + original_get_urls()
+
+    admin.site.get_urls = get_urls
+    admin.site._och_admin_tool_urls_registered = True
+
+
+_install_admin_tool_urls()

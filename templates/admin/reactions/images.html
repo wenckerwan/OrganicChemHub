@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module" style="padding:20px;">
+  <h1>图片维护</h1>
+  <h2>缺少必要图片的人名反应</h2>
+  <ul>{% for reaction in named_missing_images %}<li>{{ reaction.name_zh }}</li>{% empty %}<li>暂无</li>{% endfor %}</ul>
+  <h2>缺少必要图片的常见有机反应</h2>
+  <ul>{% for reaction in general_missing_images %}<li>{{ reaction.name_zh }}</li>{% empty %}<li>暂无</li>{% endfor %}</ul>
+</div>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.contrib.messages.storage.cookie import CookieStorage
@@ -679,3 +680,38 @@ class AdminRedesignRegistrationTests(TestCase):
 
         reaction.refresh_from_db()
         self.assertEqual(reaction.status, PublishStatus.PUBLISHED)
+
+class AdminToolPageTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_superuser("admin", "admin@example.com", "password")
+        self.client.force_login(self.user)
+
+    def test_dashboard_loads(self):
+        response = self.client.get("/admin/reactions/dashboard/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "内容质量仪表盘")
+
+    def test_import_page_loads(self):
+        response = self.client.get("/admin/reactions/import/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "CSV 导入")
+
+    def test_image_page_loads(self):
+        response = self.client.get("/admin/reactions/images/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "图片维护")
+
+    def test_message_broadcast_page_loads(self):
+        response = self.client.get("/admin/operations/messages/send/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "站内消息群发")
+
+    def test_message_cleanup_page_loads(self):
+        response = self.client.get("/admin/operations/messages/cleanup/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "消息清理")
+
+    def test_resource_tool_page_loads(self):
+        response = self.client.get("/admin/resources/import-or-upload/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "学习资料上传和登记")

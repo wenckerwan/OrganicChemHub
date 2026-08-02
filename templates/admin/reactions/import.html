@@ -1,0 +1,8 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module" style="padding:20px;max-width:760px;">
+  <h1>CSV 导入</h1>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button type="submit" class="default">上传</button></form>
+</div>
+{% endblock %}
