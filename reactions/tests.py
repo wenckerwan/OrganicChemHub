@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.contrib.messages.storage.cookie import CookieStorage
 from django.test import RequestFactory
@@ -715,3 +716,40 @@ class AdminToolPageTests(TestCase):
         response = self.client.get("/admin/resources/import-or-upload/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "学习资料上传和登记")
+    def test_reaction_import_creates_named_reaction(self):
+        csv_file = SimpleUploadedFile(
+            "reactions.csv",
+            (
+                "name_zh,name_en,slug,summary,condition,exam_tips,reference,status\n"
+                "CSV反应,CSV Reaction,csv-reaction,摘要,条件,考点,来源,draft\n"
+            ).encode("utf-8-sig"),
+            content_type="text/csv",
+        )
+
+        response = self.client.post(
+            "/admin/reactions/import/",
+            {"target": "named", "mode": "create", "csv_file": csv_file},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "新增 1")
+        self.assertTrue(NamedReaction.objects.filter(slug="csv-reaction").exists())
+
+    def test_dashboard_reports_missing_required_images(self):
+        NamedReaction.objects.create(
+            name_zh="缺图反应",
+            name_en="Missing Image Reaction",
+            slug="missing-image-reaction",
+            summary="摘要",
+            condition="条件",
+            exam_tips="考点",
+            reference="来源",
+        )
+
+        response = self.client.get("/admin/reactions/dashboard/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "缺方程式图")
+        self.assertContains(response, "缺缩略图")
+        self.assertContains(response, 'id="named-missing-equation">1')
+        self.assertContains(response, 'id="named-missing-thumbnail">1')

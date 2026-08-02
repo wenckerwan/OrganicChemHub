@@ -3,11 +3,38 @@
 {% block content %}
 <div class="module" style="padding:20px;">
   <h1>内容质量仪表盘</h1>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:900px;">
-    <div><strong>{{ named_total }}</strong><br>人名反应</div>
-    <div><strong>{{ general_total }}</strong><br>常见有机反应</div>
-    <div><strong>{{ routes_total }}</strong><br>合成路线</div>
-    <div><strong>{{ resources_total }}</strong><br>学习资料</div>
+
+  <h2>核心内容概览</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:980px;margin-bottom:24px;">
+    <div><span>人名反应总数</span><strong style="display:block;font-size:28px;">{{ named_stats.total }}</strong></div>
+    <div><span>常见有机反应总数</span><strong style="display:block;font-size:28px;">{{ general_stats.total }}</strong></div>
+    <div><span>合成路线</span><strong style="display:block;font-size:28px;">{{ routes_total }}</strong></div>
+    <div><span>学习资料</span><strong style="display:block;font-size:28px;">{{ resources_total }}</strong></div>
   </div>
+
+  <h2>人名反应质量</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:980px;margin-bottom:24px;">
+    <div><span>已发布</span><strong>{{ named_stats.published }}</strong></div>
+    <div><span>草稿</span><strong>{{ named_stats.drafts }}</strong></div>
+    <div><span>归档</span><strong>{{ named_stats.archived }}</strong></div>
+    <div><span>缺方程式图</span><strong id="named-missing-equation">{{ named_stats.missing_equation }}</strong></div>
+    <div><span>缺缩略图</span><strong id="named-missing-thumbnail">{{ named_stats.missing_thumbnail }}</strong></div>
+    <div><span>缺考点</span><strong>{{ named_stats.missing_exam_tips }}</strong></div>
+    <div><span>缺条件</span><strong>{{ named_stats.missing_condition }}</strong></div>
+  </div>
+
+  <h2>常见有机反应质量</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:980px;margin-bottom:24px;">
+    <div><span>已发布</span><strong>{{ general_stats.published }}</strong></div>
+    <div><span>草稿</span><strong>{{ general_stats.drafts }}</strong></div>
+    <div><span>归档</span><strong>{{ general_stats.archived }}</strong></div>
+    <div><span>缺方程式图</span><strong id="general-missing-equation">{{ general_stats.missing_equation }}</strong></div>
+    <div><span>缺缩略图</span><strong id="general-missing-thumbnail">{{ general_stats.missing_thumbnail }}</strong></div>
+    <div><span>缺考点</span><strong>{{ general_stats.missing_exam_tips }}</strong></div>
+    <div><span>缺条件</span><strong>{{ general_stats.missing_condition }}</strong></div>
+  </div>
+
+  <h2>路线质量</h2>
+  <p>缺少步骤的路线：<strong>{{ routes_missing_steps }}</strong></p>
 </div>
 {% endblock %}
