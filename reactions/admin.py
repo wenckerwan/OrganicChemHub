@@ -12,7 +12,8 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.template.response import TemplateResponse
 
-from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, LearningResource, Message, NavItem, OpLog, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
+from .admin_helpers import image_preview, thumbnail_img
+from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -52,6 +53,105 @@ class PublicationActionMixin:
         self.message_user(request, f"已归档 {archived_count} 条内容。", fail_silently=True)
 
 
+class ReactionAdminMixin(PublicationActionMixin):
+    actions = ("publish_selected", "archive_selected", "export_selected_as_csv")
+    date_hierarchy = "updated_at"
+    list_display = (
+        "name_zh",
+        "name_en",
+        "category",
+        "admin_thumbnail",
+        "status",
+        "content_completeness_display",
+        "missing_fields_display",
+        "updated_at",
+    )
+    list_filter = ("status", "category", "tags", "functional_groups", "created_at", "updated_at")
+    search_fields = ("name_zh", "name_en", "aliases", "condition", "summary", "exam_tips")
+    prepopulated_fields = {"slug": ("name_en",)}
+    filter_horizontal = ("tags", "functional_groups")
+    readonly_fields = (
+        "equation_img_preview",
+        "mechanism_img_preview",
+        "thumbnail_img_preview",
+        "created_at",
+        "updated_at",
+    )
+    fieldsets = (
+        ("基础信息", {"fields": ("name_zh", "name_en", "slug", "aliases", "category", "status")}),
+        ("分类信息", {"fields": ("tags", "functional_groups")}),
+        ("反应方程式图", {"fields": ("equation_img_preview", "equation_img")}),
+        ("机理图（可选）", {"fields": ("mechanism_img_preview", "mechanism_img")}),
+        ("缩略图", {"fields": ("thumbnail_img_preview", "thumbnail_img")}),
+        ("详细内容", {"fields": ("summary", "condition", "mechanism", "exam_tips", "scope", "limitations", "reference")}),
+        ("时间", {"fields": ("created_at", "updated_at")}),
+    )
+
+    @admin.display(description="缩略图")
+    def admin_thumbnail(self, obj):
+        return thumbnail_img(obj.get_thumbnail_img_src())
+
+    @admin.display(description="完整度")
+    def content_completeness_display(self, obj):
+        return obj.content_completeness()
+
+    @admin.display(description="反应方程式图预览")
+    def equation_img_preview(self, obj):
+        if not obj:
+            return "暂无图片"
+        return image_preview(obj.get_equation_img_src())
+
+    @admin.display(description="机理图预览")
+    def mechanism_img_preview(self, obj):
+        if not obj:
+            return "暂无图片"
+        return image_preview(obj.get_mechanism_img_src())
+
+    @admin.display(description="缩略图预览")
+    def thumbnail_img_preview(self, obj):
+        if not obj:
+            return "暂无图片"
+        return image_preview(obj.get_thumbnail_img_src(), max_w=220, max_h=140)
+
+    @admin.action(description="发布选中的完整反应")
+    def publish_selected(self, request, queryset):
+        self._publish_selected(request, queryset)
+
+    @admin.action(description="归档选中的反应")
+    def archive_selected(self, request, queryset):
+        self._archive_selected(request, queryset)
+
+    @admin.action(description="导出选中的反应为 CSV")
+    def export_selected_as_csv(self, request, queryset):
+        response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+        response["Content-Disposition"] = f"attachment; filename={queryset.model._meta.model_name}_export.csv"
+        writer = csv.writer(response)
+        writer.writerow([
+            "name_zh", "name_en", "slug", "category", "aliases", "summary", "condition",
+            "mechanism", "exam_tips", "scope", "limitations", "reference", "equation_img",
+            "mechanism_img", "thumbnail_img", "status", "content_completeness",
+        ])
+        for obj in queryset.select_related("category"):
+            writer.writerow([
+                obj.name_zh,
+                obj.name_en,
+                obj.slug,
+                obj.category.name if obj.category else "",
+                obj.aliases,
+                obj.summary,
+                obj.condition,
+                obj.mechanism,
+                obj.exam_tips,
+                obj.scope,
+                obj.limitations,
+                obj.reference,
+                obj.equation_img.name,
+                obj.mechanism_img.name,
+                obj.thumbnail_img.name,
+                obj.status,
+                obj.content_completeness(),
+            ])
+        return response
 # ── Unregister default User admin, register enhanced version ──
 admin.site.unregister(User)
 
@@ -88,6 +188,22 @@ class FunctionalGroupAdmin(admin.ModelAdmin):
     search_fields = ("name_zh", "name_en", "smarts", "description")
     list_per_page = 25
 
+
+
+@admin.register(NamedReactionCategory)
+class NamedReactionCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "sort_order", "is_active")
+    list_editable = ("sort_order", "is_active")
+    prepopulated_fields = {"slug": ("name",)}
+    search_fields = ("name", "description")
+
+
+@admin.register(GeneralReactionCategory)
+class GeneralReactionCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "sort_order", "is_active")
+    list_editable = ("sort_order", "is_active")
+    prepopulated_fields = {"slug": ("name",)}
+    search_fields = ("name", "description")
 
 @admin.register(NavItem)
 class NavItemAdmin(admin.ModelAdmin):
@@ -324,6 +440,16 @@ class RouteStepInline(admin.TabularInline):
     ordering = ("step_number",)
 
 
+
+@admin.register(NamedReaction)
+class NamedReactionAdmin(ReactionAdminMixin, admin.ModelAdmin):
+    pass
+
+
+@admin.register(GeneralReaction)
+class GeneralReactionAdmin(ReactionAdminMixin, admin.ModelAdmin):
+    pass
+
 @admin.register(SyntheticRoute)
 class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
     actions = ("publish_selected", "archive_selected", "export_selected_as_csv")
@@ -337,10 +463,10 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
         "source",
         "updated_at",
     )
-    list_filter = ("status", "difficulty", "related_reactions", "created_at", "updated_at")
+    list_filter = ("status", "difficulty", "related_reactions", "related_named_reactions", "related_general_reactions", "created_at", "updated_at")
     search_fields = ("target_product", "summary", "source")
     prepopulated_fields = {"slug": ("target_product",)}
-    filter_horizontal = ("related_reactions",)
+    filter_horizontal = ("related_reactions", "related_named_reactions", "related_general_reactions")
     readonly_fields = ("target_structure_image_preview", "created_at", "updated_at")
     inlines = (RouteStepInline,)
     fieldsets = (
@@ -357,7 +483,7 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
                 )
             },
         ),
-        ("路线说明", {"fields": ("summary", "advantages", "disadvantages", "source", "related_reactions")}),
+        ("路线说明", {"fields": ("summary", "advantages", "disadvantages", "source", "related_reactions", "related_named_reactions", "related_general_reactions")}),
         ("时间", {"fields": ("created_at", "updated_at")}),
     )
 
@@ -391,12 +517,12 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
         response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
         response["Content-Disposition"] = "attachment; filename=routes_export.csv"
         writer = csv.writer(response)
-        writer.writerow(["target_product", "slug", "difficulty", "summary", "advantages", "disadvantages", "source", "step_count", "status"])
+        writer.writerow(["target_product", "slug", "difficulty", "summary", "advantages", "disadvantages", "source", "step_count", "old_reaction_count", "named_reaction_count", "general_reaction_count", "status"])
         for obj in queryset:
             writer.writerow([
                 obj.target_product, obj.slug, obj.difficulty, obj.summary,
                 obj.advantages, obj.disadvantages, obj.source,
-                obj.steps.count(), obj.status,
+                obj.steps.count(), obj.related_reactions.count(), obj.related_named_reactions.count(), obj.related_general_reactions.count(), obj.status,
             ])
         return response
 
@@ -404,12 +530,12 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
 @admin.register(RouteStep)
 class RouteStepAdmin(admin.ModelAdmin):
     list_display = ("route", "step_number", "title", "yield_text")
-    list_filter = ("route", "related_reactions")
+    list_filter = ("route", "related_reactions", "related_named_reactions", "related_general_reactions")
     search_fields = ("route__target_product", "title", "reagents", "condition", "note")
-    filter_horizontal = ("related_reactions",)
+    filter_horizontal = ("related_reactions", "related_named_reactions", "related_general_reactions")
     readonly_fields = ("reactant_structure_image_preview", "product_structure_image_preview")
     fieldsets = (
-        ("基础信息", {"fields": ("route", "step_number", "title", "related_reactions")}),
+        ("基础信息", {"fields": ("route", "step_number", "title", "related_reactions", "related_named_reactions", "related_general_reactions")}),
         (
             "反应物与产物结构式",
             {

@@ -649,3 +649,33 @@ class AdminRedesignModelTests(TestCase):
         self.assertEqual(reaction.get_publication_missing_fields(), [])
         self.assertEqual(reaction.content_completeness(), "6/6")
         self.assertEqual(reaction.missing_fields_display(), "完整")
+
+class AdminRedesignRegistrationTests(TestCase):
+    def test_new_content_models_are_registered(self):
+        self.assertIn(NamedReaction, admin.site._registry)
+        self.assertIn(GeneralReaction, admin.site._registry)
+        self.assertIn(NamedReactionCategory, admin.site._registry)
+        self.assertIn(GeneralReactionCategory, admin.site._registry)
+
+    def test_mechanism_image_not_required_for_admin_publish(self):
+        category = NamedReactionCategory.objects.create(name="重排反应", slug="rearrangement")
+        reaction = NamedReaction.objects.create(
+            name_zh="测试反应",
+            name_en="Test Reaction",
+            slug="test-reaction-admin",
+            category=category,
+            summary="摘要",
+            condition="条件",
+            exam_tips="考点",
+            reference="来源",
+            equation_img="named_reactions/reaction_test_reaction_admin_equation.svg",
+            thumbnail_img="named_reactions/reaction_test_reaction_admin_thumbnail.svg",
+        )
+        model_admin = admin.site._registry[NamedReaction]
+        request = RequestFactory().post("/admin/")
+        request._messages = CookieStorage(request)
+
+        model_admin.publish_selected(request, NamedReaction.objects.filter(pk=reaction.pk))
+
+        reaction.refresh_from_db()
+        self.assertEqual(reaction.status, PublishStatus.PUBLISHED)
