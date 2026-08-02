@@ -1,746 +1,748 @@
-﻿# OrganicChemHub Admin Content Management Redesign
-
-## Goal
-
-Redesign OrganicChemHub's next backend content management version around a hybrid admin architecture: Django Admin remains the standard editing surface, while complex operational workflows move into dedicated admin tool pages.
-
-This version focuses on backend content management. Existing frontend visual design should be preserved as much as practical, but model structure and view data access may change. Existing production data does not need to be migrated.
+﻿# OrganicChemHub 后台内容管理重构设计
 
-## Confirmed Scope
-
-Primary modules:
-
-- Named reactions.
-- General organic reactions.
-- Synthetic routes.
-- Reaction categories.
-- Announcements.
-- Feedback.
-- Site messages.
-
-Secondary module:
-
-- Learning resources, kept lightweight and functional.
+## 目标
 
-Explicit decisions:
+重构 OrganicChemHub 下一版本的后台内容管理系统，采用“Django Admin 为主，复杂流程使用专用后台工具页”的混合架构。
+
+本版本聚焦后台内容管理。前台现有 UI 设计尽量保留，但数据模型、视图取数方式和后台管理结构可以调整。现有线上数据不要求迁移，必要时可以按新结构重新录入。
 
-- Use Django Admin as the primary backend editing surface.
-- Add dedicated admin tool pages for complex workflows.
-- Keep named reactions and general organic reactions as separate models.
-- Keep named reaction categories and general reaction categories as separate models.
-- Do not design the system around SMILES in this version.
-- Do not require old data migration.
-- Preserve the current frontend UI style where possible.
+## 已确认范围
 
-## Architecture
+主要模块：
 
-The backend has two layers.
+- 人名反应。
+- 常见有机反应。
+- 合成路线。
+- 反应分类。
+- 公告。
+- 反馈。
+- 站内消息。
 
-### Standard Content Management Layer
+次要模块：
+
+- 学习资料，保留轻量可用能力，不作为本版本的主设计中心。
 
-Django Admin handles frequent, stable, structured editing:
+明确取舍：
 
-- Named reactions.
-- General organic reactions.
-- Synthetic routes and route steps.
-- Named reaction categories.
-- General reaction categories.
-- Tags.
-- Functional groups.
-- Learning resources.
-- Announcements.
-- Feedback.
-- Site messages.
+- 后台主编辑界面继续使用 Django Admin。
+- 复杂工作流拆成专用后台工具页。
+- 人名反应和常见有机反应使用两套独立模型。
+- 人名反应分类和常见有机反应分类使用两套独立模型。
+- 本版本不围绕 SMILES 设计核心流程。
+- 不要求迁移旧数据。
+- 尽量保留当前前台 UI 风格。
 
-Admin pages should be tuned for non-technical editors:
+## 架构设计
 
-- Clear field grouping.
-- Helpful field descriptions.
-- Image thumbnails in list views.
-- Image previews in edit forms.
-- Consistent status filtering.
-- Bulk publish and archive actions.
-- Search on editor-friendly fields.
-- Content completeness indicators.
+后台分为两层。
 
-### Dedicated Admin Tool Layer
+### 标准内容管理层
 
-Dedicated admin pages handle workflows that do not fit cleanly inside regular model CRUD:
+Django Admin 负责高频、稳定、结构化的日常编辑：
 
-- Content quality dashboard.
-- CSV import.
-- Image maintenance.
-- Message broadcast.
-- Learning resource upload/path registration.
-- Old message cleanup.
+- 人名反应。
+- 常见有机反应。
+- 合成路线和路线步骤。
+- 人名反应分类。
+- 常见有机反应分类。
+- 标签。
+- 官能团。
+- 学习资料。
+- 公告。
+- 反馈。
+- 站内消息。
 
-## Core Data Model Design
+Admin 页面要面向非技术编辑优化：
 
-### NamedReaction
+- 字段分组清楚。
+- 字段帮助文本明确。
+- 列表页展示图片缩略图。
+- 编辑页展示图片预览。
+- 状态筛选保持一致。
+- 支持批量发布和批量归档。
+- 搜索字段使用编辑员容易理解的内容字段。
+- 显示内容完整度。
 
-Named reactions are a standalone content library for name reactions.
+### 专用后台工具层
 
-Core fields:
+专用后台页负责不适合放进普通模型增删改查里的复杂流程：
 
-- Chinese name.
-- English name.
-- Aliases.
-- Slug.
-- Status: draft, published, archived.
-- Named reaction category.
-- Tags.
-- Functional groups.
-- Summary.
-- Reaction conditions.
-- Mechanism description.
-- Exam tips.
-- Scope.
-- Limitations.
-- Reference.
-- Equation image.
-- Mechanism image.
-- Thumbnail image.
-- Created time.
-- Updated time.
+- 内容质量仪表盘。
+- CSV 导入。
+- 图片维护。
+- 站内消息群发。
+- 学习资料上传和路径登记。
+- 过期消息清理。
 
-Image rules:
+这些页面作为后台运营工具入口存在，不当作普通模型记录管理。
 
-- Equation image is supported.
-- Thumbnail image is supported.
-- Mechanism image is supported but optional.
-- Mechanism image is not required for completeness because some reactions do not require mechanism mastery.
-- Uploaded images are renamed automatically using a stable convention based on reaction slug and image type.
-- List views show thumbnail previews.
-- Edit views show image previews.
+## 核心数据模型设计
 
-Completeness rules:
+### NamedReaction（人名反应）
 
-- Required for content quality: summary, reaction conditions, exam tips, reference, equation image, thumbnail image.
-- Optional: mechanism image, mechanism description, scope, limitations.
-- The admin list should show both a completeness ratio and a readable missing-field summary.
+人名反应是一套独立内容库，只负责管理 name reaction 类型内容。
 
-### GeneralReaction
+核心字段：
 
-General organic reactions are a separate content library for common non-name reactions such as addition, substitution, elimination, oxidation, reduction, condensation, rearrangement, and related reaction families.
+- 中文名。
+- 英文名。
+- 别名。
+- URL 标识 slug。
+- 状态：草稿、已发布、已归档。
+- 人名反应分类。
+- 标签。
+- 官能团。
+- 摘要。
+- 反应条件。
+- 机理描述。
+- 考研考点。
+- 适用范围。
+- 使用限制。
+- 参考来源。
+- 反应方程式图。
+- 机理图。
+- 缩略图。
+- 创建时间。
+- 更新时间。
 
-Core fields mirror NamedReaction, but use GeneralReactionCategory instead of NamedReactionCategory.
+图片规则：
 
-Image and completeness rules match NamedReaction:
+- 支持上传反应方程式图。
+- 支持上传缩略图。
+- 支持上传机理图，但机理图可选。
+- 机理图不计入必填完整度，因为有些反应不要求掌握机理。
+- 上传图片按反应 slug 和图片类型自动重命名。
+- 列表页展示缩略图预览。
+- 编辑页展示图片预览。
 
-- Equation image and thumbnail image count toward required completeness.
-- Mechanism image is optional.
-- Uploaded images are automatically renamed.
-- Admin list and edit pages show previews.
+完整度规则：
 
-### Reaction Categories
+- 计入内容质量检查的必填项：摘要、反应条件、考研考点、参考来源、反应方程式图、缩略图。
+- 可选项：机理图、机理描述、适用范围、使用限制。
+- 后台列表页同时显示完整度比例和缺失字段摘要。
 
-The category system is intentionally split:
+### GeneralReaction（常见有机反应）
 
-- NamedReactionCategory: categories only for named reactions.
-- GeneralReactionCategory: categories only for general organic reactions.
+常见有机反应是一套独立内容库，用于管理非人名的通用有机反应，例如加成、取代、消除、氧化、还原、缩合、重排等反应体系。
 
-Each category includes:
+核心字段与人名反应基本一致，但分类字段使用 `GeneralReactionCategory`，不使用 `NamedReactionCategory`。
 
-- Name.
-- Slug.
-- Description.
-- Sort order.
-- Active flag.
+图片和完整度规则与人名反应保持一致：
 
-Tags and functional groups remain shared dimensions:
+- 反应方程式图和缩略图计入必填完整度。
+- 机理图可选。
+- 上传图片自动重命名。
+- 后台列表页和编辑页都提供图片预览。
 
-- Tags are flexible editorial labels such as exam-high-frequency, classic, easy-to-confuse, must-remember.
-- Functional groups describe structural relevance such as aldehyde, ketone, ester, alkene, alkyne, aromatic ring.
-
-### SyntheticRoute
+### 反应分类
 
-Synthetic routes remain an independent module with route steps managed inline.
+分类体系明确拆分：
 
-SyntheticRoute fields:
+- `NamedReactionCategory`：只用于人名反应。
+- `GeneralReactionCategory`：只用于常见有机反应。
 
-- Target product name.
-- Slug.
-- Target product structure image.
-- Summary.
-- Difficulty.
-- Advantages.
-- Disadvantages.
-- Source.
-- Status.
-- Related named reactions.
-- Related general reactions.
-- Created time.
-- Updated time.
-
-RouteStep fields:
+每个分类包含：
 
-- Parent route.
-- Step number.
-- Title.
-- Reactant structure image.
-- Product structure image.
-- Reagents.
-- Conditions.
-- Yield text.
-- Note.
-- Related named reactions.
-- Related general reactions.
+- 名称。
+- URL 标识 slug。
+- 描述。
+- 排序权重。
+- 是否启用。
 
-Publishing rule:
+标签和官能团作为共享维度保留：
 
-- Route requires target product name, summary, and at least one route step before publishing.
+- 标签用于灵活的编辑标记，例如考研高频、经典反应、易混、必背。
+- 官能团用于描述结构相关性，例如醛、酮、酯、烯烃、炔烃、芳环。
+
+### SyntheticRoute（合成路线）
+
+合成路线继续作为独立模块存在，路线步骤在路线编辑页内联管理。
 
-### LearningResource
+合成路线字段：
+
+- 目标产物名称。
+- URL 标识 slug。
+- 目标产物结构图。
+- 路线摘要。
+- 难度。
+- 优点。
+- 缺点。
+- 来源。
+- 状态。
+- 关联人名反应。
+- 关联常见有机反应。
+- 创建时间。
+- 更新时间。
+
+路线步骤字段：
+
+- 所属路线。
+- 步骤序号。
+- 标题。
+- 反应物结构图。
+- 产物结构图。
+- 试剂。
+- 条件。
+- 产率。
+- 备注。
+- 关联人名反应。
+- 关联常见有机反应。
+
+发布规则：
 
-Learning resources are retained as a secondary module with dual-source support.
+- 路线发布前必须有目标产物名称、路线摘要，并且至少有一个路线步骤。
 
-Fields:
-
-- Title.
-- Category.
-- Year.
-- File type.
-- Has answer.
-- Source type: uploaded file or external path.
-- Uploaded file.
-- External path.
-- Status.
-- Created time.
-- Updated time.
+### LearningResource（学习资料）
 
-Rules:
+学习资料作为次要模块保留，支持上传文件和外部路径登记两种来源。
+
+字段：
+
+- 标题。
+- 分类。
+- 年份。
+- 文件类型。
+- 是否含答案。
+- 来源类型：上传文件或外部路径。
+- 上传文件。
+- 外部路径。
+- 状态。
+- 创建时间。
+- 更新时间。
 
-- Uploaded file and external path are alternatives.
-- At least one source must be present before publishing.
-- File type can be derived from the uploaded file or external path when possible.
+规则：
 
-### Announcement
+- 上传文件和外部路径二选一即可。
+- 发布前至少要有一种资料来源。
+- 文件类型尽量从上传文件或外部路径自动推断。
+
+### Announcement（公告）
 
-Fields:
+字段：
 
-- Title.
-- Content.
-- Importance: normal or important.
-- Pinned flag.
-- Active flag.
-- Display start time.
-- Display end time.
-- Created time.
+- 标题。
+- 正文内容。
+- 重要性：普通或重要。
+- 是否置顶。
+- 是否启用。
+- 显示开始时间。
+- 显示结束时间。
+- 创建时间。
 
-Behavior:
+行为：
 
-- Active announcements display in the homepage announcement bar.
-- Important active announcements may trigger a frontend modal.
-- Pinned announcements ignore display time limits.
-- Publishing or activating an announcement sends site messages to registered users.
-- Re-saving unchanged active announcements should avoid duplicate message storms.
-- Frontend dismissal should avoid repeatedly showing the same important announcement.
+- 启用的公告在首页公告栏展示。
+- 启用的重要公告可以触发前台弹窗。
+- 置顶公告不受显示时间限制。
+- 发布或启用公告时，向注册用户发送站内消息。
+- 重复保存未变化的启用公告时，避免重复群发消息。
+- 前台关闭重要公告后，避免同一浏览器重复弹出同一公告。
 
-### Feedback
+### Feedback（反馈）
 
-Fields:
+字段：
 
-- User, optional.
-- Name.
-- Email.
-- Category: content correction, feature suggestion, data supplement, usage question, other.
-- Content.
-- Status: pending, processing, resolved, closed.
-- Admin reply.
-- Internal note.
-- Handled by.
-- Handled at.
-- Read flag.
-- Created time.
+- 用户，可为空。
+- 名称。
+- 邮箱。
+- 类型：内容纠错、功能建议、数据补充、使用问题、其他。
+- 反馈内容。
+- 状态：待处理、处理中、已处理、已关闭。
+- 管理员回复。
+- 内部备注。
+- 处理人。
+- 处理时间。
+- 是否已读。
+- 创建时间。
 
-Behavior:
+行为：
 
-- Admin replies are visible to the submitting user when tied to an account.
-- Internal notes are admin-only.
-- Reply creation sends a site message.
-- Status changes send a site message.
-- Bulk actions: mark read, mark processing, mark resolved, mark closed.
+- 如果反馈绑定了登录用户，管理员回复对该用户可见。
+- 内部备注仅管理员可见。
+- 创建管理员回复时发送站内消息。
+- 状态变化时发送站内消息。
+- 批量操作包括标记已读、标记处理中、标记已处理、标记已关闭。
 
-### Message
+### Message（站内消息）
 
-Fields:
+字段：
 
-- Recipient.
-- Message type: announcement, feedback reply, feedback status, review notice, system.
-- Title.
-- Content.
-- Read flag.
-- Related URL.
-- Created time.
+- 接收用户。
+- 消息类型：公告通知、反馈回复、反馈状态变更、审核通知、系统通知。
+- 标题。
+- 内容。
+- 是否已读。
+- 相关链接。
+- 创建时间。
 
-Broadcast and cleanup workflows live in dedicated tool pages.
+群发和清理流程放到专用后台工具页，不放在普通消息列表页里。
 
-### Operation Log
+### OperationLog（操作日志）
 
-Fields:
+字段：
 
-- User.
-- Action.
-- Model name.
-- Object representation.
-- Detail.
-- IP address.
-- Created time.
+- 操作人。
+- 操作类型。
+- 模型名称。
+- 操作对象。
+- 详情。
+- IP 地址。
+- 创建时间。
 
-Logged actions:
+记录的关键操作：
 
-- Create, update, delete.
-- Bulk publish.
-- Bulk archive.
-- CSV import.
-- Image maintenance.
-- Message broadcast.
-- Message cleanup.
+- 新增、编辑、删除。
+- 批量发布。
+- 批量归档。
+- CSV 导入。
+- 图片维护。
+- 消息群发。
+- 消息清理。
 
-Logs are read-only.
+操作日志只读，不允许在后台编辑。
 
-## Django Admin Design
+## Django Admin 设计
 
-### Named Reaction Admin
+### 人名反应后台
 
-List display:
+列表展示：
 
-- Chinese name.
-- English name.
-- Category.
-- Thumbnail.
-- Status.
-- Completeness.
-- Missing fields.
-- Updated time.
+- 中文名。
+- 英文名。
+- 分类。
+- 缩略图。
+- 状态。
+- 完整度。
+- 缺失字段。
+- 更新时间。
 
-Search:
+搜索字段：
 
-- Chinese name.
-- English name.
-- Aliases.
+- 中文名。
+- 英文名。
+- 别名。
 
-Filters:
+筛选项：
 
-- Category.
-- Tags.
-- Functional groups.
-- Status.
-- Created time.
-- Updated time.
+- 分类。
+- 标签。
+- 官能团。
+- 状态。
+- 创建时间。
+- 更新时间。
 
-Actions:
+批量操作：
 
-- Publish selected.
-- Archive selected.
-- Export selected as CSV.
+- 发布选中项。
+- 归档选中项。
+- 导出选中项为 CSV。
 
-Edit sections:
+编辑页分区：
 
-- Basic information.
-- Classification.
-- Content.
-- Images.
-- Publishing.
-- Timestamps.
+- 基础信息。
+- 分类信息。
+- 内容信息。
+- 图片信息。
+- 发布设置。
+- 时间信息。
 
-### General Reaction Admin
+### 常见有机反应后台
 
-GeneralReaction admin mirrors NamedReaction admin, but uses GeneralReactionCategory.
+常见有机反应后台与人名反应后台保持一致，但分类使用常见有机反应分类。
 
-### Synthetic Route Admin
+### 合成路线后台
 
-List display:
+列表展示：
 
-- Target product.
-- Difficulty.
-- Status.
-- Source.
-- Related named reaction count.
-- Related general reaction count.
-- Step count.
-- Updated time.
+- 目标产物。
+- 难度。
+- 状态。
+- 来源。
+- 关联人名反应数量。
+- 关联常见有机反应数量。
+- 步骤数量。
+- 更新时间。
 
-Search:
+搜索字段：
 
-- Target product.
-- Summary.
-- Source.
+- 目标产物。
+- 路线摘要。
+- 来源。
 
-Filters:
+筛选项：
 
-- Difficulty.
-- Status.
-- Related named reactions.
-- Related general reactions.
+- 难度。
+- 状态。
+- 关联人名反应。
+- 关联常见有机反应。
 
-Actions:
+批量操作：
 
-- Publish selected.
-- Archive selected.
-- Export selected as CSV.
+- 发布选中项。
+- 归档选中项。
+- 导出选中项为 CSV。
 
-RouteStep inline appears below route fields.
+路线步骤以内联形式显示在路线编辑页下方。
 
-### Category, Tag, Functional Group Admin
+### 分类、标签、官能团后台
 
-Category list display:
+分类列表展示：
 
-- Name.
-- Slug.
-- Sort order.
-- Active flag.
+- 名称。
+- URL 标识 slug。
+- 排序权重。
+- 是否启用。
 
-Tag and functional group admin remain lightweight, with search and simple list editing.
+标签和官能团后台保持轻量，提供搜索和简单列表编辑。
 
-### Learning Resource Admin
+### 学习资料后台
 
-List display:
+列表展示：
 
-- Title.
-- Category.
-- Year.
-- Source type.
-- File type.
-- Has answer.
-- Status.
-- Updated time.
+- 标题。
+- 分类。
+- 年份。
+- 来源类型。
+- 文件类型。
+- 是否含答案。
+- 状态。
+- 更新时间。
 
-Search:
+搜索字段：
 
-- Title.
-- External path.
+- 标题。
+- 外部路径。
 
-Filters:
+筛选项：
 
-- Category.
-- Source type.
-- Has answer.
-- Status.
-- Year.
+- 分类。
+- 来源类型。
+- 是否含答案。
+- 状态。
+- 年份。
 
-Actions:
+批量操作：
 
-- Publish selected.
-- Archive selected.
-- Export selected as CSV.
+- 发布选中项。
+- 归档选中项。
+- 导出选中项为 CSV。
 
-### Announcement Admin
+### 公告后台
 
-List display:
+列表展示：
 
-- Title.
-- Importance.
-- Pinned flag.
-- Active flag.
-- Display start time.
-- Display end time.
-- Created time.
+- 标题。
+- 重要性。
+- 是否置顶。
+- 是否启用。
+- 显示开始时间。
+- 显示结束时间。
+- 创建时间。
 
-Saving an active announcement triggers message creation when appropriate, without duplicate storms.
+保存启用公告时，在合适情况下触发站内消息创建，同时避免重复群发。
 
-### Feedback Admin
+### 反馈后台
 
-List display:
+列表展示：
 
-- Category.
-- Submitter.
-- Email.
-- Content summary.
-- Status.
-- Read flag.
-- Created time.
+- 类型。
+- 提交人。
+- 邮箱。
+- 内容摘要。
+- 状态。
+- 是否已读。
+- 创建时间。
 
-Filters:
+筛选项：
 
-- Category.
-- Status.
-- Read flag.
-- Created time.
+- 类型。
+- 状态。
+- 是否已读。
+- 创建时间。
 
-Actions:
+批量操作：
 
-- Mark read.
-- Mark processing.
-- Mark resolved.
-- Mark closed.
+- 标记已读。
+- 标记处理中。
+- 标记已处理。
+- 标记已关闭。
 
-Edit form:
+编辑页规则：
 
-- Submitted feedback section is read-only.
-- Admin reply is editable.
-- Internal note is editable.
-- Status is editable.
+- 用户提交内容只读。
+- 管理员回复可编辑。
+- 内部备注可编辑。
+- 状态可编辑。
 
-### Message Admin
+### 站内消息后台
 
-List display:
+列表展示：
 
-- Recipient.
-- Message type.
-- Title.
-- Read flag.
-- Created time.
+- 接收用户。
+- 消息类型。
+- 标题。
+- 是否已读。
+- 创建时间。
 
-Filters:
+筛选项：
 
-- Message type.
-- Read flag.
-- Created time.
+- 消息类型。
+- 是否已读。
+- 创建时间。
 
-Search:
+搜索字段：
 
-- Recipient username.
-- Title.
-- Content.
+- 接收用户用户名。
+- 标题。
+- 内容。
 
-Actions:
+批量操作：
 
-- Mark read.
+- 标记已读。
 
-Broadcast and cleanup are dedicated tool pages.
+消息群发和消息清理使用专用工具页。
 
-## Dedicated Admin Tool Pages
+## 专用后台工具页
 
-### Content Quality Dashboard
+### 内容质量仪表盘
 
-Path:
+路径：
 
 - `/admin/reactions/dashboard/`
 
-Shows:
+展示内容：
 
-- Named reaction totals by status.
-- General reaction totals by status.
-- Missing equation image counts.
-- Missing thumbnail image counts.
-- Field missing rates for summary, conditions, exam tips, reference, equation image, thumbnail image.
-- Synthetic route totals.
-- Routes missing steps.
-- Content count by named reaction category.
-- Content count by general reaction category.
-- Recently updated content.
+- 人名反应各状态数量。
+- 常见有机反应各状态数量。
+- 缺反应方程式图数量。
+- 缺缩略图数量。
+- 摘要、条件、考点、参考来源、方程式图、缩略图的字段缺失率。
+- 合成路线总数。
+- 缺路线步骤的路线数量。
+- 按人名反应分类统计内容数量。
+- 按常见有机反应分类统计内容数量。
+- 最近更新内容。
 
-### CSV Import
+### CSV 导入
 
-Path:
+路径：
 
 - `/admin/reactions/import/`
 
-Supports:
+支持：
 
-- Named reaction CSV import.
-- General reaction CSV import.
+- 人名反应 CSV 导入。
+- 常见有机反应 CSV 导入。
 
-Flow:
+流程：
 
-1. Upload CSV.
-2. Preview parsed rows.
-3. Show validation errors before writing.
-4. Select create-only or update-existing mode.
-5. Execute import.
-6. Show created, updated, skipped, and error counts.
+1. 上传 CSV。
+2. 预览解析结果。
+3. 写入前展示校验错误。
+4. 选择仅新增或更新已有记录。
+5. 执行导入。
+6. 展示新增、更新、跳过和错误数量。
 
-Matching:
+匹配规则：
 
-- Chinese name plus English name.
+- 按中文名加英文名匹配已有记录。
 
-Invalid rows are skipped with visible error details.
+无效行跳过，并展示明确错误原因。
 
-### Image Maintenance
+### 图片维护
 
-Path:
+路径：
 
 - `/admin/reactions/images/`
 
-Supports:
+支持：
 
-- List named reactions missing equation images.
-- List named reactions missing thumbnail images.
-- List general reactions missing equation images.
-- List general reactions missing thumbnail images.
-- Show reactions with non-standard image names.
-- Batch rename uploaded images to standard convention.
-- Optional thumbnail generation from equation image if image tooling is available.
+- 查看缺反应方程式图的人名反应。
+- 查看缺缩略图的人名反应。
+- 查看缺反应方程式图的常见有机反应。
+- 查看缺缩略图的常见有机反应。
+- 查看图片命名不规范的反应。
+- 批量按标准命名规则重命名图片。
+- 如果本地图片工具可用，可选支持从方程式图生成缩略图。
 
-Mechanism images are optional and not included in mandatory missing-image counts.
+机理图是可选内容，不纳入强制缺图统计。
 
-### Message Broadcast
+### 站内消息群发
 
-Path:
+路径：
 
 - `/admin/operations/messages/send/`
 
-Supports:
+支持：
 
-- Send to all users.
-- Send to selected users.
-- Select message type.
-- Enter title and content.
-- Preview recipient count.
-- Confirm before sending.
-- Log broadcast.
+- 发送给全部用户。
+- 发送给选中用户。
+- 选择消息类型。
+- 填写标题和内容。
+- 预览收件人数。
+- 发送前二次确认。
+- 记录群发日志。
 
-### Learning Resource Upload And Registration
+### 学习资料上传和登记
 
-Path:
+路径：
 
 - `/admin/resources/import-or-upload/`
 
-Supports:
+支持：
 
-- Upload one or more resource files.
-- Register one or more external paths.
-- Set category, year, answer flag, and status.
-- Infer file type where possible.
-- Create LearningResource records.
+- 上传一个或多个资料文件。
+- 登记一个或多个外部路径。
+- 设置分类、年份、是否含答案和状态。
+- 尽量推断文件类型。
+- 创建学习资料记录。
 
-### Message Cleanup
+### 消息清理
 
-Path:
+路径：
 
 - `/admin/operations/messages/cleanup/`
 
-Supports:
+支持：
 
-- Clean read messages older than 3 months, 6 months, or 1 year.
-- Preview deletion count.
-- Require confirmation before delete.
-- Log cleanup action.
+- 清理 3 个月、6 个月或 1 年前的已读消息。
+- 预览将删除的消息数量。
+- 删除前二次确认。
+- 记录清理日志。
 
-## Permissions
+## 权限设计
 
-Use Django built-in groups and model permissions.
+使用 Django 内置用户组和模型权限。
 
-### Super Administrator
+### 超级管理员
 
-Can:
+可以：
 
-- Manage all models.
-- Use all dedicated tools.
-- Manage users, groups, and permissions.
-- Clean old messages.
+- 管理全部模型。
+- 使用全部专用工具。
+- 管理用户、用户组和权限。
+- 清理过期消息。
 
-### Content Editor
+### 内容编辑员
 
-Can:
+可以：
 
-- Manage named reactions.
-- Manage general reactions.
-- Manage synthetic routes and steps.
-- Manage reaction categories.
-- Manage tags and functional groups.
-- Manage learning resources.
-- Use quality dashboard.
-- Use CSV import.
-- Use image maintenance tools.
+- 管理人名反应。
+- 管理常见有机反应。
+- 管理合成路线和路线步骤。
+- 管理反应分类。
+- 管理标签和官能团。
+- 管理学习资料。
+- 使用内容质量仪表盘。
+- 使用 CSV 导入。
+- 使用图片维护工具。
 
-Cannot:
+不可以：
 
-- Manage users.
-- Change groups or permissions.
-- Reply to feedback as an operator.
-- Broadcast messages.
-- Clean old messages.
+- 管理用户。
+- 修改用户组或权限。
+- 作为运营人员回复反馈。
+- 群发站内消息。
+- 清理过期消息。
 
-### Operations Staff
+### 运营员
 
-Can:
+可以：
 
-- Manage announcements.
-- Manage feedback.
-- Manage site messages.
-- Use message broadcast.
+- 管理公告。
+- 管理反馈。
+- 管理站内消息。
+- 使用消息群发工具。
 
-Cannot:
+不可以：
 
-- Modify reaction content.
-- Modify route content.
-- Modify reaction categories.
-- Manage users or permissions.
+- 修改反应内容。
+- 修改合成路线内容。
+- 修改反应分类。
+- 管理用户或权限。
 
-## Frontend Compatibility
+## 前台兼容
 
-Frontend UI style remains broadly unchanged.
+前台 UI 风格整体保持不变。
 
-Required adaptation:
+需要适配：
 
-- Existing named reaction list/detail pages read from the new named reaction model.
-- General organic reactions get list/detail pages reusing current reaction page visual style.
-- Synthetic route pages support related named reactions and related general reactions.
-- Learning resources remain available as a lightweight list.
-- Only published content is shown publicly.
-- Missing optional mechanism images do not render empty sections.
+- 现有人名反应列表页和详情页改为读取新的人名反应模型。
+- 常见有机反应新增列表页和详情页，复用当前反应页面视觉风格。
+- 合成路线页面支持关联人名反应和常见有机反应。
+- 学习资料继续保留轻量列表页。
+- 前台只展示已发布内容。
+- 没有机理图时，不渲染空白或破损的机理区域。
 
-Recommendation:
+建议：
 
-- Add small query/helper functions for public content retrieval so templates depend less on model internals.
+- 增加小型公开查询辅助函数，让模板少依赖模型内部细节。
 
-## Testing Strategy
+## 测试策略
 
-### Model Tests
+### 模型测试
 
-Cover:
+覆盖：
 
-- Named reaction completeness.
-- General reaction completeness.
-- Mechanism image optional behavior.
-- Image upload naming.
-- Published manager filtering.
-- Route publish validation requiring at least one step.
-- Learning resource publish validation requiring either upload or external path.
+- 人名反应完整度。
+- 常见有机反应完整度。
+- 机理图可选行为。
+- 图片上传命名。
+- 已发布内容过滤。
+- 路线发布前必须至少有一个步骤。
+- 学习资料发布前必须有上传文件或外部路径。
 
-### Admin Tests
+### Admin 测试
 
-Cover:
+覆盖：
 
-- Model registration.
-- List pages load.
-- Bulk publish/archive.
-- CSV export fields.
-- Route step inline configuration.
-- Feedback reply message creation.
-- Announcement message creation without duplicate storms.
-- Permission group access boundaries.
+- 模型注册。
+- 列表页可打开。
+- 批量发布和归档。
+- CSV 导出字段。
+- 路线步骤 inline 配置。
+- 反馈回复触发站内消息。
+- 公告触发站内消息且避免重复群发。
+- 权限组访问边界。
 
-### Tool Page Tests
+### 工具页测试
 
-Cover:
+覆盖：
 
-- Dashboard totals.
-- CSV preview validation.
-- CSV create/update modes.
-- Image missing lists.
-- Image rename logging.
-- Message broadcast recipient count and creation.
-- Message cleanup preview and confirmed deletion.
+- 仪表盘统计。
+- CSV 预览校验。
+- CSV 新增和更新模式。
+- 图片缺失列表。
+- 图片重命名日志。
+- 消息群发收件人数和消息创建。
+- 消息清理预览和确认删除。
 
-### Frontend Tests
+### 前台测试
 
-Cover:
+覆盖：
 
-- Named reaction list/detail pages.
-- General reaction list/detail pages.
-- Synthetic route list/detail pages.
-- Learning resource list page.
-- Draft and archived content not appearing publicly.
-- Missing optional mechanism image does not render broken section.
+- 人名反应列表页和详情页。
+- 常见有机反应列表页和详情页。
+- 合成路线列表页和详情页。
+- 学习资料列表页。
+- 草稿和归档内容不在前台展示。
+- 缺少可选机理图时不渲染破损区域。
 
-## Acceptance Criteria
+## 验收标准
 
-The version is complete when a non-technical editor can:
+版本完成后，非技术编辑应该可以：
 
-- Create and publish a named reaction.
-- Upload a named reaction equation image and thumbnail image.
-- Leave a mechanism image empty without blocking publish.
-- Create and publish a general organic reaction.
-- Maintain separate named reaction and general reaction categories.
-- Create a synthetic route and edit its steps inline.
-- Associate routes and route steps with named reactions and general reactions.
-- Use the quality dashboard to find missing content and missing required images.
-- Import named reactions and general reactions from CSV through an admin page.
-- Use image maintenance to identify required missing images.
-- Publish an announcement and send site messages.
-- Reply to feedback and notify the user.
-- View operation logs for key admin actions.
-- Use the existing frontend visual experience against the new data structure.
+- 创建并发布一条人名反应。
+- 上传人名反应的方程式图和缩略图。
+- 不上传机理图也不影响发布。
+- 创建并发布一条常见有机反应。
+- 分别维护人名反应分类和常见有机反应分类。
+- 创建一条合成路线，并在同一页面内联编辑步骤。
+- 将路线和路线步骤关联到人名反应与常见有机反应。
+- 使用内容质量仪表盘发现缺内容或缺必要图片的条目。
+- 通过后台页面从 CSV 导入人名反应和常见有机反应。
+- 使用图片维护工具定位缺必要图片的反应。
+- 发布公告并发送站内消息。
+- 回复反馈并通知用户。
+- 查看关键后台操作日志。
+- 在新数据结构下继续使用现有前台视觉体验。
