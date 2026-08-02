@@ -2,8 +2,10 @@ import csv
 import io
 
 from django.contrib import admin, messages
+from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.template.response import TemplateResponse
+from django.utils import timezone
 
 from .admin_forms import (
     MessageBroadcastForm,
@@ -11,7 +13,7 @@ from .admin_forms import (
     ReactionCsvImportForm,
     ResourceImportOrUploadForm,
 )
-from .models import GeneralReaction, LearningResource, NamedReaction, PublishStatus, SyntheticRoute
+from .models import GeneralReaction, LearningResource, Message, NamedReaction, OpLog, PublishStatus, SyntheticRoute
 
 
 REQUIRED_IMPORT_COLUMNS = ["name_zh", "name_en", "slug", "summary", "condition", "exam_tips", "reference", "status"]
@@ -160,12 +162,61 @@ def image_maintenance_view(request):
 
 
 def message_broadcast_view(request):
-    context = admin_context(request, "站内消息群发", form=MessageBroadcastForm())
+    result = None
+    if request.method == "POST":
+        form = MessageBroadcastForm(request.POST)
+        if form.is_valid():
+            users = User.objects.all()
+            Message.objects.bulk_create(
+                [
+                    Message(
+                        recipient=user,
+                        msg_type=form.cleaned_data["msg_type"],
+                        title=form.cleaned_data["title"],
+                        content=form.cleaned_data["content"],
+                    )
+                    for user in users
+                ]
+            )
+            result = {"sent": users.count()}
+            OpLog.objects.create(
+                user=request.user,
+                action="broadcast_message",
+                model_name="Message",
+                object_repr=form.cleaned_data["title"],
+                detail=f"已发送 {result['sent']} 条站内消息。",
+            )
+            messages.success(request, f"已发送 {result['sent']} 条站内消息。")
+    else:
+        form = MessageBroadcastForm()
+    context = admin_context(request, "站内消息群发", form=form, result=result)
     return TemplateResponse(request, "admin/operations/message_send.html", context)
 
 
 def message_cleanup_view(request):
-    context = admin_context(request, "消息清理", form=MessageCleanupForm())
+    result = None
+    if request.method == "POST":
+        form = MessageCleanupForm(request.POST)
+        if form.is_valid() and form.cleaned_data["confirm"]:
+            months = int(form.cleaned_data["older_than"])
+            cutoff = timezone.now() - timezone.timedelta(days=months * 30)
+            queryset = Message.objects.filter(created_at__lt=cutoff)
+            if form.cleaned_data["read_only"]:
+                queryset = queryset.filter(is_read=True)
+            deleted_count = queryset.count()
+            queryset.delete()
+            result = {"deleted": deleted_count}
+            OpLog.objects.create(
+                user=request.user,
+                action="cleanup_messages",
+                model_name="Message",
+                object_repr=f"{months} months",
+                detail=f"已清理 {deleted_count} 条站内消息。",
+            )
+            messages.success(request, f"已清理 {deleted_count} 条站内消息。")
+    else:
+        form = MessageCleanupForm()
+    context = admin_context(request, "消息清理", form=form, result=result)
     return TemplateResponse(request, "admin/operations/message_cleanup.html", context)
 
 

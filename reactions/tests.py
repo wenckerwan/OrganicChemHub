@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -13,10 +13,13 @@ from tempfile import TemporaryDirectory
 
 from reactions.admin import ReactionAdmin, SyntheticRouteAdmin
 from reactions.models import (
+    Announcement,
+    Feedback,
     FunctionalGroup,
     GeneralReaction,
     GeneralReactionCategory,
     LearningResource,
+    Message,
     NamedReaction,
     NamedReactionCategory,
     PublishStatus,
@@ -826,3 +829,104 @@ class FrontendRedesignTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Electrophilic Addition")
         self.assertContains(response, "常见反应摘要")
+
+
+class AdminOperationsRedesignTests(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser("ops-admin", "ops@example.com", "password")
+        self.user_a = User.objects.create_user("student-a", "a@example.com", "password")
+        self.user_b = User.objects.create_user("student-b", "b@example.com", "password")
+        self.client.force_login(self.admin_user)
+        self.factory = RequestFactory()
+
+    def _request(self):
+        request = self.factory.post("/admin/")
+        request.user = self.admin_user
+        request._messages = CookieStorage(request)
+        return request
+
+    def test_active_announcement_pushes_messages_once(self):
+        announcement = Announcement(
+            title="课程通知",
+            content="今晚更新资料。",
+            importance=Announcement.Importance.HIGH,
+            is_active=True,
+        )
+        model_admin = admin.site._registry[Announcement]
+
+        model_admin.save_model(self._request(), announcement, form=None, change=False)
+        announcement.refresh_from_db()
+        first_count = Message.objects.filter(msg_type=Message.Type.ANNOUNCEMENT, title="课程通知").count()
+
+        model_admin.save_model(self._request(), announcement, form=None, change=True)
+        announcement.refresh_from_db()
+
+        self.assertIsNotNone(announcement.message_sent_at)
+        self.assertEqual(first_count, User.objects.count())
+        self.assertEqual(Message.objects.filter(msg_type=Message.Type.ANNOUNCEMENT, title="课程通知").count(), first_count)
+
+    def test_feedback_reply_and_status_change_notify_user(self):
+        feedback = Feedback.objects.create(
+            user=self.user_a,
+            name="学生A",
+            email="a@example.com",
+            category=Feedback.Category.CONTENT,
+            content="这里有错。",
+        )
+        feedback.reply = "已经修正。"
+        feedback.status = Feedback.Status.RESOLVED
+        form = type("FakeForm", (), {"cleaned_data": {"reply": feedback.reply}, "changed_data": ["reply", "status"]})()
+        model_admin = admin.site._registry[Feedback]
+
+        model_admin.save_model(self._request(), feedback, form=form, change=True)
+
+        self.assertEqual(Message.objects.filter(recipient=self.user_a, msg_type=Message.Type.FEEDBACK_REPLY).count(), 1)
+        self.assertEqual(Message.objects.filter(recipient=self.user_a, msg_type=Message.Type.FEEDBACK_STATUS).count(), 1)
+
+    def test_message_broadcast_page_sends_to_all_users(self):
+        response = self.client.post(
+            "/admin/operations/messages/send/",
+            {
+                "target": "all",
+                "msg_type": Message.Type.SYSTEM,
+                "title": "系统提醒",
+                "content": "请查看最新内容。",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "已发送 3")
+        self.assertEqual(Message.objects.filter(title="系统提醒").count(), 3)
+
+    def test_message_cleanup_page_deletes_old_read_messages(self):
+        old_message = Message.objects.create(
+            recipient=self.user_a,
+            msg_type=Message.Type.SYSTEM,
+            title="旧消息",
+            content="旧内容",
+            is_read=True,
+        )
+        Message.objects.filter(pk=old_message.pk).update(created_at="2025-01-01T00:00:00+08:00")
+        Message.objects.create(
+            recipient=self.user_a,
+            msg_type=Message.Type.SYSTEM,
+            title="新消息",
+            content="新内容",
+            is_read=True,
+        )
+
+        response = self.client.post(
+            "/admin/operations/messages/cleanup/",
+            {"older_than": "6", "read_only": "on", "confirm": "on"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "已清理 1")
+        self.assertFalse(Message.objects.filter(title="旧消息").exists())
+        self.assertTrue(Message.objects.filter(title="新消息").exists())
+
+    def test_setup_admin_roles_command_creates_expected_groups(self):
+        call_command("setup_admin_roles", verbosity=0)
+
+        self.assertTrue(Group.objects.filter(name="内容编辑员").exists())
+        self.assertTrue(Group.objects.filter(name="运营员").exists())

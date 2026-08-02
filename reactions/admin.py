@@ -622,30 +622,35 @@ class LearningResourceAdmin(admin.ModelAdmin):
 
 @admin.register(Announcement)
 class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ("title", "importance", "is_pinned", "is_active", "show_from", "show_until", "created_at")
+    list_display = ("title", "importance", "is_pinned", "is_active", "show_from", "show_until", "message_sent_at", "created_at")
     list_filter = ("importance", "is_pinned", "is_active")
     search_fields = ("title", "content")
+    readonly_fields = ("message_sent_at",)
     fieldsets = (
         ("公告内容", {"fields": ("title", "content", "importance")}),
         ("显示设置", {
-            "fields": ("is_pinned", "is_active", "show_from", "show_until"),
+            "fields": ("is_pinned", "is_active", "show_from", "show_until", "message_sent_at"),
             "description": "置顶公告不受时间限制，始终显示在顶部。非置顶公告可设置显示起止时间。",
         }),
     )
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        # 发布公告时推送站内消息给所有用户
-        if obj.is_active:
-            from django.contrib.auth.models import User
+        if obj.is_active and obj.message_sent_at is None:
             users = User.objects.all()
-            for user in users:
-                Message.objects.create(
-                    recipient=user,
-                    msg_type=Message.Type.ANNOUNCEMENT,
-                    title=obj.title,
-                    content=obj.content,
-                )
+            Message.objects.bulk_create(
+                [
+                    Message(
+                        recipient=user,
+                        msg_type=Message.Type.ANNOUNCEMENT,
+                        title=obj.title,
+                        content=obj.content,
+                    )
+                    for user in users
+                ]
+            )
+            obj.message_sent_at = timezone.now()
+            obj.save(update_fields=["message_sent_at"])
 
 
 @admin.register(Feedback)
@@ -674,24 +679,33 @@ class FeedbackAdmin(admin.ModelAdmin):
         return obj.content[:80] + ("..." if len(obj.content) > 80 else "")
 
     def save_model(self, request, obj, form, change):
-        # 如果填写了回复，生成站内消息
-        reply = form.cleaned_data.get("reply", "").strip()
-        if reply and obj.user:
+        old_reply = ""
+        old_status = None
+        if change and obj.pk:
+            old_obj = Feedback.objects.filter(pk=obj.pk).first()
+            if old_obj:
+                old_reply = old_obj.reply
+                old_status = old_obj.status
+
+        super().save_model(request, obj, form, change)
+
+        if not obj.user:
+            return
+        reply = (obj.reply or "").strip()
+        if reply and reply != (old_reply or "").strip():
             Message.objects.create(
                 recipient=obj.user,
                 msg_type=Message.Type.FEEDBACK_REPLY,
                 title="您的反馈已回复",
-                content=f"管理员回复了您的反馈「{obj.content[:50]}」：\n\n{reply}",
+                content=f"管理员回复了您的反馈《{obj.content[:50]}》：\n\n{reply}",
             )
-        # 状态变更通知
-        if change and "status" in form.changed_data and obj.user:
+        if change and old_status is not None and obj.status != old_status:
             Message.objects.create(
                 recipient=obj.user,
                 msg_type=Message.Type.FEEDBACK_STATUS,
                 title="您的反馈状态已更新",
-                content=f"您的反馈「{obj.content[:50]}」状态已更新为：{obj.get_status_display()}",
+                content=f"您的反馈《{obj.content[:50]}》状态已更新为：{obj.get_status_display()}",
             )
-        super().save_model(request, obj, form, change)
 
     @admin.action(description="标记为处理中")
     def mark_as_processing(self, request, queryset):
@@ -704,7 +718,6 @@ class FeedbackAdmin(admin.ModelAdmin):
     @admin.action(description="标记为已关闭")
     def mark_as_closed(self, request, queryset):
         queryset.update(status=Feedback.Status.CLOSED)
-
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
