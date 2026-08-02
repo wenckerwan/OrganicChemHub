@@ -10,7 +10,20 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from reactions.admin import ReactionAdmin, SyntheticRouteAdmin
-from reactions.models import FunctionalGroup, LearningResource, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
+from reactions.models import (
+    FunctionalGroup,
+    GeneralReaction,
+    GeneralReactionCategory,
+    LearningResource,
+    NamedReaction,
+    NamedReactionCategory,
+    PublishStatus,
+    Reaction,
+    ReactionType,
+    RouteStep,
+    SyntheticRoute,
+    Tag,
+)
 from reactions.services.search import build_querystring
 from reactions.templatetags.search_extras import highlight_query
 
@@ -595,3 +608,44 @@ class SearchUtilityTests(TestCase):
 
         self.assertIn("&lt;b&gt;", highlighted)
         self.assertIn('<mark class="search-highlight">Wittig</mark>', highlighted)
+
+class AdminRedesignModelTests(TestCase):
+    def test_named_reaction_requires_core_fields_and_images_for_publish(self):
+        reaction = NamedReaction(
+            name_zh="维蒂希反应",
+            name_en="Wittig Reaction",
+            slug="wittig-reaction",
+            status=PublishStatus.PUBLISHED,
+        )
+
+        with self.assertRaises(ValidationError) as context:
+            reaction.full_clean()
+
+        self.assertIn("summary", context.exception.message_dict)
+        self.assertIn("condition", context.exception.message_dict)
+        self.assertIn("exam_tips", context.exception.message_dict)
+        self.assertIn("reference", context.exception.message_dict)
+        self.assertIn("equation_img", context.exception.message_dict)
+        self.assertIn("thumbnail_img", context.exception.message_dict)
+        self.assertNotIn("mechanism_img", context.exception.message_dict)
+
+    def test_general_reaction_has_separate_category_and_optional_mechanism_image(self):
+        category = GeneralReactionCategory.objects.create(name="加成反应", slug="addition")
+        reaction = GeneralReaction(
+            name_zh="亲电加成",
+            name_en="Electrophilic Addition",
+            slug="electrophilic-addition",
+            category=category,
+            summary="烯烃与亲电试剂加成。",
+            condition="酸性或卤素条件。",
+            exam_tips="注意马氏规则。",
+            reference="教材。",
+            equation_img="general_reactions/general_electrophilic_addition_equation.svg",
+            thumbnail_img="general_reactions/general_electrophilic_addition_thumbnail.svg",
+            status=PublishStatus.PUBLISHED,
+        )
+
+        reaction.full_clean()
+        self.assertEqual(reaction.get_publication_missing_fields(), [])
+        self.assertEqual(reaction.content_completeness(), "6/6")
+        self.assertEqual(reaction.missing_fields_display(), "完整")

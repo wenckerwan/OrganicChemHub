@@ -70,6 +70,37 @@ class ReactionType(models.Model):
         return self.name
 
 
+class NamedReactionCategory(models.Model):
+    name = models.CharField("名称", max_length=80, unique=True)
+    slug = models.SlugField("URL 标识", max_length=100, unique=True)
+    description = models.TextField("描述", blank=True)
+    sort_order = models.PositiveIntegerField("排序", default=0)
+    is_active = models.BooleanField("启用", default=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "人名反应分类"
+        verbose_name_plural = "人名反应分类"
+
+    def __str__(self):
+        return self.name
+
+
+class GeneralReactionCategory(models.Model):
+    name = models.CharField("名称", max_length=80, unique=True)
+    slug = models.SlugField("URL 标识", max_length=100, unique=True)
+    description = models.TextField("描述", blank=True)
+    sort_order = models.PositiveIntegerField("排序", default=0)
+    is_active = models.BooleanField("启用", default=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "常见有机反应分类"
+        verbose_name_plural = "常见有机反应分类"
+
+    def __str__(self):
+        return self.name
+
 class NavItem(models.Model):
     label = models.CharField("菜单名称", max_length=50)
     url_name = models.CharField("URL 名称", max_length=100, help_text="Django URL name，例如 reaction_list")
@@ -221,6 +252,127 @@ class Reaction(models.Model):
             )
 
 
+class BaseReactionContent(models.Model):
+    Status = PublishStatus
+    REQUIRED_FIELDS = {
+        "summary": "摘要",
+        "condition": "反应条件",
+        "exam_tips": "考研考点",
+        "reference": "参考来源",
+        "equation_img": "反应方程式图",
+        "thumbnail_img": "缩略图",
+    }
+
+    name_zh = models.CharField("中文名", max_length=120)
+    name_en = models.CharField("英文名", max_length=120, blank=True)
+    aliases = models.CharField("别名", max_length=300, blank=True)
+    slug = models.SlugField("URL 标识", max_length=140, unique=True)
+    tags = models.ManyToManyField(Tag, verbose_name="标签", blank=True)
+    functional_groups = models.ManyToManyField(FunctionalGroup, verbose_name="官能团", blank=True)
+    summary = models.TextField("摘要", blank=True)
+    condition = models.TextField("反应条件", blank=True)
+    mechanism = models.TextField("机理描述", blank=True)
+    exam_tips = models.TextField("考研考点", blank=True)
+    scope = models.TextField("适用范围", blank=True)
+    limitations = models.TextField("使用限制", blank=True)
+    reference = models.TextField("参考来源", blank=True)
+    equation_img = models.FileField("反应方程式图", upload_to=ReactionImageUploadTo("equation"), blank=True)
+    mechanism_img = models.FileField("机理图", upload_to=ReactionImageUploadTo("mechanism"), blank=True)
+    thumbnail_img = models.FileField("缩略图", upload_to=ReactionImageUploadTo("thumbnail"), blank=True)
+    status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.DRAFT)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    objects = PublishedManager()
+    published = PublishedOnlyManager()
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.name_zh
+
+    def get_equation_img_src(self):
+        return self.equation_img.url if self.equation_img else ""
+
+    def get_mechanism_img_src(self):
+        return self.mechanism_img.url if self.mechanism_img else ""
+
+    def get_thumbnail_img_src(self):
+        return self.thumbnail_img.url if self.thumbnail_img else self.get_equation_img_src()
+
+    def get_publication_missing_fields(self):
+        return [field for field in self.REQUIRED_FIELDS if not getattr(self, field)]
+
+    def missing_fields_display(self):
+        missing = self.get_publication_missing_fields()
+        if not missing:
+            return "完整"
+        return "、".join(self.REQUIRED_FIELDS[field] for field in missing)
+
+    def content_completeness(self):
+        total = len(self.REQUIRED_FIELDS)
+        complete = total - len(self.get_publication_missing_fields())
+        return f"{complete}/{total}"
+
+    def clean(self):
+        super().clean()
+        if self.status != self.Status.PUBLISHED:
+            return
+        missing = self.get_publication_missing_fields()
+        if missing:
+            raise ValidationError({field: f"发布前请补充{self.REQUIRED_FIELDS[field]}。" for field in missing})
+
+
+class NamedReaction(BaseReactionContent):
+    category = models.ForeignKey(
+        NamedReactionCategory,
+        verbose_name="人名反应分类",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reactions",
+    )
+
+    class Meta:
+        ordering = ["name_en", "name_zh"]
+        indexes = [
+            models.Index(fields=["slug"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["name_zh"]),
+            models.Index(fields=["name_en"]),
+        ]
+        verbose_name = "人名反应"
+        verbose_name_plural = "人名反应"
+
+    def get_absolute_url(self):
+        return reverse("reaction_detail", kwargs={"slug": self.slug})
+
+
+class GeneralReaction(BaseReactionContent):
+    category = models.ForeignKey(
+        GeneralReactionCategory,
+        verbose_name="常见有机反应分类",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reactions",
+    )
+
+    class Meta:
+        ordering = ["name_zh", "name_en"]
+        indexes = [
+            models.Index(fields=["slug"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["name_zh"]),
+            models.Index(fields=["name_en"]),
+        ]
+        verbose_name = "常见有机反应"
+        verbose_name_plural = "常见有机反应"
+
+    def get_absolute_url(self):
+        return reverse("general_reaction_detail", kwargs={"slug": self.slug})
+
 class SyntheticRoute(models.Model):
     Status = PublishStatus
     PUBLICATION_REQUIRED_FIELDS = {
@@ -247,6 +399,18 @@ class SyntheticRoute(models.Model):
     difficulty = models.CharField("难度", max_length=20, choices=Difficulty.choices, default=Difficulty.BEGINNER)
     source = models.CharField("来源", max_length=200, blank=True)
     related_reactions = models.ManyToManyField(Reaction, verbose_name="相关反应", blank=True, related_name="routes")
+    related_named_reactions = models.ManyToManyField(
+        NamedReaction,
+        verbose_name="相关人名反应",
+        blank=True,
+        related_name="routes",
+    )
+    related_general_reactions = models.ManyToManyField(
+        GeneralReaction,
+        verbose_name="相关常见有机反应",
+        blank=True,
+        related_name="routes",
+    )
     status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.DRAFT)
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
     updated_at = models.DateTimeField("更新时间", auto_now=True)
@@ -314,6 +478,18 @@ class RouteStep(models.Model):
     condition = models.TextField("条件", blank=True)
     yield_text = models.CharField("产率", max_length=50, blank=True)
     related_reactions = models.ManyToManyField(Reaction, verbose_name="相关反应", blank=True, related_name="route_steps")
+    related_named_reactions = models.ManyToManyField(
+        NamedReaction,
+        verbose_name="相关人名反应",
+        blank=True,
+        related_name="route_steps",
+    )
+    related_general_reactions = models.ManyToManyField(
+        GeneralReaction,
+        verbose_name="相关常见有机反应",
+        blank=True,
+        related_name="route_steps",
+    )
     note = models.TextField("说明", blank=True)
 
     class Meta:
@@ -345,6 +521,10 @@ class LearningResource(models.Model):
         BOOK = "book", "教材/复习书"
         OTHER = "other", "其他"
 
+    class SourceType(models.TextChoices):
+        UPLOAD = "upload", "上传文件"
+        EXTERNAL = "external", "外部路径"
+
     title = models.CharField("资料标题", max_length=255)
     category = models.CharField("分类", max_length=30, choices=Category.choices, default=Category.OTHER)
     year = models.PositiveIntegerField("年份", null=True, blank=True)
@@ -354,6 +534,14 @@ class LearningResource(models.Model):
     relative_path = models.TextField("相对路径", blank=True)
     source_folder = models.CharField("来源文件夹", max_length=120, blank=True)
     has_answer = models.BooleanField("含答案", default=False)
+    source_type = models.CharField(
+        "来源类型",
+        max_length=20,
+        choices=SourceType.choices,
+        default=SourceType.EXTERNAL,
+    )
+    uploaded_file = models.FileField("上传文件", upload_to="learning_resources/", blank=True)
+    external_path = models.TextField("外部路径", blank=True)
     status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.PUBLISHED)
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
     updated_at = models.DateTimeField("更新时间", auto_now=True)
@@ -381,6 +569,14 @@ class LearningResource(models.Model):
         if self.size_bytes >= 1024:
             return f"{self.size_bytes / 1024:.1f} KB"
         return f"{self.size_bytes} B"
+
+    def clean(self):
+        super().clean()
+        if self.status != self.Status.PUBLISHED:
+            return
+        if self.uploaded_file or self.external_path.strip() or self.local_path.strip():
+            return
+        raise ValidationError({"external_path": "发布前请上传文件或填写外部路径。"})
 
 
 class Announcement(models.Model):
@@ -572,3 +768,4 @@ class StudyProgress(models.Model):
     def __str__(self):
         target = self.reaction or self.route
         return f"{self.user.username} - {target} - {self.get_status_display()}"
+
