@@ -142,3 +142,13 @@
 - Django Admin 后台增删改查。
 - 首页、反应列表/详情、路线列表/详情。
 - 公开页面只显示已发布内容、基础自动化测试。
+
+### 1.7 后台内容管理重构（2026-08-02）
+
+- 人名反应和常见有机反应拆成两套内容库：`NamedReaction` 与 `GeneralReaction`。
+- 新增两套分类：`NamedReactionCategory` 与 `GeneralReactionCategory`。
+- Django Admin 支持新内容库的筛选、搜索、图片预览、完整度展示、批量发布/归档和 CSV 导出。
+- 专用后台工具页新增内容质量仪表盘、CSV 导入、图片维护、消息群发、消息清理、资料上传/登记。
+- 前台人名反应页优先读取新内容库，常见有机反应新增独立列表和详情页。
+- 公告推送增加去重字段 `message_sent_at`；反馈回复和状态变化会向用户发送站内消息。
+- 新增 `python manage.py setup_admin_roles`，用于初始化“内容编辑员”和“运营员”角色。

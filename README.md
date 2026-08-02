@@ -173,3 +173,13 @@ flowchart LR
 | 服务器 | Gunicorn / Nginx / Supervisor |
 | 部署 | 宝塔面板 10.0 / Debian 12 / LNMP |
 | 同步 | Git + GitHub |
+
+---
+
+## 后台内容管理重构
+
+- 人名反应和常见有机反应拆成两套内容库：`NamedReaction` 与 `GeneralReaction`。
+- 反应方程式图和缩略图是发布质量检查重点，机理图可选。
+- 专用后台工具页包括内容质量仪表盘、CSV 导入、图片维护、消息群发、资料上传/登记和消息清理。
+- 前台人名反应页优先读取新内容库；新内容为空时保留旧数据 fallback，方便平滑过渡。
+- 可运行 `python manage.py setup_admin_roles` 初始化“内容编辑员”和“运营员”角色。
