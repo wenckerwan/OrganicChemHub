@@ -5,7 +5,9 @@
       <h3 class="h5 mb-1"><a href="{{ reaction.get_absolute_url }}" aria-label="{{ reaction.name_zh }}">{{ reaction.name_zh|highlight_query:query }}</a></h3>
       <p class="text-muted mb-0" aria-label="{{ reaction.name_en }}">{{ reaction.name_en|highlight_query:query }}</p>
     </div>
-    {% if reaction.reaction_type %}
+    {% if reaction.category %}
+      <span class="badge rounded-pill text-bg-light">{{ reaction.category.name }}</span>
+    {% elif reaction.reaction_type %}
       <span class="badge rounded-pill text-bg-light">{{ reaction.reaction_type.name }}</span>
     {% endif %}
   </div>

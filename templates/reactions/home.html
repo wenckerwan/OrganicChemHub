@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <a class="quick-link" href="{% url 'reaction_list' %}">
               <i class="bi bi-diagram-3 me-2"></i>浏览人名反应
             </a>
+            <a class="quick-link" href="{% url 'general_reaction_list' %}">
+              <i class="bi bi-bezier2 me-2"></i>浏览常见有机反应
+            </a>
             <a class="quick-link" href="{% url 'route_list' %}">
               <i class="bi bi-signpost-split me-2"></i>浏览合成路线
             </a>
@@ -174,6 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="list-group list-group-flush mb-4">
             <a class="list-group-item px-0" href="{% url 'reaction_list' %}?exam=1">考研高频反应</a>
             <a class="list-group-item px-0" href="{% url 'reaction_list' %}?sort=updated">最近更新反应</a>
+            <a class="list-group-item px-0" href="{% url 'general_reaction_list' %}">常见有机反应库</a>
           </div>
           <h2 class="h5">分类</h2>
           <div class="tag-cloud mb-4">

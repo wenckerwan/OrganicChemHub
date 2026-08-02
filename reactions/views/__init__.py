@@ -3,6 +3,8 @@ from .home import DeployGuideView, HomeView
 from .auth import ProfileView, RegisterView
 from .reactions import (
     CommonReactionListView,
+    GeneralReactionDetailView,
+    GeneralReactionListView,
     ReactionDetailView,
     ReactionListView,
     ToggleFavoriteView,

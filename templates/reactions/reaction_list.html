@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load search_extras %}
 
-{% block title %}{% if is_common_view %}常见反应{% else %}人名反应{% endif %} | OrganicChemHub{% endblock %}
+{% block title %}{% if is_general_view %}常见有机反应{% elif is_common_view %}常见反应{% else %}人名反应{% endif %} | OrganicChemHub{% endblock %}
 
 {% block content %}
 <section class="reaction-map-hero">
   <div class="container">
     <div class="reaction-map-hero__copy">
-      <p class="eyebrow mb-2">{% if is_common_view %}Common reactions{% else %}Organic name reactions{% endif %}</p>
-      <h1>{% if is_common_view %}常见反应{% else %}人名反应{% endif %}</h1>
-      <p>{% if is_common_view %}考研高频和常见人名反应汇总，适合按考点重点复习。{% else %}已收录在化学学习中常见的人名反应，适合按名称、官能团、机理考点和合成用途快速查询。{% endif %}</p>
+      <p class="eyebrow mb-2">{% if is_general_view %}General organic reactions{% elif is_common_view %}Common reactions{% else %}Organic name reactions{% endif %}</p>
+      <h1>{% if is_general_view %}常见有机反应{% elif is_common_view %}常见反应{% else %}人名反应{% endif %}</h1>
+      <p>{% if is_general_view %}按反应类型整理常见有机反应，适合与人名反应库配合检索。{% elif is_common_view %}考研高频和常见人名反应汇总，适合按考点重点复习。{% else %}已收录在化学学习中常见的人名反应，适合按名称、官能团、机理考点和合成用途快速查询。{% endif %}</p>
     </div>
   </div>
 </section>
@@ -25,7 +25,7 @@
               <i class="bi bi-search"></i>
             </button>
           </div>
-          <a class="reset-link" href="{% url 'reaction_list' %}">重置</a>
+          <a class="reset-link" href="{% if is_general_view %}{% url 'general_reaction_list' %}{% else %}{% url 'reaction_list' %}{% endif %}">重置</a>
           <div class="reaction-browser__filters">
             <select id="type" class="form-select" name="type" aria-label="类型">
               <option value="">全部类型</option>
@@ -93,7 +93,7 @@
                   <p>{{ reaction.summary|highlight_query:query }}</p>
                 {% endif %}
                 <div class="tag-row">
-                  {% if reaction.reaction_type %}<span>{{ reaction.reaction_type.name }}</span>{% endif %}
+                  {% if reaction.category %}<span>{{ reaction.category.name }}</span>{% elif reaction.reaction_type %}<span>{{ reaction.reaction_type.name }}</span>{% endif %}
                   {% for tag in reaction.tags.all %}<span>{{ tag.name }}</span>{% endfor %}
                 </div>
               </div>

@@ -2,6 +2,8 @@ from django.urls import path
 
 from .views import (
     CommonReactionListView,
+    GeneralReactionDetailView,
+    GeneralReactionListView,
     DeployGuideView,
     FeedbackView,
     HomeView,
@@ -35,6 +37,8 @@ urlpatterns = [
     path("deploy/", DeployGuideView.as_view(), name="deploy_guide"),
     path("reactions/", ReactionListView.as_view(), name="reaction_list"),
     path("reactions/common/", CommonReactionListView.as_view(), name="common_reaction_list"),
+    path("reactions/general/", GeneralReactionListView.as_view(), name="general_reaction_list"),
+    path("reactions/general/<slug:slug>/", GeneralReactionDetailView.as_view(), name="general_reaction_detail"),
     path("reactions/<slug:slug>/", ReactionDetailView.as_view(), name="reaction_detail"),
     path("routes/", RouteListView.as_view(), name="route_list"),
     path("routes/<slug:slug>/", RouteDetailView.as_view(), name="route_detail"),

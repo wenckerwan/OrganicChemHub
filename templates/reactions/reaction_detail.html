@@ -13,10 +13,10 @@
       </div>
       <div class="d-flex align-items-center gap-2">
         <div class="detail-badges">
-          {% if reaction.reaction_type %}<span>{{ reaction.reaction_type.name }}</span>{% endif %}
+          {% if reaction.category %}<span>{{ reaction.category.name }}</span>{% elif reaction.reaction_type %}<span>{{ reaction.reaction_type.name }}</span>{% endif %}
           {% for tag in reaction.tags.all %}<span>{{ tag.name }}</span>{% endfor %}
         </div>
-        {% if user.is_authenticated %}
+        {% if user.is_authenticated and supports_reaction_user_tools %}
         <div class="d-flex gap-1">
           <form method="post" action="{% url 'toggle_favorite' %}">
             {% csrf_token %}
@@ -112,7 +112,7 @@
             {% endfor %}
           </div>
         </div>
-        {% if user.is_authenticated %}
+        {% if user.is_authenticated and supports_reaction_user_tools %}
         <div class="side-panel mt-3">
           <h2 class="h5">我的笔记</h2>
           <form method="post" action="{% url 'save_note' %}">

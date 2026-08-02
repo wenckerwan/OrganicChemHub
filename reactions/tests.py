@@ -753,3 +753,76 @@ class AdminToolPageTests(TestCase):
         self.assertContains(response, "缺缩略图")
         self.assertContains(response, 'id="named-missing-equation">1')
         self.assertContains(response, 'id="named-missing-thumbnail">1')
+
+class FrontendRedesignTests(TestCase):
+    def setUp(self):
+        self.named_category = NamedReactionCategory.objects.create(name="偶联反应", slug="coupling")
+        self.general_category = GeneralReactionCategory.objects.create(name="加成反应", slug="addition-general")
+        self.named = NamedReaction.objects.create(
+            name_zh="新维蒂希反应",
+            name_en="New Wittig Reaction",
+            slug="new-wittig-reaction",
+            category=self.named_category,
+            summary="新模型摘要",
+            condition="新模型条件",
+            exam_tips="新模型考点",
+            reference="新模型来源",
+            equation_img="named_reactions/new_wittig_equation.svg",
+            thumbnail_img="named_reactions/new_wittig_thumbnail.svg",
+            status=PublishStatus.PUBLISHED,
+        )
+        NamedReaction.objects.create(
+            name_zh="隐藏人名反应",
+            name_en="Hidden Named Reaction",
+            slug="hidden-named-reaction",
+            category=self.named_category,
+            status=PublishStatus.DRAFT,
+        )
+        self.general = GeneralReaction.objects.create(
+            name_zh="亲电加成",
+            name_en="Electrophilic Addition",
+            slug="electrophilic-addition-new",
+            category=self.general_category,
+            summary="常见反应摘要",
+            condition="常见反应条件",
+            exam_tips="常见反应考点",
+            reference="常见反应来源",
+            equation_img="general_reactions/electrophilic_addition_equation.svg",
+            thumbnail_img="general_reactions/electrophilic_addition_thumbnail.svg",
+            status=PublishStatus.PUBLISHED,
+        )
+        GeneralReaction.objects.create(
+            name_zh="隐藏常见反应",
+            name_en="Hidden General Reaction",
+            slug="hidden-general-reaction",
+            category=self.general_category,
+            status=PublishStatus.ARCHIVED,
+        )
+
+    def test_reaction_list_uses_published_named_reactions(self):
+        response = self.client.get(reverse("reaction_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "新维蒂希反应")
+        self.assertNotContains(response, "隐藏人名反应")
+
+    def test_reaction_detail_uses_published_named_reaction(self):
+        response = self.client.get(reverse("reaction_detail", kwargs={"slug": "new-wittig-reaction"}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "New Wittig Reaction")
+        self.assertContains(response, "新模型摘要")
+
+    def test_general_reaction_list_uses_published_general_reactions(self):
+        response = self.client.get(reverse("general_reaction_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "亲电加成")
+        self.assertNotContains(response, "隐藏常见反应")
+
+    def test_general_reaction_detail_uses_published_general_reaction(self):
+        response = self.client.get(reverse("general_reaction_detail", kwargs={"slug": "electrophilic-addition-new"}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Electrophilic Addition")
+        self.assertContains(response, "常见反应摘要")
