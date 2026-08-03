@@ -52,6 +52,8 @@ cd /www/wwwroot/chem.wencker.top
 source .venv/bin/activate
 git pull origin master
 pip install -r requirements.txt
+rm -f reactions/migrations/0012_alter_learningresource_local_path.py
+rm -f reactions/migrations/0014_merge_20260730_1535.py
 rm -f reactions/migrations/0016_merge_20260802_2239.py
 python manage.py migrate
 python manage.py collectstatic --noinput
