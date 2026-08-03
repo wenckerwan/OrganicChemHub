@@ -705,6 +705,29 @@ class AdminToolPageTests(TestCase):
         self.assertContains(response, "och-admin-tool-arrow")
         self.assertContains(response, "och-admin-tool-link--primary")
 
+    def test_admin_pages_use_unified_skin(self):
+        pages = [
+            "/admin/",
+            "/admin/reactions/namedreaction/",
+            "/admin/reactions/namedreaction/add/",
+            "/admin/reactions/dashboard/",
+            "/admin/reactions/import/",
+            "/admin/reactions/images/",
+            "/admin/operations/messages/send/",
+            "/admin/operations/messages/cleanup/",
+            "/admin/resources/import-or-upload/",
+        ]
+
+        for url in pages:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "och-admin")
+
+        self.assertContains(self.client.get("/admin/reactions/dashboard/"), "och-admin-stat-grid")
+        self.assertContains(self.client.get("/admin/reactions/import/"), "och-admin-form-card")
+        self.assertContains(self.client.get("/admin/reactions/images/"), "och-admin-list-card")
+
     def test_dashboard_loads(self):
         response = self.client.get("/admin/reactions/dashboard/")
         self.assertEqual(response.status_code, 200)

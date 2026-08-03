@@ -1,16 +1,33 @@
 {% extends "admin/base_site.html" %}
 
 {% block content %}
-<div class="module" style="padding:20px;">
-  <h1>图片维护</h1>
-  <p>方程式图和缩略图属于发布质量检查项；机理图可选，单独列出。</p>
-  <h2>缺少必要图片的人名反应</h2>
-  <ul>{% for reaction in named_missing_images %}<li>{{ reaction.name_zh }}：{{ reaction.missing_fields_display }}</li>{% empty %}<li>暂无</li>{% endfor %}</ul>
-  <h2>缺少必要图片的常见有机反应</h2>
-  <ul>{% for reaction in general_missing_images %}<li>{{ reaction.name_zh }}：{{ reaction.missing_fields_display }}</li>{% empty %}<li>暂无</li>{% endfor %}</ul>
-  <h2>未上传机理图的人名反应</h2>
-  <ul>{% for reaction in named_missing_mechanism %}<li>{{ reaction.name_zh }}</li>{% empty %}<li>暂无</li>{% endfor %}</ul>
-  <h2>未上传机理图的常见有机反应</h2>
-  <ul>{% for reaction in general_missing_mechanism %}<li>{{ reaction.name_zh }}</li>{% empty %}<li>暂无</li>{% endfor %}</ul>
+<div class="och-admin-page och-admin-page--wide">
+  <div class="och-admin-page-header">
+    <div>
+      <p class="och-admin-eyebrow">Image Maintenance</p>
+      <h1>图片维护</h1>
+      <p>方程式图和缩略图属于发布质量检查项；机理图可选，单独列出。</p>
+    </div>
+    <a class="och-admin-action-button" href="{% url 'admin:och_reactions_import' %}">CSV 导入</a>
+  </div>
+
+  <div class="och-admin-two-col">
+    <section class="och-admin-list-card">
+      <h2>缺少必要图片的人名反应</h2>
+      <ul>{% for reaction in named_missing_images %}<li><span>{{ reaction.name_zh }}</span><small>{{ reaction.missing_fields_display }}</small></li>{% empty %}<li><span>暂无</span></li>{% endfor %}</ul>
+    </section>
+    <section class="och-admin-list-card">
+      <h2>缺少必要图片的常见有机反应</h2>
+      <ul>{% for reaction in general_missing_images %}<li><span>{{ reaction.name_zh }}</span><small>{{ reaction.missing_fields_display }}</small></li>{% empty %}<li><span>暂无</span></li>{% endfor %}</ul>
+    </section>
+    <section class="och-admin-list-card">
+      <h2>未上传机理图的人名反应</h2>
+      <ul>{% for reaction in named_missing_mechanism %}<li><span>{{ reaction.name_zh }}</span></li>{% empty %}<li><span>暂无</span></li>{% endfor %}</ul>
+    </section>
+    <section class="och-admin-list-card">
+      <h2>未上传机理图的常见有机反应</h2>
+      <ul>{% for reaction in general_missing_mechanism %}<li><span>{{ reaction.name_zh }}</span></li>{% empty %}<li><span>暂无</span></li>{% endfor %}</ul>
+    </section>
+  </div>
 </div>
 {% endblock %}

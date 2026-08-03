@@ -1,14 +1,34 @@
 {% extends "admin/base_site.html" %}
 
 {% block content %}
-<div class="module" style="padding:20px;max-width:760px;">
-  <h1>CSV 导入</h1>
+<div class="och-admin-page">
+  <div class="och-admin-page-header">
+    <div>
+      <p class="och-admin-eyebrow">CSV Import</p>
+      <h1>CSV 导入</h1>
+      <p>批量新增或更新反应内容，导入后会显示新增、更新和跳过数量。</p>
+    </div>
+    <a class="och-admin-action-button" href="{% url 'admin:och_reactions_dashboard' %}">查看仪表盘</a>
+  </div>
+
   {% if result %}
-  <div class="messagelist"><div class="success">新增 {{ result.created }}，更新 {{ result.updated }}，跳过 {{ result.skipped }}</div></div>
+  <div class="och-admin-message och-admin-message--success">
+    新增 {{ result.created }}，更新 {{ result.updated }}，跳过 {{ result.skipped }}
+  </div>
   {% if result.errors %}
-  <ul>{% for error in result.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+  <div class="och-admin-list-card och-admin-list-card--warning">
+    <h2>导入错误</h2>
+    <ul>{% for error in result.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+  </div>
   {% endif %}
   {% endif %}
-  <form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button type="submit" class="default">上传</button></form>
+
+  <form class="och-admin-form-card" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="och-admin-form-actions">
+      <button type="submit" class="default">上传</button>
+    </div>
+  </form>
 </div>
 {% endblock %}

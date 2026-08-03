@@ -8,11 +8,48 @@
   --link-fg: #0f766e;
   --link-selected-fg: #0b5f59;
   --hairline-color: #d8dee8;
+  --och-surface: #ffffff;
+  --och-surface-soft: #f8fbfa;
+  --och-surface-raised: #ffffff;
+  --och-border: #d8dee8;
+  --och-muted: #61717b;
+  --och-heading: #172522;
+  --och-success: #0f766e;
+  --och-blue: #2563a8;
+  --och-amber: #a16207;
+  --och-rose: #b0445c;
+  --och-violet: #7c3f98;
+  --och-shadow-sm: 0 1px 2px rgba(31, 41, 51, 0.05);
+  --och-shadow-md: 0 8px 20px rgba(19, 41, 38, 0.1);
+}
+
+html[data-theme="dark"] {
+  --primary: #2dd4bf;
+  --secondary: #17332f;
+  --accent: #d38a5f;
+  --body-bg: #0f1514;
+  --body-fg: #e7eeec;
+  --link-fg: #5eead4;
+  --link-selected-fg: #99f6e4;
+  --hairline-color: #263432;
+  --och-surface: #16211f;
+  --och-surface-soft: #101a18;
+  --och-surface-raised: #1b2825;
+  --och-border: #2a3a37;
+  --och-muted: #a7b7b3;
+  --och-heading: #f2faf8;
+  --och-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --och-shadow-md: 0 10px 24px rgba(0, 0, 0, 0.34);
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+body.och-admin {
+  background: var(--body-bg);
+  color: var(--body-fg);
 }
 
 #header {
@@ -84,7 +121,7 @@ a.button {
   min-height: 92px;
   padding: 14px 15px;
   border: 1px solid var(--hairline-color);
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
   text-decoration: none;
   box-shadow: 0 1px 2px rgba(31, 41, 51, 0.04);
@@ -120,7 +157,7 @@ a.button {
   width: 44px;
   height: 44px;
   place-items: center;
-  border-radius: 9px;
+  border-radius: 8px;
   color: #0f766e;
   background: #d7f1ec;
 }
@@ -217,6 +254,591 @@ a.button {
 @media (prefers-reduced-motion: reduce) {
   .och-admin-tool-link,
   .och-admin-tool-arrow {
+    transition: none;
+  }
+}
+
+body.och-admin #container {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.07), transparent 220px),
+    var(--body-bg);
+}
+
+body.och-admin #header {
+  min-height: 56px;
+  padding: 0 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.och-admin #branding h1,
+body.och-admin #branding h1 a:link,
+body.och-admin #branding h1 a:visited {
+  color: #fff;
+}
+
+body.och-admin #user-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+body.och-admin #user-tools a,
+body.och-admin #logout-form button {
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+}
+
+body.och-admin #user-tools a:hover,
+body.och-admin #logout-form button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+body.och-admin div.breadcrumbs {
+  padding: 11px 32px;
+  background: #20413d;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.och-admin .main {
+  gap: 20px;
+}
+
+body.och-admin .content {
+  padding: 26px 32px 42px;
+}
+
+body.och-admin #content h1 {
+  color: var(--och-heading);
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+body.och-admin #content h2 {
+  color: var(--och-heading);
+  letter-spacing: 0;
+}
+
+body.och-admin .module,
+body.och-admin fieldset.module,
+body.och-admin .inline-group,
+body.och-admin #changelist,
+body.och-admin #content-related .module {
+  border: 1px solid var(--och-border);
+  border-radius: 8px;
+  background: var(--och-surface);
+  box-shadow: var(--och-shadow-sm);
+}
+
+body.och-admin .module h2,
+body.och-admin .module caption,
+body.och-admin .inline-group h2 {
+  background: var(--secondary);
+  color: #fff;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+body.och-admin table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+body.och-admin thead th {
+  background: var(--och-surface-soft);
+  color: var(--och-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+body.och-admin tbody tr {
+  background: var(--och-surface);
+}
+
+body.och-admin tbody tr:nth-child(even) {
+  background: var(--och-surface-soft);
+}
+
+body.och-admin tbody tr:hover {
+  background: rgba(15, 118, 110, 0.08);
+}
+
+body.och-admin td,
+body.och-admin th {
+  border-bottom-color: var(--och-border);
+}
+
+body.och-admin a:link,
+body.och-admin a:visited {
+  color: var(--link-fg);
+}
+
+body.och-admin a:hover {
+  color: var(--link-selected-fg);
+}
+
+body.och-admin .object-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.och-admin .object-tools a,
+body.och-admin .object-tools a:link,
+body.och-admin .object-tools a:visited,
+body.och-admin .button,
+body.och-admin input[type="submit"],
+body.och-admin input[type="button"],
+body.och-admin .submit-row input,
+body.och-admin a.button,
+body.och-admin button.default,
+body.och-admin input.default {
+  min-height: 38px;
+  border: 1px solid rgba(15, 118, 110, 0.3);
+  border-radius: 7px;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(15, 118, 110, 0.14);
+  font-weight: 650;
+  text-decoration: none;
+  transition-property: transform, background-color, border-color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+body.och-admin .object-tools a:hover,
+body.och-admin .button:hover,
+body.och-admin input[type="submit"]:hover,
+body.och-admin input[type="button"]:hover,
+body.och-admin .submit-row input:hover,
+body.och-admin a.button:hover,
+body.och-admin button.default:hover,
+body.och-admin input.default:hover {
+  background: var(--link-selected-fg);
+  box-shadow: var(--och-shadow-md);
+  transform: translateY(-1px);
+}
+
+body.och-admin .object-tools a:active,
+body.och-admin .button:active,
+body.och-admin input[type="submit"]:active,
+body.och-admin input[type="button"]:active,
+body.och-admin .submit-row input:active,
+body.och-admin a.button:active,
+body.och-admin button.default:active,
+body.och-admin input.default:active {
+  transform: scale(0.96);
+}
+
+body.och-admin .deletelink,
+body.och-admin input[type="submit"].deletelink,
+body.och-admin button.deletelink {
+  border-color: rgba(176, 68, 92, 0.35);
+  background: var(--och-rose);
+  color: #fff;
+}
+
+body.och-admin input[type="text"],
+body.och-admin input[type="password"],
+body.och-admin input[type="email"],
+body.och-admin input[type="url"],
+body.och-admin input[type="number"],
+body.och-admin input[type="search"],
+body.och-admin input[type="file"],
+body.och-admin textarea,
+body.och-admin select,
+body.och-admin .vTextField {
+  border: 1px solid var(--och-border);
+  border-radius: 7px;
+  background: var(--och-surface);
+  color: var(--body-fg);
+  box-shadow: inset 0 1px 1px rgba(31, 41, 51, 0.03);
+}
+
+body.och-admin input:focus,
+body.och-admin textarea:focus,
+body.och-admin select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
+  outline: none;
+}
+
+body.och-admin .form-row {
+  padding: 14px 16px;
+  border-bottom-color: var(--och-border);
+}
+
+body.och-admin .form-row label {
+  color: var(--och-heading);
+  font-weight: 650;
+}
+
+body.och-admin .help,
+body.och-admin p.help,
+body.och-admin div.help,
+body.och-admin form .aligned p.help {
+  color: var(--och-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+body.och-admin .submit-row {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  border: 1px solid var(--och-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--och-surface) 92%, transparent);
+  box-shadow: 0 -6px 18px rgba(19, 41, 38, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+body.och-admin #toolbar,
+body.och-admin .actions,
+body.och-admin .paginator {
+  border-color: var(--och-border);
+  background: var(--och-surface-soft);
+}
+
+body.och-admin #toolbar {
+  border-radius: 8px 8px 0 0;
+  padding: 12px 14px;
+}
+
+body.och-admin #toolbar form input[type="submit"] {
+  min-height: 34px;
+}
+
+body.och-admin .actions {
+  padding: 10px 14px;
+}
+
+body.och-admin .paginator {
+  border-radius: 0 0 8px 8px;
+  padding: 12px 14px;
+  color: var(--och-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+body.och-admin #changelist-filter {
+  border: 1px solid var(--och-border);
+  border-radius: 8px;
+  background: var(--och-surface);
+  box-shadow: var(--och-shadow-sm);
+}
+
+body.och-admin #changelist-filter h2 {
+  border-radius: 8px 8px 0 0;
+  background: var(--secondary);
+  color: #fff;
+}
+
+body.och-admin #changelist-filter h3 {
+  color: var(--och-heading);
+  font-weight: 650;
+}
+
+body.och-admin #nav-sidebar {
+  border-right: 1px solid var(--och-border);
+  background: var(--och-surface);
+}
+
+body.och-admin #nav-filter {
+  margin: 12px;
+  width: calc(100% - 24px);
+}
+
+body.och-admin .messagelist li {
+  margin: 0 0 10px;
+  border-radius: 8px;
+  box-shadow: var(--och-shadow-sm);
+}
+
+body.och-admin img {
+  outline: 1px solid oklch(0 0 0 / 0.1);
+}
+
+html[data-theme="dark"] body.och-admin img {
+  outline-color: oklch(1 0 0 / 0.1);
+}
+
+.och-admin-page {
+  display: grid;
+  gap: 18px;
+  max-width: 860px;
+}
+
+.och-admin-page--wide {
+  max-width: 1180px;
+}
+
+.och-admin-page-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px;
+  border: 1px solid var(--och-border);
+  border-radius: 8px;
+  background: var(--och-surface);
+  box-shadow: var(--och-shadow-sm);
+}
+
+.och-admin-page-header h1 {
+  margin: 0 0 6px;
+}
+
+.och-admin-page-header p {
+  margin: 0;
+  color: var(--och-muted);
+  line-height: 1.6;
+}
+
+.och-admin-eyebrow {
+  margin: 0 0 5px !important;
+  color: var(--primary) !important;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.och-admin-action-button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border: 1px solid rgba(15, 118, 110, 0.24);
+  border-radius: 7px;
+  background: #eef8f6;
+  color: var(--link-fg) !important;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+  transition-property: transform, border-color, background-color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+.och-admin-action-button:hover {
+  border-color: var(--primary);
+  background: #dff4ef;
+  box-shadow: var(--och-shadow-md);
+  transform: translateY(-1px);
+}
+
+.och-admin-action-button:active {
+  transform: scale(0.96);
+}
+
+.och-admin-panel,
+.och-admin-form-card,
+.och-admin-list-card {
+  padding: 18px;
+  border: 1px solid var(--och-border);
+  border-radius: 8px;
+  background: var(--och-surface);
+  box-shadow: var(--och-shadow-sm);
+}
+
+.och-admin-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.och-admin-section-heading h2,
+.och-admin-list-card h2 {
+  margin: 0;
+  color: var(--och-heading);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.och-admin-section-heading span {
+  color: var(--och-muted);
+  font-size: 12px;
+}
+
+.och-admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.och-admin-stat-card {
+  display: grid;
+  gap: 8px;
+  min-height: 106px;
+  padding: 14px;
+  border: 1px solid var(--och-border);
+  border-radius: 8px;
+  background: var(--och-surface-soft);
+}
+
+.och-admin-stat-card span,
+.och-admin-metric-list span,
+.och-admin-alert-line span {
+  color: var(--och-muted);
+  font-size: 12px;
+}
+
+.och-admin-stat-card strong {
+  color: var(--och-heading);
+  font-size: 30px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.och-admin-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.och-admin-metric-list {
+  display: grid;
+  gap: 8px;
+}
+
+.och-admin-metric-list div,
+.och-admin-alert-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--och-surface-soft);
+}
+
+.och-admin-metric-list strong,
+.och-admin-alert-line strong {
+  color: var(--och-heading);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.och-admin-form-card {
+  display: grid;
+  gap: 14px;
+}
+
+.och-admin-form-card p {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.och-admin-form-card label {
+  color: var(--och-heading);
+  font-weight: 650;
+}
+
+.och-admin-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.och-admin-message {
+  padding: 12px 14px;
+  border-radius: 8px;
+  box-shadow: var(--och-shadow-sm);
+  font-weight: 650;
+}
+
+.och-admin-message--success {
+  border: 1px solid rgba(15, 118, 110, 0.28);
+  background: #e8f7f3;
+  color: #0b5f59;
+}
+
+.och-admin-list-card h2 {
+  margin-bottom: 12px;
+}
+
+.och-admin-list-card ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.och-admin-list-card li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--och-surface-soft);
+}
+
+.och-admin-list-card li span {
+  color: var(--och-heading);
+  font-weight: 650;
+}
+
+.och-admin-list-card li small {
+  color: var(--och-muted);
+}
+
+.och-admin-list-card--warning {
+  border-color: rgba(161, 98, 7, 0.32);
+}
+
+html[data-theme="dark"] .och-admin-action-button,
+html[data-theme="dark"] .och-admin-message--success {
+  background: rgba(45, 212, 191, 0.12);
+}
+
+@media (max-width: 900px) {
+  body.och-admin #header,
+  body.och-admin div.breadcrumbs,
+  body.och-admin .content {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .och-admin-page-header,
+  .och-admin-two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .och-admin-page-header {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.och-admin .object-tools a,
+  body.och-admin .button,
+  body.och-admin input[type="submit"],
+  body.och-admin input[type="button"],
+  body.och-admin .submit-row input,
+  body.och-admin a.button,
+  body.och-admin button.default,
+  body.och-admin input.default,
+  .och-admin-action-button {
     transition: none;
   }
 }

@@ -1,11 +1,26 @@
 {% extends "admin/base_site.html" %}
 
 {% block content %}
-<div class="module" style="padding:20px;max-width:760px;">
-  <h1>站内消息群发</h1>
+<div class="och-admin-page">
+  <div class="och-admin-page-header">
+    <div>
+      <p class="och-admin-eyebrow">Message Broadcast</p>
+      <h1>站内消息群发</h1>
+      <p>向指定用户或全体用户发送站内通知。</p>
+    </div>
+    <a class="och-admin-action-button" href="{% url 'admin:och_message_cleanup' %}">消息清理</a>
+  </div>
+
   {% if result %}
-  <div class="messagelist"><div class="success">已发送 {{ result.sent }} 条站内消息。</div></div>
+  <div class="och-admin-message och-admin-message--success">已发送 {{ result.sent }} 条站内消息。</div>
   {% endif %}
-  <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit" class="default">发送</button></form>
+
+  <form class="och-admin-form-card" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="och-admin-form-actions">
+      <button type="submit" class="default">发送</button>
+    </div>
+  </form>
 </div>
 {% endblock %}

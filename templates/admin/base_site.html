@@ -3,6 +3,8 @@
 
 {% block title %}OrganicChemHub 管理后台{% endblock %}
 
+{% block bodyclass %}{{ block.super }} och-admin{% endblock %}
+
 {% block extrahead %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/admin.css' %}">

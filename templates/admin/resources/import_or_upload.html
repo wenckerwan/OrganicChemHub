@@ -1,8 +1,22 @@
 {% extends "admin/base_site.html" %}
 
 {% block content %}
-<div class="module" style="padding:20px;max-width:760px;">
-  <h1>学习资料上传和登记</h1>
-  <form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button type="submit" class="default">保存</button></form>
+<div class="och-admin-page">
+  <div class="och-admin-page-header">
+    <div>
+      <p class="och-admin-eyebrow">Learning Resource</p>
+      <h1>学习资料上传和登记</h1>
+      <p>上传新的资料文件，或登记服务器上已有的资料路径。</p>
+    </div>
+    <a class="och-admin-action-button" href="{% url 'admin:reactions_learningresource_changelist' %}">资料列表</a>
+  </div>
+
+  <form class="och-admin-form-card" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="och-admin-form-actions">
+      <button type="submit" class="default">保存</button>
+    </div>
+  </form>
 </div>
 {% endblock %}

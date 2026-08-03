@@ -1,17 +1,32 @@
 {% extends "admin/base_site.html" %}
+
 {% block content %}
-<h1>发送站内消息</h1>
-<p>向以下用户发送消息：</p>
-<ul>
-  {% for user in users %}
-  <li>{{ user.username }} ({{ user.email }})</li>
-  {% endfor %}
-</ul>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <input type="hidden" name="action" value="send_message_to_users">
-  <input type="hidden" name="apply" value="1">
-  <button type="submit" class="default">发送</button>
-</form>
+<div class="och-admin-page">
+  <div class="och-admin-page-header">
+    <div>
+      <p class="och-admin-eyebrow">Selected Users</p>
+      <h1>发送站内消息</h1>
+      <p>向当前选中的用户发送消息。</p>
+    </div>
+  </div>
+
+  <section class="och-admin-list-card">
+    <h2>接收用户</h2>
+    <ul>
+      {% for user in users %}
+      <li><span>{{ user.username }}</span><small>{{ user.email }}</small></li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <form class="och-admin-form-card" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" name="action" value="send_message_to_users">
+    <input type="hidden" name="apply" value="1">
+    <div class="och-admin-form-actions">
+      <button type="submit" class="default">发送</button>
+    </div>
+  </form>
+</div>
 {% endblock %}

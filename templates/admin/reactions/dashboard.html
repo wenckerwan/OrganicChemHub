@@ -1,40 +1,84 @@
 {% extends "admin/base_site.html" %}
 
 {% block content %}
-<div class="module" style="padding:20px;">
-  <h1>内容质量仪表盘</h1>
-
-  <h2>核心内容概览</h2>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:980px;margin-bottom:24px;">
-    <div><span>人名反应总数</span><strong style="display:block;font-size:28px;">{{ named_stats.total }}</strong></div>
-    <div><span>常见有机反应总数</span><strong style="display:block;font-size:28px;">{{ general_stats.total }}</strong></div>
-    <div><span>合成路线</span><strong style="display:block;font-size:28px;">{{ routes_total }}</strong></div>
-    <div><span>学习资料</span><strong style="display:block;font-size:28px;">{{ resources_total }}</strong></div>
+<div class="och-admin-page och-admin-page--wide">
+  <div class="och-admin-page-header">
+    <div>
+      <p class="och-admin-eyebrow">Content Quality</p>
+      <h1>内容质量仪表盘</h1>
+      <p>快速查看核心内容数量、发布状态和关键字段缺失情况。</p>
+    </div>
+    <a class="och-admin-action-button" href="{% url 'admin:index' %}">返回后台首页</a>
   </div>
 
-  <h2>人名反应质量</h2>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:980px;margin-bottom:24px;">
-    <div><span>已发布</span><strong>{{ named_stats.published }}</strong></div>
-    <div><span>草稿</span><strong>{{ named_stats.drafts }}</strong></div>
-    <div><span>归档</span><strong>{{ named_stats.archived }}</strong></div>
-    <div><span>缺方程式图</span><strong id="named-missing-equation">{{ named_stats.missing_equation }}</strong></div>
-    <div><span>缺缩略图</span><strong id="named-missing-thumbnail">{{ named_stats.missing_thumbnail }}</strong></div>
-    <div><span>缺考点</span><strong>{{ named_stats.missing_exam_tips }}</strong></div>
-    <div><span>缺条件</span><strong>{{ named_stats.missing_condition }}</strong></div>
+  <section class="och-admin-panel">
+    <div class="och-admin-section-heading">
+      <h2>核心内容概览</h2>
+      <span>内容规模</span>
+    </div>
+    <div class="och-admin-stat-grid">
+      <div class="och-admin-stat-card">
+        <span>人名反应总数</span>
+        <strong>{{ named_stats.total }}</strong>
+      </div>
+      <div class="och-admin-stat-card">
+        <span>常见有机反应总数</span>
+        <strong>{{ general_stats.total }}</strong>
+      </div>
+      <div class="och-admin-stat-card">
+        <span>合成路线</span>
+        <strong>{{ routes_total }}</strong>
+      </div>
+      <div class="och-admin-stat-card">
+        <span>学习资料</span>
+        <strong>{{ resources_total }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <div class="och-admin-two-col">
+    <section class="och-admin-panel">
+      <div class="och-admin-section-heading">
+        <h2>人名反应质量</h2>
+        <span>Named Reaction</span>
+      </div>
+      <div class="och-admin-metric-list">
+        <div><span>已发布</span><strong>{{ named_stats.published }}</strong></div>
+        <div><span>草稿</span><strong>{{ named_stats.drafts }}</strong></div>
+        <div><span>归档</span><strong>{{ named_stats.archived }}</strong></div>
+        <div><span>缺方程式图</span><strong id="named-missing-equation">{{ named_stats.missing_equation }}</strong></div>
+        <div><span>缺缩略图</span><strong id="named-missing-thumbnail">{{ named_stats.missing_thumbnail }}</strong></div>
+        <div><span>缺考点</span><strong>{{ named_stats.missing_exam_tips }}</strong></div>
+        <div><span>缺条件</span><strong>{{ named_stats.missing_condition }}</strong></div>
+      </div>
+    </section>
+
+    <section class="och-admin-panel">
+      <div class="och-admin-section-heading">
+        <h2>常见有机反应质量</h2>
+        <span>General Reaction</span>
+      </div>
+      <div class="och-admin-metric-list">
+        <div><span>已发布</span><strong>{{ general_stats.published }}</strong></div>
+        <div><span>草稿</span><strong>{{ general_stats.drafts }}</strong></div>
+        <div><span>归档</span><strong>{{ general_stats.archived }}</strong></div>
+        <div><span>缺方程式图</span><strong id="general-missing-equation">{{ general_stats.missing_equation }}</strong></div>
+        <div><span>缺缩略图</span><strong id="general-missing-thumbnail">{{ general_stats.missing_thumbnail }}</strong></div>
+        <div><span>缺考点</span><strong>{{ general_stats.missing_exam_tips }}</strong></div>
+        <div><span>缺条件</span><strong>{{ general_stats.missing_condition }}</strong></div>
+      </div>
+    </section>
   </div>
 
-  <h2>常见有机反应质量</h2>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:980px;margin-bottom:24px;">
-    <div><span>已发布</span><strong>{{ general_stats.published }}</strong></div>
-    <div><span>草稿</span><strong>{{ general_stats.drafts }}</strong></div>
-    <div><span>归档</span><strong>{{ general_stats.archived }}</strong></div>
-    <div><span>缺方程式图</span><strong id="general-missing-equation">{{ general_stats.missing_equation }}</strong></div>
-    <div><span>缺缩略图</span><strong id="general-missing-thumbnail">{{ general_stats.missing_thumbnail }}</strong></div>
-    <div><span>缺考点</span><strong>{{ general_stats.missing_exam_tips }}</strong></div>
-    <div><span>缺条件</span><strong>{{ general_stats.missing_condition }}</strong></div>
-  </div>
-
-  <h2>路线质量</h2>
-  <p>缺少步骤的路线：<strong>{{ routes_missing_steps }}</strong></p>
+  <section class="och-admin-panel">
+    <div class="och-admin-section-heading">
+      <h2>路线质量</h2>
+      <span>Route Steps</span>
+    </div>
+    <div class="och-admin-alert-line">
+      <span>缺少步骤的路线</span>
+      <strong>{{ routes_missing_steps }}</strong>
+    </div>
+  </section>
 </div>
 {% endblock %}
