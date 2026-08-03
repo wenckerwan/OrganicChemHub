@@ -4,7 +4,7 @@
 {% block title %}{{ library_title|default:"人名反应库" }} | OrganicChemHub{% endblock %}
 
 {% block content %}
-<section class="reaction-map-hero">
+<section class="reaction-map-hero reaction-map-hero--{{ library_theme|default:'named' }}">
   <div class="container">
     <div class="reaction-map-hero__copy">
       <p class="eyebrow mb-2">{{ library_eyebrow|default:"Named Reaction Library" }}</p>
@@ -14,9 +14,9 @@
   </div>
 </section>
 
-<section class="reaction-browser-wrap">
+<section class="reaction-browser-wrap reaction-browser-wrap--{{ library_theme|default:'named' }}">
   <div class="container">
-    <div class="reaction-browser">
+    <div class="reaction-browser reaction-browser--{{ library_theme|default:'named' }}">
       <aside class="reaction-browser__sidebar" aria-label="{{ library_sidebar_label|default:'人名反应目录' }}">
         <form class="reaction-browser__search" method="get">
           <div class="input-group">

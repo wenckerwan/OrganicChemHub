@@ -280,6 +280,21 @@ a:hover {
   top: 2.1rem;
 }
 
+.reaction-map-hero--general {
+  background:
+    linear-gradient(90deg, rgba(8, 97, 84, 0.98), rgba(17, 128, 113, 0.9)),
+    repeating-linear-gradient(90deg, transparent 0 8rem, rgba(255, 255, 255, 0.08) 8rem 8.1rem);
+}
+
+.reaction-map-hero--general::before {
+  content: "Addition Substitution Elimination Oxidation Reduction";
+}
+
+.reaction-map-hero--general::after {
+  content: "C=C  +  HX  ->  C-C";
+  color: rgba(222, 247, 239, 0.42);
+}
+
 .reaction-map-hero__copy {
   margin-left: clamp(0rem, 4vw, 4rem);
   max-width: 46rem;
@@ -306,6 +321,10 @@ a:hover {
 .reaction-browser-wrap {
   background: #eef3f8;
   padding: 1rem 0 3rem;
+}
+
+.reaction-browser-wrap--general {
+  background: #edf7f3;
 }
 
 .reaction-browser {
@@ -406,6 +425,12 @@ a:hover {
   text-decoration: none;
 }
 
+.reaction-browser--general .reaction-index a:hover,
+.reaction-browser--general .reaction-index a:focus {
+  background: #e8f7f1;
+  color: #087061;
+}
+
 .reaction-browser__content {
   padding: 1.6rem;
 }
@@ -437,6 +462,10 @@ a:hover {
   margin-left: 0.5rem;
 }
 
+.reaction-browser--general .browser-result-head p span {
+  color: #087061;
+}
+
 .browser-result-head__chips {
   display: flex;
   flex-wrap: wrap;
@@ -451,6 +480,11 @@ a:hover {
   font-size: 0.82rem;
   font-weight: 800;
   padding: 0.35rem 0.65rem;
+}
+
+.reaction-browser--general .browser-result-head__chips span {
+  background: #e8f7f1;
+  color: #087061;
 }
 
 .reaction-result-list {
@@ -475,12 +509,20 @@ a:hover {
   transform: translateY(-1px);
 }
 
+.reaction-browser--general .reaction-result-item:hover {
+  border-color: #9ed6c8;
+}
+
 .reaction-result-item__title {
   color: #0c55a0;
   display: inline-block;
   font-size: 1.12rem;
   font-weight: 900;
   margin-bottom: 0.2rem;
+}
+
+.reaction-browser--general .reaction-result-item__title {
+  color: #087061;
 }
 
 .reaction-result-item h3 {

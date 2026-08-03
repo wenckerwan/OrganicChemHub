@@ -24,6 +24,7 @@ from reactions.models import (
     Message,
     NamedReaction,
     NamedReactionCategory,
+    NavItem,
     PublishStatus,
     Reaction,
     ReactionType,
@@ -405,7 +406,8 @@ class PublicViewTests(TestCase):
     def test_reaction_list_uses_reference_browser_layout(self):
         response = self.client.get(reverse("reaction_list"))
 
-        self.assertContains(response, 'class="reaction-browser"')
+        self.assertContains(response, "reaction-browser")
+        self.assertContains(response, "reaction-browser--named")
         self.assertContains(response, 'class="reaction-browser__sidebar"')
         self.assertContains(response, 'class="reaction-browser__content"')
         self.assertContains(response, "人名反应库")
@@ -1023,10 +1025,20 @@ class FrontendReactionLibrarySeparationTests(TestCase):
         self.assertNotContains(named_response, "General Only Reaction")
         self.assertContains(general_response, "<h1>常见有机反应库</h1>", html=True)
         self.assertContains(general_response, "General Reaction Library")
+        self.assertContains(general_response, "reaction-map-hero--general")
         self.assertContains(general_response, "常见反应目录")
         self.assertContains(general_response, "全部已发布常见反应")
         self.assertContains(general_response, "General Only Reaction")
         self.assertNotContains(general_response, "Named Only Reaction")
+
+    def test_common_reaction_nav_item_is_forced_to_general_library(self):
+        NavItem.objects.create(label="人名反应", url_name="reaction_list", sort_order=10)
+        NavItem.objects.create(label="常见反应", url_name="reaction_list", sort_order=20)
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, '<a class="nav-link" href="/reactions/">人名反应</a>', html=True)
+        self.assertContains(response, '<a class="nav-link" href="/reactions/general/">常见有机反应</a>', html=True)
 
     def test_homepage_common_reaction_area_links_to_general_library(self):
         response = self.client.get(reverse("home"))

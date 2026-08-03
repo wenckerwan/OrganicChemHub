@@ -79,6 +79,7 @@ class ReactionListView(ListView):
         context["library_empty_label"] = "没有找到匹配的已发布人名反应。"
         context["library_index_empty_label"] = "暂无已发布人名反应"
         context["library_search_placeholder"] = "搜索人名反应、试剂、考点"
+        context["library_theme"] = "named"
         context["supports_reaction_user_tools"] = False
         return context
 
@@ -142,6 +143,7 @@ class GeneralReactionListView(ListView):
         context["library_empty_label"] = "没有找到匹配的已发布常见反应。"
         context["library_index_empty_label"] = "暂无已发布常见反应"
         context["library_search_placeholder"] = "搜索常见反应、官能团、考点"
+        context["library_theme"] = "general"
         context["supports_reaction_user_tools"] = False
         return context
 
