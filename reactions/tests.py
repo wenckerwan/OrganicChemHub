@@ -976,6 +976,58 @@ class FrontendRedesignTests(TestCase):
         self.assertContains(response, "常见反应摘要")
 
 
+class FrontendReactionLibrarySeparationTests(TestCase):
+    def setUp(self):
+        named_category = NamedReactionCategory.objects.create(name="Named Category", slug="named-category")
+        general_category = GeneralReactionCategory.objects.create(name="General Category", slug="general-category")
+        tag = Tag.objects.create(name="考研高频", slug="exam-high-frequency")
+        self.named = NamedReaction.objects.create(
+            name_zh="Named Only Reaction",
+            name_en="Named Only Reaction",
+            slug="named-only-reaction",
+            category=named_category,
+            summary="Named summary",
+            condition="Named condition",
+            exam_tips="Named tips",
+            reference="Named source",
+            equation_img="named_reactions/named_only_equation.svg",
+            thumbnail_img="named_reactions/named_only_thumbnail.svg",
+            status=PublishStatus.PUBLISHED,
+        )
+        self.named.tags.add(tag)
+        self.general = GeneralReaction.objects.create(
+            name_zh="General Only Reaction",
+            name_en="General Only Reaction",
+            slug="general-only-reaction",
+            category=general_category,
+            summary="General summary",
+            condition="General condition",
+            exam_tips="General tips",
+            reference="General source",
+            equation_img="general_reactions/general_only_equation.svg",
+            thumbnail_img="general_reactions/general_only_thumbnail.svg",
+            status=PublishStatus.PUBLISHED,
+        )
+        self.general.tags.add(tag)
+
+    def test_named_and_general_lists_do_not_cross_display(self):
+        named_response = self.client.get(reverse("reaction_list"))
+        general_response = self.client.get(reverse("general_reaction_list"))
+
+        self.assertContains(named_response, "Named Only Reaction")
+        self.assertNotContains(named_response, "General Only Reaction")
+        self.assertContains(general_response, "General Only Reaction")
+        self.assertNotContains(general_response, "Named Only Reaction")
+
+    def test_homepage_common_reaction_area_links_to_general_library(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "General Only Reaction")
+        self.assertContains(response, reverse("general_reaction_detail", kwargs={"slug": "general-only-reaction"}))
+        self.assertContains(response, reverse("general_reaction_list") + "?tag=exam-high-frequency")
+        self.assertContains(response, reverse("general_reaction_list") + "?sort=updated")
+
+
 class AdminOperationsRedesignTests(TestCase):
     def setUp(self):
         self.admin_user = User.objects.create_superuser("ops-admin", "ops@example.com", "password")
