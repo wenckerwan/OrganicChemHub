@@ -560,10 +560,12 @@ class ExamReactionSeedImportTests(TestCase):
     def test_import_exam_reaction_seed_creates_new_reaction_libraries(self):
         call_command("import_exam_reaction_seed", verbosity=0)
 
-        self.assertEqual(NamedReaction.objects.count(), 25)
-        self.assertEqual(GeneralReaction.objects.count(), 24)
+        self.assertEqual(NamedReaction.objects.count(), 40)
+        self.assertEqual(GeneralReaction.objects.count(), 42)
         self.assertTrue(NamedReaction.objects.filter(slug="diels-alder-reaction").exists())
+        self.assertTrue(NamedReaction.objects.filter(slug="williamson-ether-synthesis").exists())
         self.assertTrue(GeneralReaction.objects.filter(slug="epoxide-acidic-ring-opening").exists())
+        self.assertTrue(GeneralReaction.objects.filter(slug="fehling-test").exists())
         self.assertTrue(Tag.objects.filter(slug="exam-completion").exists())
         self.assertTrue(FunctionalGroup.objects.filter(name_zh="环氧").exists())
 
@@ -571,8 +573,8 @@ class ExamReactionSeedImportTests(TestCase):
         call_command("import_exam_reaction_seed", verbosity=0)
         call_command("import_exam_reaction_seed", verbosity=0)
 
-        self.assertEqual(NamedReaction.objects.count(), 25)
-        self.assertEqual(GeneralReaction.objects.count(), 24)
+        self.assertEqual(NamedReaction.objects.count(), 40)
+        self.assertEqual(GeneralReaction.objects.count(), 42)
 
 
 class LearningResourceTests(TestCase):
