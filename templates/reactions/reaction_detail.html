@@ -103,6 +103,7 @@
         {% endif %}
       </div>
       <aside class="col-lg-4">
+        {% include "reactions/partials/visit_counter.html" with title="本页访问量" stats=content_visit_stats %}
         <div class="side-panel">
           <h2 class="h5">适用范围</h2>
           <p class="text-secondary">{{ reaction.scope|default:"暂无记录"|linebreaksbr }}</p>

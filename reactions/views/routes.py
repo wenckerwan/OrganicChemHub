@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from django.views.generic import DetailView, ListView, View
 
 from ..models import Favorite, RouteStep, StudyNote, StudyProgress, SyntheticRoute
+from ..services.visits import increment_object_visit
 
 
 class RouteListView(ListView):
@@ -67,6 +68,7 @@ class RouteDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         route = self.object
+        context["content_visit_stats"] = increment_object_visit(route)
         if user.is_authenticated:
             context["is_favorited"] = Favorite.objects.filter(user=user, route=route).exists()
             context["user_note"] = StudyNote.objects.filter(user=user, route=route).first()

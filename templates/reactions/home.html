@@ -102,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <span><strong>{{ featured_routes|length }}</strong> 路线入口</span>
           <span><strong>{{ reaction_types|length }}</strong> 反应分类</span>
         </div>
+        {% include "reactions/partials/visit_counter.html" with title="网站访问量" stats=site_visit_stats %}
         <div class="frontend-status-panel mt-3" aria-label="前台内容状态">
           <div class="frontend-status-title">
             <i class="bi bi-check2-circle me-1"></i>前台内容状态

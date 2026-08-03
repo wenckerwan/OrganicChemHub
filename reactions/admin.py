@@ -9,6 +9,7 @@ from django.contrib.contenttypes.admin import GenericTabularInline
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import path, reverse
 from django.utils.html import format_html
 from django.utils import timezone
@@ -16,7 +17,7 @@ from django.template.response import TemplateResponse
 
 from . import admin_tools
 from .admin_helpers import image_preview, thumbnail_img
-from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionImage, ReactionType, RouteStep, SyntheticRoute, Tag
+from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionImage, ReactionType, RouteStep, SyntheticRoute, Tag, VisitCounter
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -829,6 +830,23 @@ class OpLogAdmin(admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(VisitCounter)
+class VisitCounterAdmin(admin.ModelAdmin):
+    list_display = ("label", "key", "total_count", "today_count", "today_date", "updated_at")
+    list_filter = ("today_date",)
+    search_fields = ("label", "key")
+    readonly_fields = ("label", "key", "total_count", "today_count", "today_date", "updated_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False
 
 

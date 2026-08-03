@@ -15,6 +15,7 @@ from ..models import (
     StudyProgress,
     Tag,
 )
+from ..services.visits import increment_object_visit
 
 
 class ReactionListView(ListView):
@@ -166,6 +167,7 @@ class ReactionDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         rxn = self.object
+        context["content_visit_stats"] = increment_object_visit(rxn)
         context["supports_reaction_user_tools"] = False
         if user.is_authenticated and context["supports_reaction_user_tools"]:
             context["is_favorited"] = Favorite.objects.filter(user=user, reaction=rxn).exists()
@@ -182,6 +184,7 @@ class GeneralReactionDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["content_visit_stats"] = increment_object_visit(self.object)
         context["is_general_view"] = True
         context["supports_reaction_user_tools"] = False
         return context

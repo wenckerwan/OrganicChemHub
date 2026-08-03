@@ -33,6 +33,7 @@ from reactions.models import (
     RouteStep,
     SyntheticRoute,
     Tag,
+    VisitCounter,
 )
 from reactions.services.search import build_querystring
 from reactions.templatetags.search_extras import highlight_query
@@ -1397,3 +1398,59 @@ class V22ReactionImageUploadTests(TestCase):
         response = self.client.get("/admin/reactions/dashboard/")
 
         self.assertContains(response, 'id="named-missing-equation">0')
+
+
+class V23VisitCounterTests(TestCase):
+    def _complete_reaction_kwargs(self, slug, name_zh):
+        return {
+            "name_zh": name_zh,
+            "name_en": name_zh,
+            "slug": slug,
+            "summary": "摘要",
+            "condition": "条件",
+            "exam_tips": "考点",
+            "reference": "来源",
+            "equation_img": f"reactions/{slug}_equation.svg",
+            "thumbnail_img": f"reactions/{slug}_thumbnail.svg",
+            "status": PublishStatus.PUBLISHED,
+        }
+
+    def test_homepage_displays_site_visit_counts(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "网站访问量")
+        self.assertContains(response, "总访问量")
+        self.assertContains(response, "今日访问量")
+        self.assertContains(response, "1")
+        counter = VisitCounter.objects.get(key=VisitCounter.SITE_KEY)
+        self.assertEqual(counter.total_count, 1)
+        self.assertEqual(counter.today_count, 1)
+
+    def test_reaction_detail_displays_content_visit_counts(self):
+        reaction = NamedReaction.objects.create(**self._complete_reaction_kwargs("visit-reaction", "访问统计反应"))
+
+        response = self.client.get(reverse("reaction_detail", kwargs={"slug": reaction.slug}))
+
+        self.assertContains(response, "本页访问量")
+        self.assertContains(response, "总访问量")
+        self.assertContains(response, "今日访问量")
+        counter = VisitCounter.objects.get(key=VisitCounter.key_for_object(reaction))
+        self.assertEqual(counter.total_count, 1)
+        self.assertEqual(counter.today_count, 1)
+
+    def test_route_detail_displays_content_visit_counts(self):
+        route = SyntheticRoute.objects.create(
+            target_product="访问统计路线",
+            slug="visit-route",
+            summary="路线摘要",
+            status=PublishStatus.PUBLISHED,
+        )
+
+        response = self.client.get(reverse("route_detail", kwargs={"slug": route.slug}))
+
+        self.assertContains(response, "本页访问量")
+        self.assertContains(response, "总访问量")
+        self.assertContains(response, "今日访问量")
+        counter = VisitCounter.objects.get(key=VisitCounter.key_for_object(route))
+        self.assertEqual(counter.total_count, 1)
+        self.assertEqual(counter.today_count, 1)

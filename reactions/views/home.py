@@ -12,6 +12,7 @@ from ..models import (
     Tag,
 )
 from ..services.publication import publication_ready_count
+from ..services.visits import get_site_visit_stats
 
 
 class HomeView(TemplateView):
@@ -44,6 +45,7 @@ class HomeView(TemplateView):
         context["popup_announcements"] = Announcement.objects.filter(
             is_active=True, is_pinned=True, importance=Announcement.Importance.HIGH
         )[:3]
+        context["site_visit_stats"] = get_site_visit_stats()
         return context
 
 

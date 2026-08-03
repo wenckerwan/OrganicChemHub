@@ -772,6 +772,29 @@ class Message(models.Model):
         return f"[{self.get_msg_type_display()}] {self.title}"
 
 
+class VisitCounter(models.Model):
+    SITE_KEY = "site"
+
+    key = models.CharField("统计键", max_length=160, unique=True)
+    label = models.CharField("统计名称", max_length=160, blank=True)
+    total_count = models.PositiveIntegerField("总访问量", default=0)
+    today_count = models.PositiveIntegerField("今日访问量", default=0)
+    today_date = models.DateField("今日日期", null=True, blank=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        ordering = ["key"]
+        verbose_name = "访问统计"
+        verbose_name_plural = "访问统计"
+
+    def __str__(self):
+        return self.label or self.key
+
+    @classmethod
+    def key_for_object(cls, obj):
+        return f"{obj._meta.label_lower}:{obj.pk}"
+
+
 class OpLog(models.Model):
     """Admin action audit log."""
     user = models.ForeignKey("auth.User", verbose_name="操作人", on_delete=models.SET_NULL, null=True)

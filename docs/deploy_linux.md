@@ -1,9 +1,9 @@
-# OrganicChemHub v2.2 Linux 部署指南
+# OrganicChemHub v2.3 Linux 部署指南
 
 目标环境：Debian / 宝塔面板 / Nginx / Gunicorn / Supervisor
 生产目录：`/www/wwwroot/chem.wencker.top`
 
-v2.2 采用后台上传图片的结构式展示方式，服务器部署不需要额外安装结构式生成依赖。
+v2.3 新增前台访问统计，服务器部署不需要额外安装依赖；更新时执行数据库迁移即可。
 
 ---
 
@@ -150,6 +150,7 @@ curl -I -H "Host: chem.wencker.top" http://127.0.0.1/
 | 图片维护 | `http://chem.wencker.top/admin/reactions/images/` |
 | 消息群发 | `http://chem.wencker.top/admin/operations/messages/send/` |
 | 消息清理 | `http://chem.wencker.top/admin/operations/messages/cleanup/` |
+| 访问统计 | `http://chem.wencker.top/admin/reactions/visitcounter/` |
 
 ---
 

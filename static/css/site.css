@@ -205,6 +205,63 @@ a:hover {
   margin-top: 0.65rem;
 }
 
+.visit-counter-panel {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(216, 226, 223, 0.94);
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(31, 41, 51, 0.07);
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+}
+
+.side-panel + .visit-counter-panel,
+.visit-counter-panel + .side-panel {
+  margin-top: 1rem;
+}
+
+.col-lg-4 > .visit-counter-panel:first-child {
+  margin-top: 0;
+}
+
+.visit-counter-panel__title {
+  align-items: center;
+  color: var(--och-accent-strong);
+  display: flex;
+  font-size: 0.84rem;
+  font-weight: 800;
+  margin-bottom: 0.6rem;
+}
+
+.visit-counter-panel__grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.visit-counter-panel__grid span {
+  background: var(--och-soft);
+  border-radius: 8px;
+  color: var(--och-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+}
+
+.visit-counter-panel__grid strong {
+  color: var(--och-ink);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.visit-counter-panel__grid em {
+  font-size: 0.82rem;
+  font-style: normal;
+  white-space: nowrap;
+}
+
 .quick-panel,
 .taxonomy-panel,
 .side-panel,
@@ -892,7 +949,8 @@ a:hover {
     width: 100%;
   }
 
-  .frontend-status-grid {
+  .frontend-status-grid,
+  .visit-counter-panel__grid {
     grid-template-columns: 1fr;
   }
 
