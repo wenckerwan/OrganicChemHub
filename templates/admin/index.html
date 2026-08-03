@@ -6,21 +6,34 @@
 <link rel="stylesheet" href="{% static "admin/css/dashboard.css" %}">
 {% endblock %}
 
-{% block coltype %}colMS{% endblock %}
+{% block coltype %}colM{% endblock %}
 
-{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+{% block bodyclass %}{{ block.super }} dashboard och-admin-dashboard{% endblock %}
 
 {% block nav-breadcrumbs %}{% endblock %}
 
 {% block nav-sidebar %}{% endblock %}
 
-{% block content %}
-<div id="content-main">
-  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+{% block content_title %}{% endblock %}
 
-  <div class="module och-admin-tools" id="och-admin-tools">
-    <h2>后台工具</h2>
-    <p class="och-admin-tools-intro">内容质量检查、批量维护和运营工具</p>
+{% block content %}
+<div class="och-admin-home">
+  <section class="och-admin-hero">
+    <div>
+      <p class="och-admin-eyebrow">OrganicChemHub Admin</p>
+      <h1>有机化学资料库</h1>
+      <p>集中维护反应、路线、学习资料、公告、反馈和运营消息。</p>
+    </div>
+    <a class="och-admin-action-button" href="/">查看前台站点</a>
+  </section>
+
+  <section class="och-admin-tools och-admin-home-section" id="och-admin-tools">
+    <div class="och-admin-home-heading">
+      <div>
+        <h2>后台工具</h2>
+        <p>内容质量检查、批量维护和运营工具</p>
+      </div>
+    </div>
     <div class="och-admin-tool-grid">
       <a class="och-admin-tool-link och-admin-tool-link--primary" href="{% url 'admin:och_reactions_dashboard' %}">
         <span class="och-admin-tool-icon-wrap" aria-hidden="true">
@@ -117,40 +130,79 @@
         </svg>
       </a>
     </div>
-  </div>
-</div>
-{% endblock %}
+  </section>
 
-{% block sidebar %}
-<div id="content-related">
-  <div class="module" id="recent-actions-module">
-    <h2>{% translate 'Recent actions' %}</h2>
-    <h3>{% translate 'My actions' %}</h3>
+  <section class="och-admin-home-section">
+    <div class="och-admin-home-heading">
+      <div>
+        <h2>内容管理</h2>
+        <p>常用数据模型入口，支持新增、查看和编辑。</p>
+      </div>
+    </div>
+    <div class="och-admin-app-grid">
+      {% for app in app_list %}
+        {% for model in app.models %}
+        <article class="och-admin-model-card">
+          <div class="och-admin-model-card-main">
+            <span class="och-admin-model-mark" aria-hidden="true">{{ model.name|first }}</span>
+            <div>
+              <h3>
+                {% if model.admin_url %}
+                <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                {% else %}
+                {{ model.name }}
+                {% endif %}
+              </h3>
+              <p>{{ app.name }}</p>
+            </div>
+          </div>
+          <div class="och-admin-model-actions">
+            {% if model.add_url %}
+            <a class="och-admin-mini-button" href="{{ model.add_url }}">新增</a>
+            {% endif %}
+            {% if model.admin_url %}
+            <a class="och-admin-mini-button och-admin-mini-button--ghost" href="{{ model.admin_url }}">
+              {% if model.view_only %}查看{% else %}管理{% endif %}
+            </a>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="och-admin-home-section och-admin-recent-panel">
+    <div class="och-admin-home-heading">
+      <div>
+        <h2>{% translate 'Recent actions' %}</h2>
+        <p>{% translate 'My actions' %}</p>
+      </div>
+    </div>
     {% get_admin_log 10 as admin_log for_user user %}
     {% if not admin_log %}
-    <p>{% translate 'None available' %}</p>
+    <p class="och-admin-empty">{% translate 'None available' %}</p>
     {% else %}
-    <ul class="actionlist">
+    <ul class="och-admin-recent-list">
       {% for entry in admin_log %}
-      <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
-        <span class="visually-hidden">
-          {% if entry.is_addition %}{% translate 'Added:' %}{% elif entry.is_change %}{% translate 'Changed:' %}{% elif entry.is_deletion %}{% translate 'Deleted:' %}{% endif %}
+      <li>
+        <span class="och-admin-recent-type {% if entry.is_addition %}is-add{% elif entry.is_change %}is-change{% elif entry.is_deletion %}is-delete{% endif %}" aria-hidden="true"></span>
+        <span>
+          {% if entry.is_deletion or not entry.get_admin_url %}
+            {{ entry.object_repr }}
+          {% else %}
+            <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+          {% endif %}
+          {% if entry.content_type %}
+          <small>{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</small>
+          {% endif %}
         </span>
-        {% if entry.is_deletion or not entry.get_admin_url %}
-          {{ entry.object_repr }}
-        {% else %}
-          <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
-        {% endif %}
-        <br>
-        {% if entry.content_type %}
-          <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
-        {% else %}
-          <span class="mini quiet">{% translate 'Unknown content' %}</span>
-        {% endif %}
       </li>
       {% endfor %}
     </ul>
     {% endif %}
-  </div>
+  </section>
 </div>
 {% endblock %}
+
+{% block sidebar %}{% endblock %}

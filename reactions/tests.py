@@ -704,6 +704,12 @@ class AdminToolPageTests(TestCase):
         self.assertContains(response, "och-admin-tool-icon-wrap")
         self.assertContains(response, "och-admin-tool-arrow")
         self.assertContains(response, "och-admin-tool-link--primary")
+        self.assertContains(response, "och-admin-app-grid")
+        self.assertContains(response, "och-admin-model-card")
+        self.assertLess(
+            response.content.index(b"och-admin-tools"),
+            response.content.index(b"och-admin-app-grid"),
+        )
 
     def test_admin_pages_use_unified_skin(self):
         pages = [

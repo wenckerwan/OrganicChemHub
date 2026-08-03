@@ -842,3 +842,268 @@ html[data-theme="dark"] .och-admin-message--success {
     transition: none;
   }
 }
+
+.och-admin-home {
+  display: grid;
+  gap: 20px;
+  max-width: 1240px;
+}
+
+.och-admin-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.12), transparent 52%),
+    var(--och-surface);
+  box-shadow: var(--och-shadow-sm);
+}
+
+.och-admin-hero h1 {
+  margin: 0 0 8px !important;
+  font-size: 28px !important;
+}
+
+.och-admin-hero p {
+  margin: 0;
+  color: var(--och-muted);
+  line-height: 1.65;
+}
+
+.och-admin-home-section {
+  padding: 18px;
+  border: 1px solid var(--och-border);
+  border-radius: 8px;
+  background: var(--och-surface);
+  box-shadow: var(--och-shadow-sm);
+}
+
+.och-admin-home .och-admin-tools {
+  margin-top: 0;
+}
+
+.och-admin-home .och-admin-tools h2 {
+  margin: 0;
+  padding: 0;
+}
+
+.och-admin-home-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.och-admin-home-heading h2 {
+  margin: 0;
+  color: var(--och-heading);
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.och-admin-home-heading p {
+  margin: 5px 0 0;
+  color: var(--och-muted);
+  line-height: 1.55;
+}
+
+.och-admin-app-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.och-admin-model-card {
+  display: grid;
+  gap: 14px;
+  min-height: 132px;
+  padding: 14px;
+  border: 1px solid var(--och-border);
+  border-radius: 8px;
+  background: var(--och-surface-raised);
+  box-shadow: 0 1px 2px rgba(31, 41, 51, 0.035);
+  transition-property: transform, border-color, box-shadow, background-color;
+  transition-duration: 160ms;
+  transition-timing-function: ease-out;
+}
+
+.och-admin-model-card:hover {
+  border-color: rgba(15, 118, 110, 0.34);
+  background: #fbfefd;
+  box-shadow: var(--och-shadow-md);
+  transform: translateY(-2px);
+}
+
+.och-admin-model-card-main {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 11px;
+  align-items: start;
+}
+
+.och-admin-model-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 8px;
+  background: #e5f4f1;
+  color: var(--link-fg);
+  font-weight: 750;
+}
+
+.och-admin-model-card h3 {
+  margin: 1px 0 5px;
+  font-size: 15px;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.och-admin-model-card h3 a {
+  color: var(--och-heading) !important;
+  text-decoration: none;
+}
+
+.och-admin-model-card p {
+  margin: 0;
+  color: var(--och-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.och-admin-model-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.och-admin-mini-button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 11px;
+  border: 1px solid rgba(15, 118, 110, 0.28);
+  border-radius: 7px;
+  background: #eef8f6;
+  color: var(--link-fg) !important;
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+  transition-property: transform, border-color, background-color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+.och-admin-mini-button:hover {
+  border-color: var(--primary);
+  background: #dff4ef;
+  transform: translateY(-1px);
+}
+
+.och-admin-mini-button:active {
+  transform: scale(0.96);
+}
+
+.och-admin-mini-button--ghost {
+  background: var(--och-surface-soft);
+  color: var(--och-muted) !important;
+}
+
+.och-admin-recent-panel {
+  max-width: 760px;
+}
+
+.och-admin-empty {
+  margin: 0;
+  color: var(--och-muted);
+}
+
+.och-admin-recent-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.och-admin-recent-list li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--och-surface-soft);
+}
+
+.och-admin-recent-type {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--och-muted);
+}
+
+.och-admin-recent-type.is-add {
+  background: var(--och-success);
+}
+
+.och-admin-recent-type.is-change {
+  background: var(--och-amber);
+}
+
+.och-admin-recent-type.is-delete {
+  background: var(--och-rose);
+}
+
+.och-admin-recent-list small {
+  display: block;
+  margin-top: 3px;
+  color: var(--och-muted);
+}
+
+html[data-theme="dark"] .och-admin-model-card:hover {
+  background: var(--och-surface-raised);
+}
+
+html[data-theme="dark"] .och-admin-model-mark,
+html[data-theme="dark"] .och-admin-mini-button,
+html[data-theme="dark"] .och-admin-mini-button:hover {
+  background: rgba(45, 212, 191, 0.12);
+}
+
+@media (max-width: 1200px) {
+  .och-admin-app-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .och-admin-app-grid,
+  .och-admin-tool-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .och-admin-hero {
+    display: grid;
+  }
+}
+
+@media (max-width: 620px) {
+  .och-admin-app-grid,
+  .och-admin-tool-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .och-admin-home-section,
+  .och-admin-hero {
+    padding: 14px;
+  }
+}
