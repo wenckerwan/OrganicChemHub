@@ -71,6 +71,14 @@ class ReactionListView(ListView):
         context["reaction_index"] = self.object_list.order_by("name_en", "name_zh")[:120]
         context["recommended_reactions"] = NamedReaction.published.select_related("category").prefetch_related("tags")[:3]
         context["is_named_view"] = True
+        context["library_title"] = "人名反应库"
+        context["library_eyebrow"] = "Named Reaction Library"
+        context["library_description"] = "收录以发现者或经典命名方式流传的人名反应，适合按名称、官能团、机理考点和合成用途快速查询。"
+        context["library_sidebar_label"] = "人名反应目录"
+        context["library_all_label"] = "全部已发布人名反应"
+        context["library_empty_label"] = "没有找到匹配的已发布人名反应。"
+        context["library_index_empty_label"] = "暂无已发布人名反应"
+        context["library_search_placeholder"] = "搜索人名反应、试剂、考点"
         context["supports_reaction_user_tools"] = False
         return context
 
@@ -126,6 +134,14 @@ class GeneralReactionListView(ListView):
         context["reaction_index"] = self.object_list.order_by("name_zh", "name_en")[:120]
         context["recommended_reactions"] = GeneralReaction.published.select_related("category").prefetch_related("tags")[:3]
         context["is_general_view"] = True
+        context["library_title"] = "常见有机反应库"
+        context["library_eyebrow"] = "General Reaction Library"
+        context["library_description"] = "整理加成、取代、消除、氧化还原等常见有机反应类型，适合按反应类别、官能团和考研场景快速复习。"
+        context["library_sidebar_label"] = "常见反应目录"
+        context["library_all_label"] = "全部已发布常见反应"
+        context["library_empty_label"] = "没有找到匹配的已发布常见反应。"
+        context["library_index_empty_label"] = "暂无已发布常见反应"
+        context["library_search_placeholder"] = "搜索常见反应、官能团、考点"
         context["supports_reaction_user_tools"] = False
         return context
 

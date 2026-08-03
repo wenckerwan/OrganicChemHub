@@ -408,7 +408,8 @@ class PublicViewTests(TestCase):
         self.assertContains(response, 'class="reaction-browser"')
         self.assertContains(response, 'class="reaction-browser__sidebar"')
         self.assertContains(response, 'class="reaction-browser__content"')
-        self.assertContains(response, "已收录在化学学习中常见的人名反应")
+        self.assertContains(response, "人名反应库")
+        self.assertContains(response, "收录以发现者或经典命名方式流传的人名反应")
 
     def test_reaction_list_filters_by_functional_group(self):
         response = self.client.get(reverse("reaction_list"), {"functional_group": self.functional_group.pk})
@@ -1014,8 +1015,16 @@ class FrontendReactionLibrarySeparationTests(TestCase):
         named_response = self.client.get(reverse("reaction_list"))
         general_response = self.client.get(reverse("general_reaction_list"))
 
+        self.assertContains(named_response, "<h1>人名反应库</h1>", html=True)
+        self.assertContains(named_response, "Named Reaction Library")
+        self.assertContains(named_response, "人名反应目录")
+        self.assertContains(named_response, "全部已发布人名反应")
         self.assertContains(named_response, "Named Only Reaction")
         self.assertNotContains(named_response, "General Only Reaction")
+        self.assertContains(general_response, "<h1>常见有机反应库</h1>", html=True)
+        self.assertContains(general_response, "General Reaction Library")
+        self.assertContains(general_response, "常见反应目录")
+        self.assertContains(general_response, "全部已发布常见反应")
         self.assertContains(general_response, "General Only Reaction")
         self.assertNotContains(general_response, "Named Only Reaction")
 

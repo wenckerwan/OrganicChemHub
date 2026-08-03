@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load search_extras %}
 
-{% block title %}{% if is_general_view %}常见有机反应{% elif is_common_view %}常见反应{% else %}人名反应{% endif %} | OrganicChemHub{% endblock %}
+{% block title %}{{ library_title|default:"人名反应库" }} | OrganicChemHub{% endblock %}
 
 {% block content %}
 <section class="reaction-map-hero">
   <div class="container">
     <div class="reaction-map-hero__copy">
-      <p class="eyebrow mb-2">{% if is_general_view %}General organic reactions{% elif is_common_view %}Common reactions{% else %}Organic name reactions{% endif %}</p>
-      <h1>{% if is_general_view %}常见有机反应{% elif is_common_view %}常见反应{% else %}人名反应{% endif %}</h1>
-      <p>{% if is_general_view %}按反应类型整理常见有机反应，适合与人名反应库配合检索。{% elif is_common_view %}考研高频和常见人名反应汇总，适合按考点重点复习。{% else %}已收录在化学学习中常见的人名反应，适合按名称、官能团、机理考点和合成用途快速查询。{% endif %}</p>
+      <p class="eyebrow mb-2">{{ library_eyebrow|default:"Named Reaction Library" }}</p>
+      <h1>{{ library_title|default:"人名反应库" }}</h1>
+      <p>{{ library_description|default:"收录以发现者或经典命名方式流传的人名反应，适合按名称、官能团、机理考点和合成用途快速查询。" }}</p>
     </div>
   </div>
 </section>
@@ -17,10 +17,10 @@
 <section class="reaction-browser-wrap">
   <div class="container">
     <div class="reaction-browser">
-      <aside class="reaction-browser__sidebar" aria-label="人名反应目录">
+      <aside class="reaction-browser__sidebar" aria-label="{{ library_sidebar_label|default:'人名反应目录' }}">
         <form class="reaction-browser__search" method="get">
           <div class="input-group">
-            <input id="q" class="form-control" name="q" value="{{ query }}" type="search" placeholder="请输入">
+            <input id="q" class="form-control" name="q" value="{{ query }}" type="search" placeholder="{{ library_search_placeholder|default:'搜索人名反应、试剂、考点' }}">
             <button class="btn btn-primary-ink" type="submit" aria-label="搜索">
               <i class="bi bi-search"></i>
             </button>
@@ -50,10 +50,12 @@
               <option value="type" {% if selected_sort == "type" %}selected{% endif %}>按类型</option>
               <option value="updated" {% if selected_sort == "updated" %}selected{% endif %}>按更新</option>
             </select>
-            <label class="form-check browser-check">
-              <input class="form-check-input" type="checkbox" name="exam" value="1" {% if exam_filter == "1" %}checked{% endif %}>
-              <span class="form-check-label">只看考研高频</span>
-            </label>
+            {% if is_named_view %}
+              <label class="form-check browser-check">
+                <input class="form-check-input" type="checkbox" name="exam" value="1" {% if exam_filter == "1" %}checked{% endif %}>
+                <span class="form-check-label">只看考研高频人名反应</span>
+              </label>
+            {% endif %}
           </div>
         </form>
         <div class="reaction-index">
@@ -62,17 +64,17 @@
               <span>{{ item.name_en|default:item.name_zh }}</span>
             </a>
           {% empty %}
-            <span class="text-muted">暂无已发布反应</span>
+            <span class="text-muted">{{ library_index_empty_label|default:"暂无已发布人名反应" }}</span>
           {% endfor %}
         </div>
       </aside>
 
-      <section class="reaction-browser__content" aria-label="查询结果">
+      <section class="reaction-browser__content" aria-label="{{ library_title|default:'人名反应库' }}查询结果">
         <div class="browser-result-head">
           <div>
-            <h2>查询结果</h2>
+            <h2>{{ library_title|default:"人名反应库" }}查询结果</h2>
             <p>
-              {% if query %}关键词“{{ query }}”{% else %}全部已发布反应{% endif %}
+              {% if query %}关键词“{{ query }}”{% else %}{{ library_all_label|default:"全部已发布人名反应" }}{% endif %}
               <span>共 {{ paginator.count }} 条</span>
             </p>
           </div>
@@ -108,7 +110,7 @@
               {% endif %}
             </article>
           {% empty %}
-            <div class="empty-state">没有找到匹配的已发布反应。</div>
+            <div class="empty-state">{{ library_empty_label|default:"没有找到匹配的已发布人名反应。" }}</div>
             <div class="recommend-panel mt-3">
               <h2 class="h5">推荐查看</h2>
               <div class="row g-3">
