@@ -432,6 +432,11 @@ class GeneralReaction(BaseReactionContent):
 class ReactionImage(models.Model):
     MAX_IMAGES_PER_SECTION = 10
 
+    class ReviewStatus(models.TextChoices):
+        PENDING = "pending", "待审核"
+        APPROVED = "approved", "已通过"
+        REDRAW = "redraw", "需重画"
+
     class Section(models.TextChoices):
         EQUATION = "equation", "方程式图"
         MECHANISM = "mechanism", "机理图"
@@ -445,6 +450,7 @@ class ReactionImage(models.Model):
     section = models.CharField("图片区域", max_length=30, choices=Section.choices)
     image = models.FileField("图片", upload_to=ReactionGalleryImageUploadTo())
     caption = models.CharField("图片说明", max_length=160, blank=True)
+    review_status = models.CharField("审核状态", max_length=20, choices=ReviewStatus.choices, default=ReviewStatus.PENDING)
     sort_order = models.PositiveIntegerField("排序", default=0)
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
 

@@ -9,6 +9,7 @@ from django.contrib.messages.storage.cookie import CookieStorage
 from django.test import RequestFactory
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -35,6 +36,7 @@ from reactions.models import (
     Tag,
     VisitCounter,
 )
+from reactions.admin_tools import reaction_quality_stats
 from reactions.services.search import build_querystring
 from reactions.templatetags.search_extras import highlight_query
 
@@ -1454,3 +1456,63 @@ class V23VisitCounterTests(TestCase):
         counter = VisitCounter.objects.get(key=VisitCounter.key_for_object(route))
         self.assertEqual(counter.total_count, 1)
         self.assertEqual(counter.today_count, 1)
+
+
+class V24ContentQualityTests(TestCase):
+    def _reaction(self, slug, name, **extra):
+        defaults = {
+            "name_zh": name,
+            "name_en": name,
+            "slug": slug,
+            "summary": "摘要",
+            "condition": "条件",
+            "exam_tips": "考点",
+            "reference": "来源",
+            "equation_img": f"reactions/{slug}_equation.svg",
+            "thumbnail_img": f"reactions/{slug}_thumbnail.svg",
+            "status": PublishStatus.PUBLISHED,
+        }
+        defaults.update(extra)
+        return NamedReaction.objects.create(**defaults)
+
+    def test_reaction_image_has_review_status(self):
+        reaction = self._reaction("quality-image", "质量图片反应")
+        image = ReactionImage.objects.create(
+            content_object=reaction,
+            section=ReactionImage.Section.EQUATION,
+            image="reaction_images/quality_equation.svg",
+            review_status=ReactionImage.ReviewStatus.REDRAW,
+        )
+
+        image.refresh_from_db()
+
+        self.assertEqual(image.review_status, ReactionImage.ReviewStatus.REDRAW)
+        self.assertEqual(image.get_review_status_display(), "需重画")
+
+    def test_quality_stats_include_pending_review_and_high_traffic_incomplete(self):
+        incomplete = self._reaction(
+            "high-traffic-incomplete",
+            "高访问不完整反应",
+            exam_tips="",
+        )
+        VisitCounter.objects.create(
+            key=VisitCounter.key_for_object(incomplete),
+            label=str(incomplete),
+            total_count=88,
+            today_count=8,
+            today_date=timezone.localdate(),
+        )
+        reaction = self._reaction("pending-review-quality", "待审核质量反应")
+        ReactionImage.objects.create(
+            content_object=reaction,
+            section=ReactionImage.Section.EQUATION,
+            image="reaction_images/pending_review.svg",
+        )
+
+        stats = reaction_quality_stats(NamedReaction)
+
+        self.assertEqual(stats["missing_exam_tips"], 1)
+        self.assertEqual(stats["review_pending"], 1)
+        self.assertEqual(stats["review_redraw"], 0)
+        self.assertEqual(stats["high_traffic_incomplete"][0]["name"], "高访问不完整反应")
+        self.assertEqual(stats["high_traffic_incomplete"][0]["total"], 88)

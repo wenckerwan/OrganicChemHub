@@ -61,6 +61,8 @@ python manage.py setup_admin_roles
 /www/server/panel/pyenv/bin/supervisorctl restart all
 ```
 
+v2.4 新增图片审核状态迁移 `0018_image_review_status`，更新时必须执行 `python manage.py migrate`。
+
 可选：发布已经补全的草稿内容。
 
 ```bash

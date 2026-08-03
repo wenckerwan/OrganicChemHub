@@ -735,6 +735,34 @@ html[data-theme="dark"] body.och-admin img {
   font-variant-numeric: tabular-nums;
 }
 
+.och-admin-quality-list {
+  display: grid;
+  gap: 8px;
+}
+
+.och-admin-quality-list a {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--och-surface-soft);
+  color: var(--och-heading);
+  text-decoration: none;
+}
+
+.och-admin-quality-list a:hover {
+  background: #eaf7f4;
+}
+
+.och-admin-quality-list strong {
+  font-size: 13px;
+}
+
+.och-admin-quality-list span {
+  color: var(--och-muted);
+  font-size: 12px;
+}
+
 .och-admin-form-card {
   display: grid;
   gap: 14px;

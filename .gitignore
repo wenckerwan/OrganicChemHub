@@ -11,3 +11,6 @@ staticfiles/
 media/
 backups/
 scripts/__pycache__/
+.superpowers/
+picture/
+reaction_image_library/

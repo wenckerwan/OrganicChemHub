@@ -51,6 +51,8 @@
         <div><span>缺缩略图</span><strong id="named-missing-thumbnail">{{ named_stats.missing_thumbnail }}</strong></div>
         <div><span>缺考点</span><strong>{{ named_stats.missing_exam_tips }}</strong></div>
         <div><span>缺条件</span><strong>{{ named_stats.missing_condition }}</strong></div>
+        <div><span>图片待审核</span><strong>{{ named_stats.review_pending }}</strong></div>
+        <div><span>图片需重画</span><strong>{{ named_stats.review_redraw }}</strong></div>
       </div>
     </section>
 
@@ -68,6 +70,33 @@
         <div><span>缺缩略图</span><strong id="general-missing-thumbnail">{{ general_stats.missing_thumbnail }}</strong></div>
         <div><span>缺考点</span><strong>{{ general_stats.missing_exam_tips }}</strong></div>
         <div><span>缺条件</span><strong>{{ general_stats.missing_condition }}</strong></div>
+        <div><span>图片待审核</span><strong>{{ general_stats.review_pending }}</strong></div>
+        <div><span>图片需重画</span><strong>{{ general_stats.review_redraw }}</strong></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="och-admin-two-col">
+    <section class="och-admin-panel">
+      <div class="och-admin-section-heading">
+        <h2>高访问但未完整</h2>
+        <span>人名反应优先补全</span>
+      </div>
+      <div class="och-admin-quality-list">
+        {% for item in named_stats.high_traffic_incomplete %}
+          <a href="{{ item.url }}"><strong>{{ item.name }}</strong><span>{{ item.total }} 次访问 · 缺少：{{ item.missing }}</span></a>
+        {% empty %}<p class="text-muted mb-0">暂无高访问不完整的人名反应。</p>{% endfor %}
+      </div>
+    </section>
+    <section class="och-admin-panel">
+      <div class="och-admin-section-heading">
+        <h2>高访问但未完整</h2>
+        <span>常见反应优先补全</span>
+      </div>
+      <div class="och-admin-quality-list">
+        {% for item in general_stats.high_traffic_incomplete %}
+          <a href="{{ item.url }}"><strong>{{ item.name }}</strong><span>{{ item.total }} 次访问 · 缺少：{{ item.missing }}</span></a>
+        {% empty %}<p class="text-muted mb-0">暂无高访问不完整的常见反应。</p>{% endfor %}
       </div>
     </section>
   </div>

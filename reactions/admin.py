@@ -83,7 +83,7 @@ class ReactionImageInline(GenericTabularInline):
     formset = ReactionImageInlineFormSet
     extra = 1
     max_num = ReactionImage.MAX_IMAGES_PER_SECTION * len(ReactionImage.Section.choices)
-    fields = ("section", "sort_order", "image", "caption", "image_preview")
+    fields = ("section", "sort_order", "image", "caption", "review_status", "image_preview")
     readonly_fields = ("image_preview",)
     verbose_name = "反应附图"
     verbose_name_plural = "反应附图上传（每个区域最多 10 张，条件/机理文字/考点附图可选）"
@@ -107,6 +107,8 @@ class ReactionAdminMixin(PublicationActionMixin):
         "status",
         "content_completeness_display",
         "missing_fields_display",
+        "visit_total_display",
+        "visit_today_display",
         "updated_at",
     )
     list_filter = ("status", "category", "tags", "functional_groups", "created_at", "updated_at")
@@ -137,6 +139,24 @@ class ReactionAdminMixin(PublicationActionMixin):
     @admin.display(description="完整度")
     def content_completeness_display(self, obj):
         return obj.content_completeness()
+
+    @admin.display(description="总访问量")
+    def visit_total_display(self, obj):
+        return getattr(obj, "visit_total", 0)
+
+    @admin.display(description="今日访问")
+    def visit_today_display(self, obj):
+        return getattr(obj, "visit_today", 0)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        counter_keys = VisitCounter.objects.filter(key__startswith="reactions.").values("key")
+        counters = {counter.key: counter for counter in VisitCounter.objects.filter(key__in=counter_keys)}
+        for obj in queryset:
+            counter = counters.get(VisitCounter.key_for_object(obj))
+            obj.visit_total = counter.total_count if counter else 0
+            obj.visit_today = counter.today_count if counter else 0
+        return queryset
 
     @admin.display(description="反应方程式图预览")
     def equation_img_preview(self, obj):
@@ -497,11 +517,12 @@ class GeneralReactionAdmin(ReactionAdminMixin, admin.ModelAdmin):
 
 @admin.register(ReactionImage)
 class ReactionImageAdmin(admin.ModelAdmin):
-    list_display = ("content_object", "section", "sort_order", "caption", "image_preview")
-    list_filter = ("section", "content_type")
+    actions = ("mark_approved", "mark_redraw")
+    list_display = ("content_object", "section", "review_status", "sort_order", "caption", "image_preview")
+    list_filter = ("section", "review_status", "content_type")
     search_fields = ("caption",)
     readonly_fields = ("image_preview", "created_at")
-    fields = ("content_type", "object_id", "section", "sort_order", "image", "caption", "image_preview", "created_at")
+    fields = ("content_type", "object_id", "section", "sort_order", "image", "caption", "review_status", "image_preview", "created_at")
     list_per_page = 30
 
     @admin.display(description="预览")
@@ -509,6 +530,16 @@ class ReactionImageAdmin(admin.ModelAdmin):
         if not obj or not obj.get_image_src():
             return "暂无图片"
         return image_preview(obj.get_image_src(), max_w=180, max_h=120)
+
+    @admin.action(description="批量标记图片为已通过")
+    def mark_approved(self, request, queryset):
+        updated = queryset.update(review_status=ReactionImage.ReviewStatus.APPROVED)
+        self.message_user(request, f"已标记 {updated} 张图片为已通过。")
+
+    @admin.action(description="批量标记图片为需重画")
+    def mark_redraw(self, request, queryset):
+        updated = queryset.update(review_status=ReactionImage.ReviewStatus.REDRAW)
+        self.message_user(request, f"已标记 {updated} 张图片为需重画。", level=messages.WARNING)
 
 @admin.register(SyntheticRoute)
 class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):

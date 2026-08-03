@@ -13,7 +13,7 @@ from .admin_forms import (
     ReactionCsvImportForm,
     ResourceImportOrUploadForm,
 )
-from .models import GeneralReaction, LearningResource, Message, NamedReaction, OpLog, PublishStatus, SyntheticRoute
+from .models import GeneralReaction, LearningResource, Message, NamedReaction, OpLog, PublishStatus, ReactionImage, SyntheticRoute, VisitCounter
 from .services.publication import publication_ready_count
 
 
@@ -50,6 +50,26 @@ def reaction_model_for_target(target):
 def reaction_quality_stats(model):
     queryset = model.objects.all()
     prefetched_queryset = queryset.prefetch_related("images")
+    counters = {
+        counter.key: counter
+        for counter in VisitCounter.objects.filter(
+            key__in=[VisitCounter.key_for_object(obj) for obj in queryset]
+        )
+    }
+    high_traffic_incomplete = []
+    for obj in prefetched_queryset:
+        missing = obj.get_publication_missing_fields()
+        counter = counters.get(VisitCounter.key_for_object(obj))
+        if missing and counter and counter.total_count:
+            high_traffic_incomplete.append({
+                "name": str(obj),
+                "url": obj.get_absolute_url(),
+                "total": counter.total_count,
+                "today": counter.today_count,
+                "missing": obj.missing_fields_display(),
+            })
+    high_traffic_incomplete.sort(key=lambda item: item["total"], reverse=True)
+    image_queryset = ReactionImage.objects.filter(content_type__model=model._meta.model_name)
     return {
         "total": queryset.count(),
         "published": queryset.filter(status=PublishStatus.PUBLISHED).count(),
@@ -60,6 +80,10 @@ def reaction_quality_stats(model):
         "missing_thumbnail": sum(1 for obj in prefetched_queryset if "thumbnail_img" in obj.get_publication_missing_fields()),
         "missing_exam_tips": sum(1 for obj in prefetched_queryset if "exam_tips" in obj.get_publication_missing_fields()),
         "missing_condition": sum(1 for obj in prefetched_queryset if "condition" in obj.get_publication_missing_fields()),
+        "review_pending": image_queryset.filter(review_status=ReactionImage.ReviewStatus.PENDING).count(),
+        "review_approved": image_queryset.filter(review_status=ReactionImage.ReviewStatus.APPROVED).count(),
+        "review_redraw": image_queryset.filter(review_status=ReactionImage.ReviewStatus.REDRAW).count(),
+        "high_traffic_incomplete": high_traffic_incomplete[:10],
         "category_distribution": queryset.values("category__name").annotate(count=Count("id")).order_by("-count"),
     }
 
