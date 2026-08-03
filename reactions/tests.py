@@ -28,6 +28,7 @@ from reactions.models import (
     NavItem,
     PublishStatus,
     Reaction,
+    ReactionImage,
     ReactionType,
     RouteStep,
     SyntheticRoute,
@@ -1280,3 +1281,119 @@ class V21ContentReadinessTests(TestCase):
 
         self.assertContains(response, "中文名")
         self.assertNotContains(response, "SMARTS")
+
+
+class V22ReactionImageUploadTests(TestCase):
+    def _complete_reaction_kwargs(self, slug, name_zh):
+        return {
+            "name_zh": name_zh,
+            "name_en": name_zh,
+            "slug": slug,
+            "summary": "摘要",
+            "condition": "条件",
+            "mechanism": "机理文字",
+            "exam_tips": "考点",
+            "reference": "来源",
+            "thumbnail_img": f"reactions/{slug}_thumbnail.svg",
+        }
+
+    def test_reaction_gallery_limits_each_section_to_ten_images(self):
+        reaction = NamedReaction.objects.create(**self._complete_reaction_kwargs("multi-image-limit", "多图限制反应"))
+        for index in range(10):
+            ReactionImage.objects.create(
+                content_object=reaction,
+                section=ReactionImage.Section.EQUATION,
+                image=f"reaction_images/equation_{index}.svg",
+            )
+
+        extra = ReactionImage(
+            content_object=reaction,
+            section=ReactionImage.Section.EQUATION,
+            image="reaction_images/equation_extra.svg",
+        )
+
+        with self.assertRaises(ValidationError):
+            extra.full_clean()
+
+    def test_equation_gallery_image_satisfies_publication_completeness(self):
+        reaction = NamedReaction.objects.create(
+            **self._complete_reaction_kwargs("gallery-complete", "多方程式反应"),
+            status=PublishStatus.DRAFT,
+        )
+        ReactionImage.objects.create(
+            content_object=reaction,
+            section=ReactionImage.Section.EQUATION,
+            image="reaction_images/gallery_equation.svg",
+        )
+
+        self.assertEqual(reaction.get_publication_missing_fields(), [])
+
+    def test_reaction_detail_displays_optional_content_images(self):
+        reaction = NamedReaction.objects.create(
+            **self._complete_reaction_kwargs("content-images", "内容附图反应"),
+            status=PublishStatus.PUBLISHED,
+        )
+        ReactionImage.objects.create(
+            content_object=reaction,
+            section=ReactionImage.Section.EQUATION,
+            image="reaction_images/equation_a.svg",
+            caption="方程式补充图",
+        )
+        ReactionImage.objects.create(
+            content_object=reaction,
+            section=ReactionImage.Section.MECHANISM,
+            image="reaction_images/mechanism_a.svg",
+            caption="机理补充图",
+        )
+        ReactionImage.objects.create(
+            content_object=reaction,
+            section=ReactionImage.Section.CONDITION,
+            image="reaction_images/condition_a.svg",
+            caption="条件说明图",
+        )
+        ReactionImage.objects.create(
+            content_object=reaction,
+            section=ReactionImage.Section.MECHANISM_TEXT,
+            image="reaction_images/mechanism_text_a.svg",
+            caption="机理文字配图",
+        )
+        ReactionImage.objects.create(
+            content_object=reaction,
+            section=ReactionImage.Section.EXAM_TIPS,
+            image="reaction_images/exam_tip_a.svg",
+            caption="考点配图",
+        )
+
+        response = self.client.get(reverse("reaction_detail", kwargs={"slug": reaction.slug}))
+
+        self.assertContains(response, "方程式补充图")
+        self.assertContains(response, "机理补充图")
+        self.assertContains(response, "条件说明图")
+        self.assertContains(response, "机理文字配图")
+        self.assertContains(response, "考点配图")
+
+    def test_named_reaction_admin_shows_multi_image_upload_inline(self):
+        admin_user = User.objects.create_superuser("image-admin", "image@example.com", "password")
+        self.client.force_login(admin_user)
+
+        response = self.client.get(reverse("admin:reactions_namedreaction_add"))
+
+        self.assertContains(response, "反应附图上传")
+        self.assertContains(response, "每个区域最多 10 张")
+
+    def test_dashboard_treats_equation_gallery_as_available_image(self):
+        reaction = NamedReaction.objects.create(
+            **self._complete_reaction_kwargs("dashboard-gallery-image", "仪表盘多图反应"),
+            status=PublishStatus.DRAFT,
+        )
+        ReactionImage.objects.create(
+            content_object=reaction,
+            section=ReactionImage.Section.EQUATION,
+            image="reaction_images/dashboard_equation.svg",
+        )
+        admin_user = User.objects.create_superuser("gallery-admin", "gallery@example.com", "password")
+        self.client.force_login(admin_user)
+
+        response = self.client.get("/admin/reactions/dashboard/")
+
+        self.assertContains(response, 'id="named-missing-equation">0')

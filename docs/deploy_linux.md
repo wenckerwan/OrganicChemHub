@@ -1,9 +1,9 @@
-# OrganicChemHub v2.1 Linux 部署指南
+# OrganicChemHub v2.2 Linux 部署指南
 
 目标环境：Debian / 宝塔面板 / Nginx / Gunicorn / Supervisor
 生产目录：`/www/wwwroot/chem.wencker.top`
 
-v2.1 采用后台上传图片的结构式展示方式，服务器部署不需要额外安装结构式生成依赖。
+v2.2 采用后台上传图片的结构式展示方式，服务器部署不需要额外安装结构式生成依赖。
 
 ---
 
@@ -52,6 +52,7 @@ cd /www/wwwroot/chem.wencker.top
 source .venv/bin/activate
 git pull origin master
 pip install -r requirements.txt
+rm -f reactions/migrations/0016_merge_20260802_2239.py
 python manage.py migrate
 python manage.py collectstatic --noinput
 python manage.py setup_admin_roles

@@ -160,7 +160,7 @@ class ReactionDetailView(DetailView):
     template_name = "reactions/reaction_detail.html"
     context_object_name = "reaction"
 
-    queryset = NamedReaction.published.select_related("category").prefetch_related("tags", "functional_groups", "routes")
+    queryset = NamedReaction.published.select_related("category").prefetch_related("tags", "functional_groups", "routes", "images")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -178,7 +178,7 @@ class GeneralReactionDetailView(DetailView):
     model = GeneralReaction
     template_name = "reactions/general_reaction_detail.html"
     context_object_name = "reaction"
-    queryset = GeneralReaction.published.select_related("category").prefetch_related("tags", "functional_groups", "routes")
+    queryset = GeneralReaction.published.select_related("category").prefetch_related("tags", "functional_groups", "routes", "images")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

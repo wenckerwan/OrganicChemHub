@@ -3,7 +3,7 @@ import io
 
 from django.contrib import admin, messages
 from django.contrib.auth.models import User
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.template.response import TemplateResponse
 from django.utils import timezone
 
@@ -49,16 +49,17 @@ def reaction_model_for_target(target):
 
 def reaction_quality_stats(model):
     queryset = model.objects.all()
+    prefetched_queryset = queryset.prefetch_related("images")
     return {
         "total": queryset.count(),
         "published": queryset.filter(status=PublishStatus.PUBLISHED).count(),
         "drafts": queryset.filter(status=PublishStatus.DRAFT).count(),
         "archived": queryset.filter(status=PublishStatus.ARCHIVED).count(),
         "publish_ready": publication_ready_count(model),
-        "missing_equation": queryset.filter(equation_img="").count(),
-        "missing_thumbnail": queryset.filter(thumbnail_img="").count(),
-        "missing_exam_tips": queryset.filter(exam_tips="").count(),
-        "missing_condition": queryset.filter(condition="").count(),
+        "missing_equation": sum(1 for obj in prefetched_queryset if "equation_img" in obj.get_publication_missing_fields()),
+        "missing_thumbnail": sum(1 for obj in prefetched_queryset if "thumbnail_img" in obj.get_publication_missing_fields()),
+        "missing_exam_tips": sum(1 for obj in prefetched_queryset if "exam_tips" in obj.get_publication_missing_fields()),
+        "missing_condition": sum(1 for obj in prefetched_queryset if "condition" in obj.get_publication_missing_fields()),
         "category_distribution": queryset.values("category__name").annotate(count=Count("id")).order_by("-count"),
     }
 
@@ -151,14 +152,23 @@ def reaction_import_view(request):
 
 
 def image_maintenance_view(request):
-    required_missing = Q(equation_img="") | Q(thumbnail_img="")
+    named_with_images = NamedReaction.objects.prefetch_related("images")
+    general_with_images = GeneralReaction.objects.prefetch_related("images")
     context = admin_context(
         request,
         "图片维护",
-        named_missing_images=NamedReaction.objects.filter(required_missing)[:50],
-        general_missing_images=GeneralReaction.objects.filter(required_missing)[:50],
-        named_missing_mechanism=NamedReaction.objects.filter(mechanism_img="")[:50],
-        general_missing_mechanism=GeneralReaction.objects.filter(mechanism_img="")[:50],
+        named_missing_images=[
+            obj for obj in named_with_images if {"equation_img", "thumbnail_img"} & set(obj.get_publication_missing_fields())
+        ][:50],
+        general_missing_images=[
+            obj for obj in general_with_images if {"equation_img", "thumbnail_img"} & set(obj.get_publication_missing_fields())
+        ][:50],
+        named_missing_mechanism=[
+            obj for obj in named_with_images if not obj.mechanism_img and not obj.mechanism_gallery_images.exists()
+        ][:50],
+        general_missing_mechanism=[
+            obj for obj in general_with_images if not obj.mechanism_img and not obj.mechanism_gallery_images.exists()
+        ][:50],
     )
     return TemplateResponse(request, "admin/reactions/images.html", context)
 

@@ -7,10 +7,12 @@ from ..models import PublishStatus
 
 def publication_ready_queryset(model):
     """Return complete draft records that can be safely published."""
-    queryset = model.objects.filter(status=PublishStatus.DRAFT)
-    for field in model.REQUIRED_FIELDS:
-        queryset = queryset.exclude(**{field: ""}).exclude(**{f"{field}__isnull": True})
-    return queryset
+    ready_ids = [
+        obj.pk
+        for obj in model.objects.filter(status=PublishStatus.DRAFT).prefetch_related("images")
+        if not obj.get_publication_missing_fields()
+    ]
+    return model.objects.filter(pk__in=ready_ids)
 
 
 def publication_ready_count(model):

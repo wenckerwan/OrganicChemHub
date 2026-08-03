@@ -1,0 +1,10 @@
+{% if images %}
+  <div class="reaction-image-gallery" aria-label="{{ title }}">
+    {% for item in images %}
+      <figure class="reaction-image-gallery__item">
+        <img src="{{ item.get_image_src }}" alt="{{ item.caption|default:title }}" onerror="this.onerror=null;this.outerHTML='<span class=\&quot;structure-viewer__placeholder\&quot;>图片加载失败</span>'">
+        {% if item.caption %}<figcaption>{{ item.caption }}</figcaption>{% endif %}
+      </figure>
+    {% endfor %}
+  </div>
+{% endif %}

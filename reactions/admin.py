@@ -5,6 +5,8 @@ from django.contrib import admin, messages
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.admin import GenericTabularInline
+from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.urls import path, reverse
@@ -14,7 +16,7 @@ from django.template.response import TemplateResponse
 
 from . import admin_tools
 from .admin_helpers import image_preview, thumbnail_img
-from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionType, RouteStep, SyntheticRoute, Tag
+from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionImage, ReactionType, RouteStep, SyntheticRoute, Tag
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -54,9 +56,48 @@ class PublicationActionMixin:
         self.message_user(request, f"已归档 {archived_count} 条内容。", fail_silently=True)
 
 
+class ReactionImageInlineFormSet(BaseGenericInlineFormSet):
+    def clean(self):
+        super().clean()
+        section_counts = {}
+        for form in self.forms:
+            if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
+                continue
+            section = form.cleaned_data.get("section")
+            image = form.cleaned_data.get("image")
+            if section and image:
+                section_counts[section] = section_counts.get(section, 0) + 1
+
+        over_limit = [
+            dict(ReactionImage.Section.choices).get(section, section)
+            for section, count in section_counts.items()
+            if count > ReactionImage.MAX_IMAGES_PER_SECTION
+        ]
+        if over_limit:
+            raise ValidationError(f"每个图片区域最多上传 {ReactionImage.MAX_IMAGES_PER_SECTION} 张：{'、'.join(over_limit)}")
+
+
+class ReactionImageInline(GenericTabularInline):
+    model = ReactionImage
+    formset = ReactionImageInlineFormSet
+    extra = 1
+    max_num = ReactionImage.MAX_IMAGES_PER_SECTION * len(ReactionImage.Section.choices)
+    fields = ("section", "sort_order", "image", "caption", "image_preview")
+    readonly_fields = ("image_preview",)
+    verbose_name = "反应附图"
+    verbose_name_plural = "反应附图上传（每个区域最多 10 张，条件/机理文字/考点附图可选）"
+
+    @admin.display(description="预览")
+    def image_preview(self, obj):
+        if not obj or not obj.get_image_src():
+            return "暂无图片"
+        return image_preview(obj.get_image_src(), max_w=180, max_h=120)
+
+
 class ReactionAdminMixin(PublicationActionMixin):
     actions = ("publish_selected", "archive_selected", "export_selected_as_csv")
     date_hierarchy = "updated_at"
+    inlines = (ReactionImageInline,)
     list_display = (
         "name_zh",
         "name_en",
@@ -451,6 +492,22 @@ class NamedReactionAdmin(ReactionAdminMixin, admin.ModelAdmin):
 @admin.register(GeneralReaction)
 class GeneralReactionAdmin(ReactionAdminMixin, admin.ModelAdmin):
     pass
+
+
+@admin.register(ReactionImage)
+class ReactionImageAdmin(admin.ModelAdmin):
+    list_display = ("content_object", "section", "sort_order", "caption", "image_preview")
+    list_filter = ("section", "content_type")
+    search_fields = ("caption",)
+    readonly_fields = ("image_preview", "created_at")
+    fields = ("content_type", "object_id", "section", "sort_order", "image", "caption", "image_preview", "created_at")
+    list_per_page = 30
+
+    @admin.display(description="预览")
+    def image_preview(self, obj):
+        if not obj or not obj.get_image_src():
+            return "暂无图片"
+        return image_preview(obj.get_image_src(), max_w=180, max_h=120)
 
 @admin.register(SyntheticRoute)
 class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):

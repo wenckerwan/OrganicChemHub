@@ -1,3 +1,7 @@
+import uuid
+
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
@@ -23,6 +27,23 @@ class ReactionImageUploadTo:
 
     def __hash__(self):
         return hash(self.suffix)
+
+
+@deconstructible
+class ReactionGalleryImageUploadTo:
+    def __call__(self, instance, filename):
+        content = getattr(instance, "content_object", None)
+        slug = getattr(content, "slug", None) or str(getattr(instance, "object_id", None) or "new")
+        section = getattr(instance, "section", "image") or "image"
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "svg"
+        token = uuid.uuid4().hex[:10]
+        return f"reaction_images/reaction_{slug}_{section}_{token}.{ext}"
+
+    def __eq__(self, other):
+        return isinstance(other, ReactionGalleryImageUploadTo)
+
+    def __hash__(self):
+        return hash("ReactionGalleryImageUploadTo")
 
 
 def first_image_source(uploaded_file, image_url):
@@ -301,8 +322,40 @@ class BaseReactionContent(models.Model):
     def get_thumbnail_img_src(self):
         return self.thumbnail_img.url if self.thumbnail_img else self.get_equation_img_src()
 
+    def gallery_images(self, section):
+        return self.images.filter(section=section).order_by("sort_order", "pk")
+
+    @property
+    def equation_gallery_images(self):
+        return self.gallery_images(ReactionImage.Section.EQUATION)
+
+    @property
+    def mechanism_gallery_images(self):
+        return self.gallery_images(ReactionImage.Section.MECHANISM)
+
+    @property
+    def condition_gallery_images(self):
+        return self.gallery_images(ReactionImage.Section.CONDITION)
+
+    @property
+    def mechanism_text_gallery_images(self):
+        return self.gallery_images(ReactionImage.Section.MECHANISM_TEXT)
+
+    @property
+    def exam_tips_gallery_images(self):
+        return self.gallery_images(ReactionImage.Section.EXAM_TIPS)
+
+    def has_gallery_images(self, section):
+        return self.gallery_images(section).exists()
+
     def get_publication_missing_fields(self):
-        return [field for field in self.REQUIRED_FIELDS if not getattr(self, field)]
+        missing = []
+        for field in self.REQUIRED_FIELDS:
+            if field == "equation_img" and self.has_gallery_images(ReactionImage.Section.EQUATION):
+                continue
+            if not getattr(self, field):
+                missing.append(field)
+        return missing
 
     def missing_fields_display(self):
         missing = self.get_publication_missing_fields()
@@ -325,6 +378,7 @@ class BaseReactionContent(models.Model):
 
 
 class NamedReaction(BaseReactionContent):
+    images = GenericRelation("ReactionImage", content_type_field="content_type", object_id_field="object_id")
     category = models.ForeignKey(
         NamedReactionCategory,
         verbose_name="人名反应分类",
@@ -350,6 +404,7 @@ class NamedReaction(BaseReactionContent):
 
 
 class GeneralReaction(BaseReactionContent):
+    images = GenericRelation("ReactionImage", content_type_field="content_type", object_id_field="object_id")
     category = models.ForeignKey(
         GeneralReactionCategory,
         verbose_name="常见有机反应分类",
@@ -372,6 +427,58 @@ class GeneralReaction(BaseReactionContent):
 
     def get_absolute_url(self):
         return reverse("general_reaction_detail", kwargs={"slug": self.slug})
+
+
+class ReactionImage(models.Model):
+    MAX_IMAGES_PER_SECTION = 10
+
+    class Section(models.TextChoices):
+        EQUATION = "equation", "方程式图"
+        MECHANISM = "mechanism", "机理图"
+        CONDITION = "condition", "反应条件附图"
+        MECHANISM_TEXT = "mechanism_text", "机理文字附图"
+        EXAM_TIPS = "exam_tips", "考点附图"
+
+    content_type = models.ForeignKey(ContentType, verbose_name="内容类型", on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField("内容 ID")
+    content_object = GenericForeignKey("content_type", "object_id")
+    section = models.CharField("图片区域", max_length=30, choices=Section.choices)
+    image = models.FileField("图片", upload_to=ReactionGalleryImageUploadTo())
+    caption = models.CharField("图片说明", max_length=160, blank=True)
+    sort_order = models.PositiveIntegerField("排序", default=0)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["section", "sort_order", "pk"]
+        indexes = [
+            models.Index(fields=["content_type", "object_id", "section"]),
+            models.Index(fields=["section", "sort_order"]),
+        ]
+        verbose_name = "反应附图"
+        verbose_name_plural = "反应附图"
+
+    def __str__(self):
+        target = self.content_object or f"{self.content_type_id}:{self.object_id}"
+        return f"{target} - {self.get_section_display()}"
+
+    def clean(self):
+        super().clean()
+        if not self.content_type_id or not self.object_id or not self.section:
+            return
+        count = (
+            ReactionImage.objects.filter(
+                content_type=self.content_type,
+                object_id=self.object_id,
+                section=self.section,
+            )
+            .exclude(pk=self.pk)
+            .count()
+        )
+        if count >= self.MAX_IMAGES_PER_SECTION:
+            raise ValidationError({"section": f"每个区域最多上传 {self.MAX_IMAGES_PER_SECTION} 张图片。"})
+
+    def get_image_src(self):
+        return self.image.url if self.image else ""
 
 class SyntheticRoute(models.Model):
     Status = PublishStatus
