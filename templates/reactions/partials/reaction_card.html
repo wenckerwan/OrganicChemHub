@@ -7,8 +7,6 @@
     </div>
     {% if reaction.category %}
       <span class="badge rounded-pill text-bg-light">{{ reaction.category.name }}</span>
-    {% elif reaction.reaction_type %}
-      <span class="badge rounded-pill text-bg-light">{{ reaction.reaction_type.name }}</span>
     {% endif %}
   </div>
   {% if reaction.summary %}

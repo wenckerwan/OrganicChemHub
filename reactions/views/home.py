@@ -9,8 +9,6 @@ from ..models import (
     GeneralReactionCategory,
     NamedReaction,
     NamedReactionCategory,
-    Reaction,
-    ReactionType,
     SyntheticRoute,
     Tag,
 )
@@ -21,17 +19,10 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        uses_new_reactions = NamedReaction.published.exists()
-        if uses_new_reactions:
-            context["featured_reactions"] = (
-                NamedReaction.published.select_related("category").prefetch_related("tags").order_by("-updated_at")[:6]
-            )
-            context["reaction_types"] = NamedReactionCategory.objects.all()[:12]
-        else:
-            context["featured_reactions"] = (
-                Reaction.published.select_related("reaction_type").prefetch_related("tags").order_by("-updated_at")[:6]
-            )
-            context["reaction_types"] = ReactionType.objects.all()[:12]
+        context["featured_reactions"] = (
+            NamedReaction.published.select_related("category").prefetch_related("tags").order_by("-updated_at")[:6]
+        )
+        context["reaction_types"] = NamedReactionCategory.objects.all()[:12]
         context["featured_general_reactions"] = (
             GeneralReaction.published.select_related("category").prefetch_related("tags").order_by("-updated_at")[:6]
         )

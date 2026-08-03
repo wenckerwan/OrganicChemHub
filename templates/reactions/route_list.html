@@ -51,7 +51,10 @@
             </div>
             {% if route.summary %}<p class="text-secondary">{{ route.summary|truncatechars:140|highlight_query:query }}</p>{% endif %}
             <div class="tag-row">
-              {% for reaction in route.related_reactions.all %}
+              {% for reaction in route.related_named_reactions.all %}
+                <span>{{ reaction.name_zh }}</span>
+              {% endfor %}
+              {% for reaction in route.related_general_reactions.all %}
                 <span>{{ reaction.name_zh }}</span>
               {% endfor %}
             </div>

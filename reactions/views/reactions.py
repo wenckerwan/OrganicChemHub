@@ -1,28 +1,20 @@
 """Reaction list, detail, and common reactions views."""
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from django.views.generic import DetailView, ListView, View
 
 from ..models import (
-    CommonReaction,
     Favorite,
     FunctionalGroup,
     GeneralReaction,
     GeneralReactionCategory,
     NamedReaction,
     NamedReactionCategory,
-    PublishStatus,
-    Reaction,
-    ReactionType,
     StudyNote,
     StudyProgress,
     Tag,
 )
-
-
-def has_new_named_reactions():
-    return NamedReaction.published.exists()
 
 
 class ReactionListView(ListView):
@@ -32,16 +24,7 @@ class ReactionListView(ListView):
     paginate_by = 12
 
     def get_queryset(self):
-        self.uses_new_model = has_new_named_reactions()
-        if self.uses_new_model:
-            queryset = NamedReaction.published.select_related("category").prefetch_related("tags", "functional_groups")
-            type_filter = "category__slug"
-            type_order = ("category__sort_order", "category__id", "name_en", "name_zh")
-        else:
-            queryset = Reaction.published.select_related("reaction_type").prefetch_related("tags", "functional_groups")
-            type_filter = "reaction_type__slug"
-            type_order = ("reaction_type__sort_order", "reaction_type__id", "name_en", "name_zh")
-
+        queryset = NamedReaction.published.select_related("category").prefetch_related("tags", "functional_groups")
         query = self.request.GET.get("q", "").strip()
         type_slug = self.request.GET.get("type", "").strip()
         tag_slug = self.request.GET.get("tag", "").strip()
@@ -59,7 +42,7 @@ class ReactionListView(ListView):
                 | Q(exam_tips__icontains=query)
             )
         if type_slug:
-            queryset = queryset.filter(**{type_filter: type_slug})
+            queryset = queryset.filter(category__slug=type_slug)
         if tag_slug:
             queryset = queryset.filter(tags__slug=tag_slug)
         if functional_group:
@@ -69,30 +52,26 @@ class ReactionListView(ListView):
 
         queryset = queryset.distinct()
         if sort == "type":
-            return queryset.order_by(*type_order)
+            return queryset.order_by("category__sort_order", "category__id", "name_en", "name_zh")
         if sort == "updated":
             return queryset.order_by("-updated_at", "name_en", "name_zh")
         return queryset.order_by("name_en", "name_zh")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        uses_new_model = getattr(self, "uses_new_model", has_new_named_reactions())
         context["query"] = self.request.GET.get("q", "").strip()
         context["selected_type"] = self.request.GET.get("type", "").strip()
         context["selected_tag"] = self.request.GET.get("tag", "").strip()
         context["selected_functional_group"] = self.request.GET.get("functional_group", "").strip()
         context["exam_filter"] = self.request.GET.get("exam", "").strip()
         context["selected_sort"] = self.request.GET.get("sort", "name").strip() or "name"
-        context["reaction_types"] = NamedReactionCategory.objects.all() if uses_new_model else ReactionType.objects.all()
+        context["reaction_types"] = NamedReactionCategory.objects.all()
         context["tags"] = Tag.objects.all()
         context["functional_groups"] = FunctionalGroup.objects.all()
         context["reaction_index"] = self.object_list.order_by("name_en", "name_zh")[:120]
-        if uses_new_model:
-            context["recommended_reactions"] = NamedReaction.published.select_related("category").prefetch_related("tags")[:3]
-        else:
-            context["recommended_reactions"] = Reaction.published.select_related("reaction_type").prefetch_related("tags")[:3]
+        context["recommended_reactions"] = NamedReaction.published.select_related("category").prefetch_related("tags")[:3]
         context["is_named_view"] = True
-        context["supports_reaction_user_tools"] = not uses_new_model
+        context["supports_reaction_user_tools"] = False
         return context
 
 
@@ -151,21 +130,11 @@ class GeneralReactionListView(ListView):
         return context
 
 
-class CommonReactionListView(ListView):
-    """Dedicated view: common named reactions + non-person common reactions."""
-    model = Reaction
-    template_name = "reactions/common_reaction_list.html"
-    context_object_name = "reactions"
-    paginate_by = 20
+class CommonReactionListView(View):
+    """Legacy common-reaction URL kept only as a redirect to the new library."""
 
-    def get_queryset(self):
-        return Reaction.published.filter(is_common=True).order_by("name_en", "name_zh")
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["common_reactions"] = CommonReaction.objects.filter(status=PublishStatus.PUBLISHED).order_by("sort_order", "name_zh")
-        context["is_common_view"] = True
-        return context
+    def get(self, request, *args, **kwargs):
+        return redirect("general_reaction_list")
 
 
 class ReactionDetailView(DetailView):
@@ -173,25 +142,14 @@ class ReactionDetailView(DetailView):
     template_name = "reactions/reaction_detail.html"
     context_object_name = "reaction"
 
-    def get_object(self, queryset=None):
-        slug = self.kwargs.get("slug")
-        try:
-            self.uses_new_model = True
-            return NamedReaction.published.select_related("category").prefetch_related("tags", "functional_groups", "routes").get(slug=slug)
-        except NamedReaction.DoesNotExist:
-            self.uses_new_model = False
-            return get_object_or_404(
-                Reaction.published.select_related("reaction_type").prefetch_related("tags", "functional_groups", "routes"),
-                slug=slug,
-            )
+    queryset = NamedReaction.published.select_related("category").prefetch_related("tags", "functional_groups", "routes")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         rxn = self.object
-        uses_new_model = getattr(self, "uses_new_model", isinstance(rxn, NamedReaction))
-        context["supports_reaction_user_tools"] = not uses_new_model
-        if user.is_authenticated and not uses_new_model:
+        context["supports_reaction_user_tools"] = False
+        if user.is_authenticated and context["supports_reaction_user_tools"]:
             context["is_favorited"] = Favorite.objects.filter(user=user, reaction=rxn).exists()
             context["user_note"] = StudyNote.objects.filter(user=user, reaction=rxn).first()
             context["user_progress"] = StudyProgress.objects.filter(user=user, reaction=rxn).first()

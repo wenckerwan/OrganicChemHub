@@ -67,7 +67,10 @@
                   {% endif %}
                   {% if step.note %}<p class="text-secondary">{{ step.note|linebreaksbr }}</p>{% endif %}
                   <div class="tag-row">
-                    {% for reaction in step.related_reactions.all %}
+                    {% for reaction in step.related_named_reactions.all %}
+                      <a href="{{ reaction.get_absolute_url }}">{{ reaction.name_zh }}</a>
+                    {% endfor %}
+                    {% for reaction in step.related_general_reactions.all %}
                       <a href="{{ reaction.get_absolute_url }}">{{ reaction.name_zh }}</a>
                     {% endfor %}
                   </div>
@@ -89,13 +92,17 @@
           <p class="text-secondary">{{ route.source|default:"暂无记录" }}</p>
         </div>
         <div class="side-panel mt-3">
-          <h2 class="h5">相关人名反应</h2>
+          <h2 class="h5">相关反应</h2>
           <div class="list-group list-group-flush">
-            {% for reaction in route.related_reactions.all %}
+            {% for reaction in route.related_named_reactions.all %}
               <a class="list-group-item px-0" href="{{ reaction.get_absolute_url }}">{{ reaction.name_zh }}</a>
-            {% empty %}
-              <span class="text-muted">暂无关联反应</span>
             {% endfor %}
+            {% for reaction in route.related_general_reactions.all %}
+              <a class="list-group-item px-0" href="{{ reaction.get_absolute_url }}">{{ reaction.name_zh }}</a>
+            {% endfor %}
+            {% if not route.related_named_reactions.all and not route.related_general_reactions.all %}
+              <span class="text-muted">暂无关联反应</span>
+            {% endif %}
           </div>
         </div>
         {% if user.is_authenticated %}

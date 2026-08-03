@@ -464,10 +464,10 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
         "source",
         "updated_at",
     )
-    list_filter = ("status", "difficulty", "related_reactions", "related_named_reactions", "related_general_reactions", "created_at", "updated_at")
+    list_filter = ("status", "difficulty", "related_named_reactions", "related_general_reactions", "created_at", "updated_at")
     search_fields = ("target_product", "summary", "source")
     prepopulated_fields = {"slug": ("target_product",)}
-    filter_horizontal = ("related_reactions", "related_named_reactions", "related_general_reactions")
+    filter_horizontal = ("related_named_reactions", "related_general_reactions")
     readonly_fields = ("target_structure_image_preview", "created_at", "updated_at")
     inlines = (RouteStepInline,)
     fieldsets = (
@@ -484,7 +484,7 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
                 )
             },
         ),
-        ("路线说明", {"fields": ("summary", "advantages", "disadvantages", "source", "related_reactions", "related_named_reactions", "related_general_reactions")}),
+        ("路线说明", {"fields": ("summary", "advantages", "disadvantages", "source", "related_named_reactions", "related_general_reactions")}),
         ("时间", {"fields": ("created_at", "updated_at")}),
     )
 
@@ -518,12 +518,12 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
         response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
         response["Content-Disposition"] = "attachment; filename=routes_export.csv"
         writer = csv.writer(response)
-        writer.writerow(["target_product", "slug", "difficulty", "summary", "advantages", "disadvantages", "source", "step_count", "old_reaction_count", "named_reaction_count", "general_reaction_count", "status"])
+        writer.writerow(["target_product", "slug", "difficulty", "summary", "advantages", "disadvantages", "source", "step_count", "named_reaction_count", "general_reaction_count", "status"])
         for obj in queryset:
             writer.writerow([
                 obj.target_product, obj.slug, obj.difficulty, obj.summary,
                 obj.advantages, obj.disadvantages, obj.source,
-                obj.steps.count(), obj.related_reactions.count(), obj.related_named_reactions.count(), obj.related_general_reactions.count(), obj.status,
+                obj.steps.count(), obj.related_named_reactions.count(), obj.related_general_reactions.count(), obj.status,
             ])
         return response
 
@@ -531,12 +531,12 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
 @admin.register(RouteStep)
 class RouteStepAdmin(admin.ModelAdmin):
     list_display = ("route", "step_number", "title", "yield_text")
-    list_filter = ("route", "related_reactions", "related_named_reactions", "related_general_reactions")
+    list_filter = ("route", "related_named_reactions", "related_general_reactions")
     search_fields = ("route__target_product", "title", "reagents", "condition", "note")
-    filter_horizontal = ("related_reactions", "related_named_reactions", "related_general_reactions")
+    filter_horizontal = ("related_named_reactions", "related_general_reactions")
     readonly_fields = ("reactant_structure_image_preview", "product_structure_image_preview")
     fieldsets = (
-        ("基础信息", {"fields": ("route", "step_number", "title", "related_reactions", "related_named_reactions", "related_general_reactions")}),
+        ("基础信息", {"fields": ("route", "step_number", "title", "related_named_reactions", "related_general_reactions")}),
         (
             "反应物与产物结构式",
             {
@@ -786,6 +786,14 @@ class CommonReactionAdmin(admin.ModelAdmin):
         ("内容", {"fields": ("content",)}),
         ("图片", {"fields": ("equation_img",)}),
     )
+
+
+for legacy_model in (Reaction, CommonReaction, ReactionType):
+    try:
+        admin.site.unregister(legacy_model)
+    except admin.sites.NotRegistered:
+        pass
+
 
 def _install_admin_tool_urls():
     if getattr(admin.site, "_och_admin_tool_urls_registered", False):

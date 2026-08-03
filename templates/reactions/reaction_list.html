@@ -93,7 +93,7 @@
                   <p>{{ reaction.summary|highlight_query:query }}</p>
                 {% endif %}
                 <div class="tag-row">
-                  {% if reaction.category %}<span>{{ reaction.category.name }}</span>{% elif reaction.reaction_type %}<span>{{ reaction.reaction_type.name }}</span>{% endif %}
+                  {% if reaction.category %}<span>{{ reaction.category.name }}</span>{% endif %}
                   {% for tag in reaction.tags.all %}<span>{{ tag.name }}</span>{% endfor %}
                 </div>
               </div>

@@ -14,7 +14,10 @@ class RouteListView(ListView):
     paginate_by = 12
 
     def get_queryset(self):
-        queryset = SyntheticRoute.published.prefetch_related("related_reactions").annotate(step_total=Count("steps"))
+        queryset = SyntheticRoute.published.prefetch_related(
+            "related_named_reactions",
+            "related_general_reactions",
+        ).annotate(step_total=Count("steps"))
         query = self.request.GET.get("q", "").strip()
         difficulty = self.request.GET.get("difficulty", "").strip()
         sort = self.request.GET.get("sort", "").strip()
@@ -22,7 +25,10 @@ class RouteListView(ListView):
         if query:
             queryset = queryset.filter(
                 Q(target_product__icontains=query) | Q(summary__icontains=query) | Q(source__icontains=query)
-                | Q(related_reactions__name_zh__icontains=query) | Q(related_reactions__name_en__icontains=query)
+                | Q(related_named_reactions__name_zh__icontains=query)
+                | Q(related_named_reactions__name_en__icontains=query)
+                | Q(related_general_reactions__name_zh__icontains=query)
+                | Q(related_general_reactions__name_en__icontains=query)
             )
         if difficulty:
             queryset = queryset.filter(difficulty=difficulty)
@@ -49,7 +55,13 @@ class RouteDetailView(DetailView):
     model = SyntheticRoute
     template_name = "reactions/route_detail.html"
     context_object_name = "route"
-    queryset = SyntheticRoute.published.prefetch_related("related_reactions", "steps", "steps__related_reactions")
+    queryset = SyntheticRoute.published.prefetch_related(
+        "related_named_reactions",
+        "related_general_reactions",
+        "steps",
+        "steps__related_named_reactions",
+        "steps__related_general_reactions",
+    )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -4,6 +4,7 @@ from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.contrib.messages.storage.cookie import CookieStorage
 from django.test import RequestFactory
 from django.test import TestCase
@@ -14,6 +15,7 @@ from tempfile import TemporaryDirectory
 from reactions.admin import ReactionAdmin, SyntheticRouteAdmin
 from reactions.models import (
     Announcement,
+    CommonReaction,
     Feedback,
     FunctionalGroup,
     GeneralReaction,
@@ -186,8 +188,9 @@ class SyntheticRouteModelTests(TestCase):
 
 class AdminRegistrationTests(TestCase):
     def test_core_models_are_registered_in_admin(self):
-        self.assertIn(Reaction, admin.site._registry)
-        self.assertIn(ReactionType, admin.site._registry)
+        self.assertNotIn(Reaction, admin.site._registry)
+        self.assertNotIn(CommonReaction, admin.site._registry)
+        self.assertNotIn(ReactionType, admin.site._registry)
         self.assertIn(Tag, admin.site._registry)
         self.assertIn(SyntheticRoute, admin.site._registry)
 
@@ -298,6 +301,24 @@ class PublicViewTests(TestCase):
         )
         self.reaction.tags.add(self.tag)
         self.reaction.functional_groups.add(self.functional_group)
+        self.named_category = NamedReactionCategory.objects.create(name="碳链增长", slug="chain-extension-new")
+        self.other_named_category = NamedReactionCategory.objects.create(name="氧化反应", slug="oxidation-new")
+        self.named_reaction = NamedReaction.objects.create(
+            name_zh=self.reaction.name_zh,
+            name_en=self.reaction.name_en,
+            aliases=self.reaction.aliases,
+            slug=self.reaction.slug,
+            category=self.named_category,
+            condition=self.reaction.condition,
+            summary=self.reaction.summary,
+            exam_tips="考点",
+            reference="来源",
+            equation_img="named_reactions/lecture_001.png",
+            thumbnail_img="named_reactions/lecture_001_thumb.png",
+            status=PublishStatus.PUBLISHED,
+        )
+        self.named_reaction.tags.add(self.tag)
+        self.named_reaction.functional_groups.add(self.functional_group)
         self.other_reaction = Reaction.objects.create(
             name_zh="普通氧化反应",
             name_en="Oxidation Example",
@@ -311,12 +332,35 @@ class PublicViewTests(TestCase):
         )
         self.other_reaction.tags.add(self.other_tag)
         self.other_reaction.functional_groups.add(self.other_functional_group)
+        self.other_named_reaction = NamedReaction.objects.create(
+            name_zh=self.other_reaction.name_zh,
+            name_en=self.other_reaction.name_en,
+            aliases=self.other_reaction.aliases,
+            slug=self.other_reaction.slug,
+            category=self.other_named_category,
+            condition=self.other_reaction.condition,
+            summary=self.other_reaction.summary,
+            exam_tips="考点",
+            reference="来源",
+            equation_img="named_reactions/oxidation_equation.png",
+            thumbnail_img="named_reactions/oxidation_thumb.png",
+            status=PublishStatus.PUBLISHED,
+        )
+        self.other_named_reaction.tags.add(self.other_tag)
+        self.other_named_reaction.functional_groups.add(self.other_functional_group)
         Reaction.objects.create(
             name_zh="未发布反应",
             name_en="Hidden Reaction",
             slug="hidden-reaction",
             reaction_type=self.reaction_type,
             status=Reaction.Status.DRAFT,
+        )
+        NamedReaction.objects.create(
+            name_zh="未发布反应",
+            name_en="Hidden Reaction",
+            slug="hidden-reaction",
+            category=self.named_category,
+            status=PublishStatus.DRAFT,
         )
         self.route = SyntheticRoute.objects.create(
             target_product="苯乙酮",
@@ -326,6 +370,7 @@ class PublicViewTests(TestCase):
             status=SyntheticRoute.Status.PUBLISHED,
         )
         self.route.related_reactions.add(self.reaction)
+        self.route.related_named_reactions.add(self.named_reaction)
         RouteStep.objects.create(
             route=self.route,
             step_number=1,
@@ -405,16 +450,16 @@ class PublicViewTests(TestCase):
         response = self.client.get(reverse("reaction_detail", kwargs={"slug": "wittig-reaction"}))
 
         self.assertContains(response, 'class="structure-image-frame"')
-        self.assertContains(response, 'src="/static/img/reactions/lecture_001.png"')
-        self.assertContains(response, "讲义结构式示例")
+        self.assertContains(response, 'src="/media/named_reactions/lecture_001.png"')
 
     def test_reaction_detail_shows_fallback_when_no_image(self):
-        self.reaction.structure_image_url = ""
-        self.reaction.save(update_fields=["structure_image_url"])
+        self.named_reaction.equation_img = ""
+        self.named_reaction.thumbnail_img = ""
+        self.named_reaction.save(update_fields=["equation_img", "thumbnail_img"])
 
         response = self.client.get(reverse("reaction_detail", kwargs={"slug": "wittig-reaction"}))
 
-        self.assertNotContains(response, 'src="/static/img/reactions/lecture_001.png"')
+        self.assertNotContains(response, 'src="/media/named_reactions/lecture_001.png"')
 
     def test_draft_reaction_returns_404(self):
         response = self.client.get(reverse("reaction_detail", kwargs={"slug": "hidden-reaction"}))
@@ -445,6 +490,28 @@ class PublicViewTests(TestCase):
         self.assertContains(response, "Friedel-Crafts 酰基化")
         self.assertContains(response, "维蒂希反应")
 
+    def test_common_reaction_legacy_url_redirects_to_general_reactions(self):
+        response = self.client.get(reverse("common_reaction_list"))
+
+        self.assertRedirects(response, reverse("general_reaction_list"), status_code=302, target_status_code=200)
+
+    def test_old_reaction_without_named_counterpart_is_hidden_from_frontend(self):
+        Reaction.objects.create(
+            name_zh="旧版反应",
+            name_en="Legacy Only Reaction",
+            slug="legacy-only-reaction",
+            summary="旧版摘要",
+            condition="旧版条件",
+            reference="旧版来源",
+            status=Reaction.Status.PUBLISHED,
+        )
+
+        list_response = self.client.get(reverse("reaction_list"), {"q": "Legacy Only"})
+        detail_response = self.client.get(reverse("reaction_detail", kwargs={"slug": "legacy-only-reaction"}))
+
+        self.assertNotContains(list_response, "Legacy Only Reaction")
+        self.assertEqual(detail_response.status_code, 404)
+
     def test_route_detail_uses_structure_images_instead_of_online_renderer(self):
         response = self.client.get(reverse("route_detail", kwargs={"slug": "acetophenone"}))
 
@@ -465,15 +532,28 @@ class CommonReactionFixtureTests(TestCase):
 
         self.assertGreaterEqual(Reaction.published.count(), 10)
         response = self.client.get(reverse("reaction_list"), {"q": "Diels"})
-        self.assertContains(response, "Diels-Alder")
+        self.assertNotContains(response, "Diels-Alder")
 
     def test_exam_reactions_fixture_adds_common_postgraduate_reactions(self):
         call_command("loaddata", "common_reactions", "exam_reactions", verbosity=0)
 
         self.assertGreaterEqual(Reaction.published.count(), 40)
         response = self.client.get(reverse("reaction_list"), {"q": "Sandmeyer"})
-        self.assertContains(response, "Sandmeyer Reaction")
-        self.assertContains(response, "重氮盐")
+        self.assertNotContains(response, "Sandmeyer Reaction")
+
+
+class LegacyCommandDeprecationTests(TestCase):
+    def test_old_reaction_csv_import_command_is_disabled(self):
+        with TemporaryDirectory() as directory:
+            csv_path = Path(directory) / "reactions.csv"
+            csv_path.write_text("name_zh,name_en\n旧版,Legacy\n", encoding="utf-8")
+
+            with self.assertRaises(CommandError):
+                call_command("import_reactions_csv", str(csv_path), verbosity=0)
+
+    def test_old_reaction_image_import_command_is_disabled(self):
+        with self.assertRaises(CommandError):
+            call_command("import_reaction_images", verbosity=0)
 
 
 class LearningResourceTests(TestCase):
