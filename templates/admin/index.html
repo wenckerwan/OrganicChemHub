@@ -22,29 +22,99 @@
     <h2>后台工具</h2>
     <p class="och-admin-tools-intro">内容质量检查、批量维护和运营工具</p>
     <div class="och-admin-tool-grid">
-      <a class="och-admin-tool-link" href="{% url 'admin:och_reactions_dashboard' %}">
-        <strong>内容质量仪表盘</strong>
-        <span>查看反应内容完整度和缺失字段</span>
+      <a class="och-admin-tool-link och-admin-tool-link--primary" href="{% url 'admin:och_reactions_dashboard' %}">
+        <span class="och-admin-tool-icon-wrap" aria-hidden="true">
+          <svg class="och-admin-tool-icon" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <path d="M9 3v18M9 9h12"></path>
+          </svg>
+        </span>
+        <span class="och-admin-tool-copy">
+          <strong>内容质量仪表盘</strong>
+          <span>查看反应内容完整度和缺失字段</span>
+        </span>
+        <svg class="och-admin-tool-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m9 18 6-6-6-6"></path>
+        </svg>
       </a>
       <a class="och-admin-tool-link" href="{% url 'admin:och_reactions_import' %}">
-        <strong>反应 CSV 导入</strong>
-        <span>批量新增或更新人名反应和通用反应</span>
+        <span class="och-admin-tool-icon-wrap och-admin-tool-icon-wrap--blue" aria-hidden="true">
+          <svg class="och-admin-tool-icon" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3v12"></path>
+            <path d="m7 8 5-5 5 5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+        </span>
+        <span class="och-admin-tool-copy">
+          <strong>反应 CSV 导入</strong>
+          <span>批量新增或更新人名反应和通用反应</span>
+        </span>
+        <svg class="och-admin-tool-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m9 18 6-6-6-6"></path>
+        </svg>
       </a>
       <a class="och-admin-tool-link" href="{% url 'admin:och_reactions_images' %}">
-        <strong>图片维护</strong>
-        <span>检查缺少方程式图、缩略图和机理图的内容</span>
+        <span class="och-admin-tool-icon-wrap och-admin-tool-icon-wrap--amber" aria-hidden="true">
+          <svg class="och-admin-tool-icon" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <path d="m3 16 5-5 4 4 3-3 6 6"></path>
+          </svg>
+        </span>
+        <span class="och-admin-tool-copy">
+          <strong>图片维护</strong>
+          <span>检查缺少方程式图、缩略图和机理图的内容</span>
+        </span>
+        <svg class="och-admin-tool-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m9 18 6-6-6-6"></path>
+        </svg>
       </a>
       <a class="och-admin-tool-link" href="{% url 'admin:och_message_broadcast' %}">
-        <strong>发送站内消息</strong>
-        <span>向指定用户或全体用户发送通知</span>
+        <span class="och-admin-tool-icon-wrap och-admin-tool-icon-wrap--violet" aria-hidden="true">
+          <svg class="och-admin-tool-icon" viewBox="0 0 24 24" fill="none">
+            <path d="m22 2-7 20-4-9-9-4Z"></path>
+            <path d="M22 2 11 13"></path>
+          </svg>
+        </span>
+        <span class="och-admin-tool-copy">
+          <strong>发送站内消息</strong>
+          <span>向指定用户或全体用户发送通知</span>
+        </span>
+        <svg class="och-admin-tool-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m9 18 6-6-6-6"></path>
+        </svg>
       </a>
       <a class="och-admin-tool-link" href="{% url 'admin:och_message_cleanup' %}">
-        <strong>清理站内消息</strong>
-        <span>按时间范围清理过期消息</span>
+        <span class="och-admin-tool-icon-wrap och-admin-tool-icon-wrap--rose" aria-hidden="true">
+          <svg class="och-admin-tool-icon" viewBox="0 0 24 24" fill="none">
+            <path d="M3 6h18"></path>
+            <path d="M8 6V4h8v2"></path>
+            <path d="m19 6-1 15H6L5 6"></path>
+            <path d="M10 11v6M14 11v6"></path>
+          </svg>
+        </span>
+        <span class="och-admin-tool-copy">
+          <strong>清理站内消息</strong>
+          <span>按时间范围清理过期消息</span>
+        </span>
+        <svg class="och-admin-tool-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m9 18 6-6-6-6"></path>
+        </svg>
       </a>
       <a class="och-admin-tool-link" href="{% url 'admin:och_resource_import_or_upload' %}">
-        <strong>学习资料导入</strong>
-        <span>上传文件或登记已有资料路径</span>
+        <span class="och-admin-tool-icon-wrap och-admin-tool-icon-wrap--slate" aria-hidden="true">
+          <svg class="och-admin-tool-icon" viewBox="0 0 24 24" fill="none">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path>
+            <path d="M14 2v6h6M8 13h8M8 17h6"></path>
+          </svg>
+        </span>
+        <span class="och-admin-tool-copy">
+          <strong>学习资料导入</strong>
+          <span>上传文件或登记已有资料路径</span>
+        </span>
+        <svg class="och-admin-tool-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m9 18 6-6-6-6"></path>
+        </svg>
       </a>
     </div>
   </div>

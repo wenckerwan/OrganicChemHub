@@ -701,6 +701,9 @@ class AdminToolPageTests(TestCase):
         self.assertContains(response, 'href="/admin/operations/messages/send/"')
         self.assertContains(response, 'href="/admin/operations/messages/cleanup/"')
         self.assertContains(response, 'href="/admin/resources/import-or-upload/"')
+        self.assertContains(response, "och-admin-tool-icon-wrap")
+        self.assertContains(response, "och-admin-tool-arrow")
+        self.assertContains(response, "och-admin-tool-link--primary")
 
     def test_dashboard_loads(self):
         response = self.client.get("/admin/reactions/dashboard/")
