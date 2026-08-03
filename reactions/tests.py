@@ -397,6 +397,24 @@ class PublicViewTests(TestCase):
         self.assertContains(response, "OrganicChemHub")
         self.assertContains(response, "维蒂希反应")
 
+    def test_homepage_admin_maintenance_button_is_staff_only(self):
+        anonymous_response = self.client.get(reverse("home"))
+
+        self.assertNotContains(anonymous_response, "进入后台维护")
+
+        normal_user = User.objects.create_user("normal-user", "normal@example.com", "password")
+        self.client.force_login(normal_user)
+        normal_response = self.client.get(reverse("home"))
+
+        self.assertNotContains(normal_response, "进入后台维护")
+
+        self.client.logout()
+        staff_user = User.objects.create_superuser("staff-user", "staff@example.com", "password")
+        self.client.force_login(staff_user)
+        staff_response = self.client.get(reverse("home"))
+
+        self.assertContains(staff_response, "进入后台维护")
+
     def test_reaction_list_searches_name_and_condition(self):
         response = self.client.get(reverse("reaction_list"), {"q": "膦叶立德"})
 
