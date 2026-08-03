@@ -54,3 +54,51 @@ input[type="button"],
 a.button {
   border-radius: 6px;
 }
+
+.och-admin-tools {
+  margin-top: 20px;
+  padding: 0 16px 16px;
+}
+
+.och-admin-tools h2 {
+  margin: 0 -16px 6px;
+  padding: 10px 16px;
+}
+
+.och-admin-tools-intro {
+  color: #5b6870;
+  margin: 0 0 14px;
+}
+
+.och-admin-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.och-admin-tool-link {
+  display: grid;
+  gap: 5px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 1px solid var(--hairline-color);
+  border-radius: 6px;
+  background: #fff;
+  text-decoration: none;
+}
+
+.och-admin-tool-link:hover {
+  border-color: var(--primary);
+  background: #f4fbfa;
+}
+
+.och-admin-tool-link strong {
+  color: var(--link-fg);
+  font-size: 14px;
+}
+
+.och-admin-tool-link span {
+  color: #5b6870;
+  font-size: 12px;
+  line-height: 1.5;
+}

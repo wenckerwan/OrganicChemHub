@@ -1,0 +1,86 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static log %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static "admin/css/dashboard.css" %}">
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+
+  <div class="module och-admin-tools" id="och-admin-tools">
+    <h2>后台工具</h2>
+    <p class="och-admin-tools-intro">内容质量检查、批量维护和运营工具</p>
+    <div class="och-admin-tool-grid">
+      <a class="och-admin-tool-link" href="{% url 'admin:och_reactions_dashboard' %}">
+        <strong>内容质量仪表盘</strong>
+        <span>查看反应内容完整度和缺失字段</span>
+      </a>
+      <a class="och-admin-tool-link" href="{% url 'admin:och_reactions_import' %}">
+        <strong>反应 CSV 导入</strong>
+        <span>批量新增或更新人名反应和通用反应</span>
+      </a>
+      <a class="och-admin-tool-link" href="{% url 'admin:och_reactions_images' %}">
+        <strong>图片维护</strong>
+        <span>检查缺少方程式图、缩略图和机理图的内容</span>
+      </a>
+      <a class="och-admin-tool-link" href="{% url 'admin:och_message_broadcast' %}">
+        <strong>发送站内消息</strong>
+        <span>向指定用户或全体用户发送通知</span>
+      </a>
+      <a class="och-admin-tool-link" href="{% url 'admin:och_message_cleanup' %}">
+        <strong>清理站内消息</strong>
+        <span>按时间范围清理过期消息</span>
+      </a>
+      <a class="och-admin-tool-link" href="{% url 'admin:och_resource_import_or_upload' %}">
+        <strong>学习资料导入</strong>
+        <span>上传文件或登记已有资料路径</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+  <div class="module" id="recent-actions-module">
+    <h2>{% translate 'Recent actions' %}</h2>
+    <h3>{% translate 'My actions' %}</h3>
+    {% get_admin_log 10 as admin_log for_user user %}
+    {% if not admin_log %}
+    <p>{% translate 'None available' %}</p>
+    {% else %}
+    <ul class="actionlist">
+      {% for entry in admin_log %}
+      <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+        <span class="visually-hidden">
+          {% if entry.is_addition %}{% translate 'Added:' %}{% elif entry.is_change %}{% translate 'Changed:' %}{% elif entry.is_deletion %}{% translate 'Deleted:' %}{% endif %}
+        </span>
+        {% if entry.is_deletion or not entry.get_admin_url %}
+          {{ entry.object_repr }}
+        {% else %}
+          <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+        {% endif %}
+        <br>
+        {% if entry.content_type %}
+          <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+        {% else %}
+          <span class="mini quiet">{% translate 'Unknown content' %}</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

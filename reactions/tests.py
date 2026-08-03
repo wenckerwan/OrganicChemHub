@@ -690,6 +690,18 @@ class AdminToolPageTests(TestCase):
         self.user = User.objects.create_superuser("admin", "admin@example.com", "password")
         self.client.force_login(self.user)
 
+    def test_admin_index_shows_tool_links(self):
+        response = self.client.get("/admin/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "内容质量仪表盘")
+        self.assertContains(response, 'href="/admin/reactions/dashboard/"')
+        self.assertContains(response, 'href="/admin/reactions/import/"')
+        self.assertContains(response, 'href="/admin/reactions/images/"')
+        self.assertContains(response, 'href="/admin/operations/messages/send/"')
+        self.assertContains(response, 'href="/admin/operations/messages/cleanup/"')
+        self.assertContains(response, 'href="/admin/resources/import-or-upload/"')
+
     def test_dashboard_loads(self):
         response = self.client.get("/admin/reactions/dashboard/")
         self.assertEqual(response.status_code, 200)
