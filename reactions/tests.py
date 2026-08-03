@@ -556,6 +556,25 @@ class LegacyCommandDeprecationTests(TestCase):
             call_command("import_reaction_images", verbosity=0)
 
 
+class ExamReactionSeedImportTests(TestCase):
+    def test_import_exam_reaction_seed_creates_new_reaction_libraries(self):
+        call_command("import_exam_reaction_seed", verbosity=0)
+
+        self.assertEqual(NamedReaction.objects.count(), 25)
+        self.assertEqual(GeneralReaction.objects.count(), 24)
+        self.assertTrue(NamedReaction.objects.filter(slug="diels-alder-reaction").exists())
+        self.assertTrue(GeneralReaction.objects.filter(slug="epoxide-acidic-ring-opening").exists())
+        self.assertTrue(Tag.objects.filter(slug="exam-completion").exists())
+        self.assertTrue(FunctionalGroup.objects.filter(name_zh="环氧").exists())
+
+    def test_import_exam_reaction_seed_is_idempotent(self):
+        call_command("import_exam_reaction_seed", verbosity=0)
+        call_command("import_exam_reaction_seed", verbosity=0)
+
+        self.assertEqual(NamedReaction.objects.count(), 25)
+        self.assertEqual(GeneralReaction.objects.count(), 24)
+
+
 class LearningResourceTests(TestCase):
     def test_learning_resource_string_uses_title(self):
         resource = LearningResource.objects.create(
