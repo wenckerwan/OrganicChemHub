@@ -45,8 +45,6 @@ cd chem.wencker.top
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install "numpy<2"
-pip install rdkit-pypi
 pip install -r requirements.txt
 
 # 配置环境变量
@@ -58,10 +56,6 @@ python manage.py migrate
 python manage.py loaddata common_reactions
 python manage.py loaddata exam_reactions
 python manage.py createsuperuser
-
-# 生成图片
-python scripts/generate_reaction_images.py
-python manage.py import_reaction_images
 
 # 收集静态文件
 python manage.py collectstatic --noinput

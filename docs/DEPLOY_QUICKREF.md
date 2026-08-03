@@ -7,7 +7,7 @@
 ```powershell
 cd D:\code_files\OrganicChemHub_dsv
 git add .
-git commit -m "改了什么"
+git commit -m "v2.1: 内容发布完善 - 前台状态与自动发布工具"
 git push
 ```
 
@@ -17,8 +17,10 @@ git push
 cd /www/wwwroot/chem.wencker.top
 source .venv/bin/activate
 git pull
+pip install -r requirements.txt
 python manage.py migrate
 python manage.py collectstatic --noinput
+python manage.py setup_admin_roles
 /www/server/panel/pyenv/bin/supervisorctl restart all
 ```
 
@@ -27,9 +29,9 @@ python manage.py collectstatic --noinput
 | 页面 | 地址 |
 |------|------|
 | 后台首页 | `http://chem.wencker.top/admin/` |
-| 反应列表 | `http://chem.wencker.top/admin/reactions/reaction/` |
-| 常见反应 | `http://chem.wencker.top/reactions/common/` |
-| 仪表盘 | `http://chem.wencker.top/admin/reactions/reaction/dashboard/` |
+| 人名反应后台 | `http://chem.wencker.top/admin/reactions/namedreaction/` |
+| 常见反应后台 | `http://chem.wencker.top/admin/reactions/generalreaction/` |
+| 仪表盘 | `http://chem.wencker.top/admin/reactions/dashboard/` |
 | 消息管理 | `http://chem.wencker.top/admin/reactions/message/` |
 | 反馈管理 | `http://chem.wencker.top/admin/reactions/feedback/` |
 | 导航菜单 | `http://chem.wencker.top/admin/reactions/navitem/` |

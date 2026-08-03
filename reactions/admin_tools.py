@@ -14,6 +14,7 @@ from .admin_forms import (
     ResourceImportOrUploadForm,
 )
 from .models import GeneralReaction, LearningResource, Message, NamedReaction, OpLog, PublishStatus, SyntheticRoute
+from .services.publication import publication_ready_count
 
 
 REQUIRED_IMPORT_COLUMNS = ["name_zh", "name_en", "slug", "summary", "condition", "exam_tips", "reference", "status"]
@@ -53,6 +54,7 @@ def reaction_quality_stats(model):
         "published": queryset.filter(status=PublishStatus.PUBLISHED).count(),
         "drafts": queryset.filter(status=PublishStatus.DRAFT).count(),
         "archived": queryset.filter(status=PublishStatus.ARCHIVED).count(),
+        "publish_ready": publication_ready_count(model),
         "missing_equation": queryset.filter(equation_img="").count(),
         "missing_thumbnail": queryset.filter(thumbnail_img="").count(),
         "missing_exam_tips": queryset.filter(exam_tips="").count(),

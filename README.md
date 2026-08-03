@@ -1,55 +1,46 @@
 # OrganicChemHub
 
-OrganicChemHub 是一个面向本科有机化学学习和考研复习的人名反应与合成路线资料库。支持结构式图片展示、用户注册收藏、私人笔记、学习进度追踪和站内消息通知。
+OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机反应资料库。项目采用 Django Admin 作为标准内容管理层，前台负责清晰展示人名反应、常见有机反应、合成路线、学习资料、公告和用户互动数据。
 
-当前版本：**v1.6**
+当前版本：**v2.1**
 
-部署文档：[docs/deploy_linux.md](docs/deploy_linux.md)  
+部署文档：[docs/deploy_linux.md](docs/deploy_linux.md)
 更新日志：[docs/CHANGELOG.md](docs/CHANGELOG.md)
+后续规划：[docs/organic_chem_hub_update_roadmap.md](docs/organic_chem_hub_update_roadmap.md)
 
 ---
 
 ## 功能概览
 
-### 数据维护
-- 人名反应：中文名/英文名/SMILES/类型/标签/官能团/条件/机理/考点/适用范围/限制/参考来源/状态
-- 合成路线：目标产物/摘要/难度/优缺点/来源/相关反应/状态
-- 路线步骤：步骤序号/标题/反应物产物结构式/试剂/条件/产率/关联反应
-- 图片字段：equation_img / mechanism_img / thumbnail_img（后台上传自动重命名）
-- 学习资料：标题/分类/年份/文件类型/路径/是否含答案/状态
+### 内容管理
+- 人名反应：中文名、英文名、分类、标签、官能团、摘要、条件、机理、考点、适用范围、限制、参考来源、状态。
+- 常见有机反应：与人名反应分库管理，前台使用独立入口、标题和视觉主题。
+- 合成路线：目标产物、摘要、难度、优缺点、来源、关联反应和路线步骤。
+- 图片字段：方程式图、机理图、缩略图均支持后台上传；机理图可选，方程式图和缩略图计入发布质量检查。
+- 学习资料：标题、分类、年份、文件类型、文件来源、是否含答案、状态。
 
 ### 前台页面
-- 首页：公告栏（滚动循环 + 关闭）、搜索栏、快速入口、最近更新反应、合成路线、学习资料、分类标签
-- 首页快速入口中的“进入后台维护”仅管理员可见，普通用户和未登录用户隐藏
-- 反应列表：左侧滚动目录 + 右侧结果区，支持多条件筛选和排序
-- 反应详情：图片结构式、概述、条件、机理、考点、收藏、学习进度（已学/待复习）、私人笔记
-- 路线列表/详情：目标产物结构式、步骤时间线、反应物/产物图片
-- 学习资料列表：搜索/分类/含答案筛选/排序
-- 意见反馈：类型选择 / 名称 / 邮箱 / 内容，提交后可查回复与状态
-- 用户注册/登录/退出
-
-### 用户系统
-- 注册/登录（用户名 + 邮箱 + 密码）
-- 收藏反应和路线（❤️ 切换）
-- 私人笔记（反应/路线详情页，仅自己可见）
-- 学习进度追踪（待学习 / 已学 / 待复习）
-- 个人中心：收藏列表 / 笔记列表 / 反馈记录 / 进度统计
-- 站内消息中心：公告推送、反馈回复通知、状态变更通知（导航栏红点提示）
-- 全部已读功能
+- 首页：公告栏、搜索栏、快速入口、前台内容状态、最近更新反应、合成路线、分类标签和反馈表单。
+- 首页“进入后台维护”按钮仅管理员可见，未登录用户和普通用户隐藏。
+- 人名反应库：独立蓝色主题，展示已发布人名反应。
+- 常见有机反应库：独立青绿色主题，展示已发布常见反应。
+- 反应详情：结构式图片、摘要、条件、机理、考点、收藏、学习进度和私人笔记。
+- 路线列表/详情：目标产物图片、步骤时间线、反应物/产物图片。
+- 用户中心：收藏、笔记、学习进度、反馈记录和站内消息。
 
 ### 后台管理
-- 所有模型增删改查，批量发布/归档
-- 图片上传（三个独立区域 + 实时预览）
-- 列表缩略图列
-- CSV 导出（Reaction / Route / LearningResource）
-- CSV 批量导入（import_reactions_csv）
-- 内容质量仪表盘（/admin/reactions/reaction/dashboard/）
-- 公告管理（重要性/置顶/显示时段）
-- 反馈管理（类型/状态/管理员回复/内部备注/站内消息通知）
+- Django Admin 维护人名反应、常见有机反应、合成路线、分类、标签、官能团、公告、反馈和站内消息。
+- 列表页支持搜索、筛选、排序、缩略图预览、完整度展示和批量发布/归档。
+- 内容质量仪表盘：`/admin/reactions/dashboard/`。
+- CSV 导入入口：`/admin/reactions/import/`，支持人名反应和常见有机反应。
+- 图片维护入口：`/admin/reactions/images/`，集中查看缺方程式图、缺缩略图和缺机理图内容。
+- 消息群发与消息清理：运营人员可通过专用后台工具完成站内通知维护。
 
-### 自动化工具
-- RDKit 批量 SVG 生成（scripts/generate_reaction_images.py）
-- SMILES 备份脚本（backup_smiles，已废弃）
+### v2.1 新增
+- 首页增加“前台内容状态”，展示已发布人名反应、常见有机反应、合成路线和待发布完整内容数量。
+- 内容质量仪表盘增加“可发布草稿”计数，帮助管理员快速找到已经补全但尚未发布的内容。
+- 新增 `publish_ready_content` 管理命令，只发布字段完整的草稿，缺图或缺关键字段的内容保持草稿。
+- 运行依赖回归轻量化，结构式展示以后台上传图片为准。
 
 ---
 
@@ -59,16 +50,9 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的人名�
 python -m venv .venv
 .\.venv\Scripts\python -m pip install -r requirements.txt
 .\.venv\Scripts\python manage.py migrate
-.\.venv\Scripts\python manage.py loaddata common_reactions
-.\.venv\Scripts\python manage.py loaddata exam_reactions
+.\.venv\Scripts\python manage.py setup_admin_roles
 .\.venv\Scripts\python manage.py createsuperuser
 .\.venv\Scripts\python manage.py runserver
-```
-
-如果默认包源无法安装 Django，可改用：
-
-```powershell
-.\.venv\Scripts\python -m pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 ```
 
 浏览器访问：
@@ -78,106 +62,73 @@ python -m venv .venv
 
 ---
 
-## 服务器部署
+## 常用维护命令
 
-服务器目录：`/www/wwwroot/chem.wencker.top`
+```powershell
+# 检查项目配置
+.\.venv\Scripts\python manage.py check
 
-完整步骤见 [docs/deploy_linux.md](docs/deploy_linux.md)
+# 发布字段完整的反应草稿
+.\.venv\Scripts\python manage.py publish_ready_content
 
-部署模板文件：
+# 只预览可发布数量，不写入数据库
+.\.venv\Scripts\python manage.py publish_ready_content --dry-run
 
-- `deploy/chem.wencker.top.env.example` — 环境变量模板
-- `deploy/supervisor_organicchemhub.conf` — Supervisor 守护进程配置
-- `deploy/nginx_chem.wencker.top.conf` — Nginx 反向代理配置
+# 初始化后台角色
+.\.venv\Scripts\python manage.py setup_admin_roles
+
+# 运行测试
+.\.venv\Scripts\python manage.py test
+```
 
 服务器同步更新：
 
 ```bash
 cd /www/wwwroot/chem.wencker.top
 source .venv/bin/activate
-git pull
+git pull origin master
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py collectstatic --noinput
+python manage.py setup_admin_roles
 /www/server/panel/pyenv/bin/supervisorctl restart all
-```
-
----
-
-## 索引本地学习资料
-
-```powershell
-.\.venv\Scripts\python manage.py index_learning_resources "F:\2027考研资料\有机化学"
-```
-
-索引只保存文件标题、分类、年份、大小和本地路径等元信息，不会复制或公开文件内容。
-
----
-
-## 测试
-
-```powershell
-.\.venv\Scripts\python manage.py test
-.\.venv\Scripts\python manage.py check
 ```
 
 ---
 
 ## 图片制作规范
 
-反应结构式图片按照 [docs/image_production_guide.md](docs/image_production_guide.md) 的规范制作 SVG 上传。使用 ChemDraw 绘制，输出 SVG 格式，Arial 字体，透明背景。
+反应结构式图片按照 [docs/image_production_guide.md](docs/image_production_guide.md) 的规范制作后上传。建议使用 SVG，透明背景，线条清晰，适合在列表页和详情页同时展示。
 
-图片自动重命名规则：`media/reaction_images/reaction_{slug}_{type}.{ext}`
+图片自动重命名规则：`media/reaction_images/reaction_{slug}_{type}.{ext}`。
 
 ---
 
-## Git 同步流程
+## Git 同步规范
 
-```mermaid
-flowchart LR
-    A[本地开发] --> B[git add/commit]
-    B --> C[git push]
-    C --> D[服务器 git pull]
-    D --> E[migrate + collectstatic + restart]
-```
+后续每次功能更新、修复或数据导入都需要同步更新根目录 `README.md`，至少补充“当前版本”和“版本历史”中的核心内容。
 
-数据库（`db.sqlite3`）和用户上传图片（`media/`）不提交 Git，详见 [docs/git_sync_guide.md](docs/git_sync_guide.md)。
-
-### 提交与更新日志规范
-
-后续每次功能更新、修复或数据导入都需要同步更新根目录 `README.md`，至少补充“当前版本”和“版本历史”中的核心内容。提交信息统一使用中文版本号格式：
+提交信息统一使用中文版本号格式：
 
 ```bash
-git commit -m "v1.6: 讲义数据重构 - 40条人名反应+17条常见反应"
+git commit -m "v2.1: 内容发布完善 - 前台状态与自动发布工具"
 ```
 
-不再使用 `fix: ...`、`feat: ...` 这类英文 Conventional Commit 格式。提交信息建议结构为：
-
-```text
-v版本号: 更新主题 - 关键数量或核心结果
-```
+不再使用 `fix: ...`、`feat: ...` 这类英文 Conventional Commit 格式。
 
 ---
 
 ## 版本历史
 
-补充：2026-08-03 首页“进入后台维护”按钮已改为仅管理员可见。
-
 | 版本 | 日期 | 核心内容 |
 |------|------|---------|
-| 1.6 | 2026-08-03 | 前台反应库 UI 与导航分流：人名反应库使用蓝色主题，常见有机反应库使用青绿色主题；修复数据库旧导航项导致“常见反应”仍进入人名反应库的问题；静态 CSS 增加版本号避免缓存 |
-| 1.6 | 2026-08-03 | 首页常见反应入口修复：常见反应卡片、分类、标签和最近更新入口统一指向常见有机反应库 |
-| 1.6 | 2026-07-30 | 常见反应独立体系（新增 CommonReaction 模型 + 独立页面 + 后台管理），人名反应与常见反应解耦为交集关系 |
-| 1.5 | 2026-07-29 | 反馈升级 + 站内消息系统 |
-| 1.4 | 2026-07-29 | 用户体系：注册/登录/收藏/私人笔记/学习进度/个人中心/版本号统一管理 |
-| 1.3 | 2026-07-29 | 公告弹窗关闭按钮/置顶/显示时限/意见反馈表单（仅后台可见） |
-| 1.2 | 2026-07-29 | CSV 导出/内容质量仪表盘/导入补充字段 |
-| 0.9 | 2026-07-29 | 彻底移除 SMILES，纯图片结构式 |
-| 0.8 | 2026-07-29 | RDKit 批量 SVG 生成 |
-| 0.7 | 2026-07-29 | 前端清理，死 CSS 删除，移动端适配 |
-| 0.6 | 2026-07-29 | 图片字段/后台重构/自动重命名 |
-| 0.5 | 2026-07-29 | 图片规范/目录结构/ChemDraw |
-| 0.37-0.1 | 2026-07-28 | 初始版本搭建 |
+| v2.1 | 2026-08-03 | 内容发布完善：前台内容状态、后台可发布草稿统计、完整草稿自动发布命令、清理旧结构式生成依赖 |
+| v2.0 | 2026-08-03 | 后台内容管理正式版：人名反应/常见有机反应分库、后台工具 UI、内容质量仪表盘、CSV 导入、图片维护、运营消息工具 |
+| v1.6 | 2026-08-03 | 前台反应库 UI 与导航分流：人名反应库和常见有机反应库使用独立标题、入口和主题 |
+| v1.5 | 2026-07-29 | 反馈升级与站内消息系统 |
+| v1.4 | 2026-07-29 | 用户体系：注册、登录、收藏、私人笔记、学习进度、个人中心 |
+| v1.3 | 2026-07-29 | 公告、弹窗、置顶、显示时段和意见反馈 |
+| v1.2 | 2026-07-29 | CSV 导出、内容质量仪表盘和导入字段补充 |
 
 ---
 
@@ -186,19 +137,17 @@ v版本号: 更新主题 - 关键数量或核心结果
 | 层 | 技术 |
 |----|------|
 | 后端 | Python 3.11 / Django 5.2 LTS |
-| 数据库 | SQLite（开发）/ 可迁移至 PostgreSQL |
+| 数据库 | SQLite（开发与当前生产）/ 后续可迁移 PostgreSQL |
 | 前端 | Bootstrap 5.3.3 / Bootstrap Icons |
-| 图片生成 | RDKit 2022.09 / ChemDraw |
+| 图片制作 | ChemDraw 或其他结构式绘图工具导出 SVG/PNG |
 | 服务器 | Gunicorn / Nginx / Supervisor |
-| 部署 | 宝塔面板 10.0 / Debian 12 / LNMP |
-| 同步 | Git + GitHub |
+| 部署 | 宝塔面板 / Debian / Git + GitHub |
 
 ---
 
-## 后台内容管理重构
+## 当前开发原则
 
-- 人名反应和常见有机反应拆成两套内容库：`NamedReaction` 与 `GeneralReaction`。
-- 反应方程式图和缩略图是发布质量检查重点，机理图可选。
-- 专用后台工具页包括内容质量仪表盘、CSV 导入、图片维护、消息群发、资料上传/登记和消息清理。
-- 前台人名反应页优先读取新内容库；新内容为空时保留旧数据 fallback，方便平滑过渡。
-- 可运行 `python manage.py setup_admin_roles` 初始化“内容编辑员”和“运营员”角色。
+- 前台只展示已发布内容，草稿和归档内容不公开。
+- 结构式展示采用图片上传与审核，不再回到文本结构式生成路线。
+- 人名反应和常见有机反应保持分库管理、分入口展示。
+- 后台优先服务内容录入、质量检查、批量维护和运营处理。

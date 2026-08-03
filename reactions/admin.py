@@ -184,9 +184,10 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(FunctionalGroup)
 class FunctionalGroupAdmin(admin.ModelAdmin):
-    list_display = ("name_zh", "name_en", "smarts")
-    list_editable = ("name_en", "smarts")
-    search_fields = ("name_zh", "name_en", "smarts", "description")
+    fields = ("name_zh", "name_en", "description")
+    list_display = ("name_zh", "name_en")
+    list_editable = ("name_en",)
+    search_fields = ("name_zh", "name_en", "description")
     list_per_page = 25
 
 

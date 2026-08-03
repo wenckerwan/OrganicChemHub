@@ -102,6 +102,18 @@ document.addEventListener('DOMContentLoaded', function() {
           <span><strong>{{ featured_routes|length }}</strong> 路线入口</span>
           <span><strong>{{ reaction_types|length }}</strong> 反应分类</span>
         </div>
+        <div class="frontend-status-panel mt-3" aria-label="前台内容状态">
+          <div class="frontend-status-title">
+            <i class="bi bi-check2-circle me-1"></i>前台内容状态
+          </div>
+          <div class="frontend-status-grid">
+            <span><strong>{{ frontend_content_status.named_published }}</strong> 已发布人名反应</span>
+            <span><strong>{{ frontend_content_status.general_published }}</strong> 已发布常见反应</span>
+            <span><strong>{{ frontend_content_status.routes_published }}</strong> 已发布合成路线</span>
+            <span><strong>{{ frontend_content_status.publish_ready }}</strong> 待发布完整内容</span>
+          </div>
+          <p class="frontend-status-note mb-0">{{ frontend_content_status.publish_ready }} 条待发布</p>
+        </div>
       </div>
       <div class="col-lg-5">
         <div class="quick-panel">

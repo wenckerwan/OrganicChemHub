@@ -104,8 +104,8 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-APP_VERSION = "1.6"
-ASSET_VERSION = "20260803-reaction-library-ui"
+APP_VERSION = "2.1"
+ASSET_VERSION = "20260803-v21-content-readiness"
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"

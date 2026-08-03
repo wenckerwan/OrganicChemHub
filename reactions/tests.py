@@ -9,6 +9,7 @@ from django.contrib.messages.storage.cookie import CookieStorage
 from django.test import RequestFactory
 from django.test import TestCase
 from django.urls import reverse
+from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -1166,3 +1167,116 @@ class AdminOperationsRedesignTests(TestCase):
 
         self.assertTrue(Group.objects.filter(name="内容编辑员").exists())
         self.assertTrue(Group.objects.filter(name="运营员").exists())
+
+
+class V21ContentReadinessTests(TestCase):
+    def _complete_reaction_kwargs(self, slug, name_zh):
+        return {
+            "name_zh": name_zh,
+            "name_en": name_zh,
+            "slug": slug,
+            "summary": "摘要",
+            "condition": "条件",
+            "exam_tips": "考点",
+            "reference": "来源",
+            "equation_img": f"reactions/{slug}_equation.svg",
+            "thumbnail_img": f"reactions/{slug}_thumbnail.svg",
+        }
+
+    def test_homepage_shows_frontend_content_status_counts(self):
+        NamedReaction.objects.create(
+            **self._complete_reaction_kwargs("published-named-v21", "已发布人名反应"),
+            status=PublishStatus.PUBLISHED,
+        )
+        NamedReaction.objects.create(
+            **self._complete_reaction_kwargs("ready-named-v21", "待发布人名反应"),
+            status=PublishStatus.DRAFT,
+        )
+        GeneralReaction.objects.create(
+            **self._complete_reaction_kwargs("published-general-v21", "已发布常见反应"),
+            status=PublishStatus.PUBLISHED,
+        )
+        SyntheticRoute.objects.create(
+            target_product="已发布路线",
+            slug="published-route-v21",
+            summary="路线摘要",
+            status=PublishStatus.PUBLISHED,
+        )
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "前台内容状态")
+        self.assertContains(response, "已发布人名反应")
+        self.assertContains(response, "已发布常见反应")
+        self.assertContains(response, "已发布合成路线")
+        self.assertContains(response, "待发布完整内容")
+        self.assertContains(response, "1 条待发布")
+
+    def test_dashboard_reports_publish_ready_drafts(self):
+        NamedReaction.objects.create(
+            **self._complete_reaction_kwargs("ready-named-dashboard-v21", "完整人名草稿"),
+            status=PublishStatus.DRAFT,
+        )
+        NamedReaction.objects.create(
+            name_zh="缺图人名草稿",
+            name_en="缺图人名草稿",
+            slug="missing-named-dashboard-v21",
+            summary="摘要",
+            condition="条件",
+            exam_tips="考点",
+            reference="来源",
+            status=PublishStatus.DRAFT,
+        )
+        GeneralReaction.objects.create(
+            **self._complete_reaction_kwargs("ready-general-dashboard-v21", "完整常见草稿"),
+            status=PublishStatus.DRAFT,
+        )
+
+        admin_user = User.objects.create_superuser("quality-admin", "quality@example.com", "password")
+        self.client.force_login(admin_user)
+        response = self.client.get("/admin/reactions/dashboard/")
+
+        self.assertContains(response, "可发布草稿")
+        self.assertContains(response, 'id="named-publish-ready">1')
+        self.assertContains(response, 'id="general-publish-ready">1')
+
+    def test_publish_ready_content_command_publishes_complete_drafts_only(self):
+        ready_named = NamedReaction.objects.create(
+            **self._complete_reaction_kwargs("ready-named-command-v21", "命令人名草稿"),
+            status=PublishStatus.DRAFT,
+        )
+        incomplete_named = NamedReaction.objects.create(
+            name_zh="命令缺图草稿",
+            name_en="命令缺图草稿",
+            slug="incomplete-named-command-v21",
+            summary="摘要",
+            condition="条件",
+            exam_tips="考点",
+            reference="来源",
+            status=PublishStatus.DRAFT,
+        )
+        ready_general = GeneralReaction.objects.create(
+            **self._complete_reaction_kwargs("ready-general-command-v21", "命令常见草稿"),
+            status=PublishStatus.DRAFT,
+        )
+        out = StringIO()
+
+        call_command("publish_ready_content", stdout=out)
+
+        ready_named.refresh_from_db()
+        incomplete_named.refresh_from_db()
+        ready_general.refresh_from_db()
+        self.assertEqual(ready_named.status, PublishStatus.PUBLISHED)
+        self.assertEqual(ready_general.status, PublishStatus.PUBLISHED)
+        self.assertEqual(incomplete_named.status, PublishStatus.DRAFT)
+        self.assertIn("人名反应发布 1 条", out.getvalue())
+        self.assertIn("常见有机反应发布 1 条", out.getvalue())
+
+    def test_functional_group_admin_hides_legacy_structure_pattern_field(self):
+        admin_user = User.objects.create_superuser("fg-admin", "fg@example.com", "password")
+        self.client.force_login(admin_user)
+
+        response = self.client.get(reverse("admin:reactions_functionalgroup_add"))
+
+        self.assertContains(response, "中文名")
+        self.assertNotContains(response, "SMARTS")
