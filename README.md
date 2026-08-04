@@ -159,3 +159,23 @@ python scripts/import_vocab.py ".\source.pdf" --out data/words.json
 ## License
 
 当前项目尚未单独声明开源许可证。未经作者明确授权，请勿将项目用于商业再分发。
+
+---
+
+## OrganicChemHub 项目说明
+
+OrganicChemHub 是一个面向有机化学本科生和考试学习者的学习工具，用于检索人名反应和合成路线，并提供考试提示。项目支持通过 Django admin backend 维护内容，目标是保持简洁、聚焦和持续更新。
+
+更详细的 OrganicChemHub 项目内容请参考 `master` 分支。
+
+### OrganicChemHub 后端依赖
+
+```text
+Django>=5.2,<5.3
+gunicorn>=23.0,<24.0
+rdkit-pypi>=2022.9,<2023
+Pillow>=10.0
+numpy<2
+```
+
+OrganicChemHub 官网：<https://chem.wencker.top/>
