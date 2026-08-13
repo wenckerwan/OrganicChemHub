@@ -105,8 +105,8 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-APP_VERSION = "2.4"
-ASSET_VERSION = "20260803-v24-content-quality"
+APP_VERSION = "2.5"
+ASSET_VERSION = "20260813-v25-study-topics"
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"

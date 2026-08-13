@@ -35,5 +35,8 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         context["notes_count"] = context["notes"].count()
         context["learned_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).count()
         context["review_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).count()
+        context["pending_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.PENDING).select_related("reaction", "route").order_by("-updated_at")[:8]
+        context["review_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).select_related("reaction", "route").order_by("-updated_at")[:8]
+        context["learned_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).select_related("reaction", "route").order_by("-updated_at")[:8]
         context["user_feedbacks"] = Feedback.objects.filter(user=user).order_by("-created_at")
         return context

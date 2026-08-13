@@ -6,6 +6,7 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.admin import GenericTabularInline
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -17,7 +18,7 @@ from django.template.response import TemplateResponse
 
 from . import admin_tools
 from .admin_helpers import image_preview, thumbnail_img
-from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionImage, ReactionType, RouteStep, SyntheticRoute, Tag, VisitCounter
+from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionComparison, ReactionImage, ReactionType, RouteStep, StudyTopic, SyntheticRoute, Tag, VisitCounter
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -879,6 +880,78 @@ class VisitCounterAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(StudyTopic)
+class StudyTopicAdmin(PublicationActionMixin, admin.ModelAdmin):
+    actions = ("publish_selected", "archive_selected")
+    list_display = ("name", "status", "sort_order", "named_reaction_count", "general_reaction_count", "route_count", "updated_at")
+    list_filter = ("status", "created_at", "updated_at")
+    search_fields = ("name", "summary", "learning_goals", "exam_focus")
+    prepopulated_fields = {"slug": ("name",)}
+    filter_horizontal = ("named_reactions", "general_reactions", "routes")
+    readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        ("基础信息", {"fields": ("name", "slug", "status", "sort_order", "summary")} ),
+        ("学习内容", {"fields": ("learning_goals", "exam_focus", "named_reactions", "general_reactions", "routes")} ),
+        ("时间", {"fields": ("created_at", "updated_at")} ),
+    )
+
+    @admin.display(description="人名反应")
+    def named_reaction_count(self, obj):
+        return obj.named_reactions.count()
+
+    @admin.display(description="常见反应")
+    def general_reaction_count(self, obj):
+        return obj.general_reactions.count()
+
+    @admin.display(description="合成路线")
+    def route_count(self, obj):
+        return obj.routes.count()
+
+    @admin.action(description="发布选中的专题")
+    def publish_selected(self, request, queryset):
+        updated = queryset.update(status=StudyTopic.Status.PUBLISHED)
+        self.message_user(request, f"已发布 {updated} 个专题。")
+
+    @admin.action(description="归档选中的专题")
+    def archive_selected(self, request, queryset):
+        updated = queryset.update(status=StudyTopic.Status.ARCHIVED)
+        self.message_user(request, f"已归档 {updated} 个专题。")
+
+
+@admin.register(ReactionComparison)
+class ReactionComparisonAdmin(PublicationActionMixin, admin.ModelAdmin):
+    actions = ("publish_selected", "archive_selected")
+    list_display = ("title", "status", "sort_order", "reaction_a_display", "reaction_b_display", "updated_at")
+    list_filter = ("status", "created_at", "updated_at")
+    search_fields = ("title", "summary", "substrate_difference", "condition_difference", "product_difference", "exam_patterns", "pitfalls")
+    prepopulated_fields = {"slug": ("title",)}
+    readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        ("基础信息", {"fields": ("title", "slug", "status", "sort_order", "summary")} ),
+        ("对比对象", {"fields": ("reaction_a_content_type", "reaction_a_object_id", "reaction_b_content_type", "reaction_b_object_id")} ),
+        ("对比内容", {"fields": ("substrate_difference", "condition_difference", "product_difference", "exam_patterns", "pitfalls")} ),
+        ("时间", {"fields": ("created_at", "updated_at")} ),
+    )
+
+    @admin.display(description="反应 A")
+    def reaction_a_display(self, obj):
+        return str(obj.reaction_a or "未设置")
+
+    @admin.display(description="反应 B")
+    def reaction_b_display(self, obj):
+        return str(obj.reaction_b or "未设置")
+
+    @admin.action(description="发布选中的反应对比")
+    def publish_selected(self, request, queryset):
+        updated = queryset.update(status=ReactionComparison.Status.PUBLISHED)
+        self.message_user(request, f"已发布 {updated} 条反应对比。")
+
+    @admin.action(description="归档选中的反应对比")
+    def archive_selected(self, request, queryset):
+        updated = queryset.update(status=ReactionComparison.Status.ARCHIVED)
+        self.message_user(request, f"已归档 {updated} 条反应对比。")
 
 
 @admin.register(CommonReaction)

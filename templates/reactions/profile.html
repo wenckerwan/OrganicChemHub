@@ -39,6 +39,27 @@
       </div>
     </div>
 
+    <div class="quick-panel mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0">复习入口</h2>
+        <a href="{% url 'study_topic_list' %}" class="btn btn-sm btn-outline-primary">浏览考研专题</a>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <h3 class="h6">待学习</h3>
+          <div class="list-group list-group-flush">{% for item in pending_progress %}<a class="list-group-item px-0" href="{% if item.reaction %}{{ item.reaction.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">{% if item.reaction %}{{ item.reaction.name_zh }}{% else %}{{ item.route.target_product }}{% endif %}</a>{% empty %}<span class="text-muted small">暂无待学习内容</span>{% endfor %}</div>
+        </div>
+        <div class="col-lg-4">
+          <h3 class="h6">待复习</h3>
+          <div class="list-group list-group-flush">{% for item in review_progress %}<a class="list-group-item px-0" href="{% if item.reaction %}{{ item.reaction.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">{% if item.reaction %}{{ item.reaction.name_zh }}{% else %}{{ item.route.target_product }}{% endif %}</a>{% empty %}<span class="text-muted small">暂无待复习内容</span>{% endfor %}</div>
+        </div>
+        <div class="col-lg-4">
+          <h3 class="h6">已学</h3>
+          <div class="list-group list-group-flush">{% for item in learned_progress %}<a class="list-group-item px-0" href="{% if item.reaction %}{{ item.reaction.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">{% if item.reaction %}{{ item.reaction.name_zh }}{% else %}{{ item.route.target_product }}{% endif %}</a>{% empty %}<span class="text-muted small">暂无已学内容</span>{% endfor %}</div>
+        </div>
+      </div>
+    </div>
+
     <!-- 我的反馈 -->
     <div class="quick-panel mb-4">
       <h2 class="h5 mb-3">我的反馈</h2>

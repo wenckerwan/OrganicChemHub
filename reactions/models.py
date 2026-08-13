@@ -778,6 +778,77 @@ class Message(models.Model):
         return f"[{self.get_msg_type_display()}] {self.title}"
 
 
+class StudyTopic(models.Model):
+    Status = PublishStatus
+
+    name = models.CharField("专题名称", max_length=120)
+    slug = models.SlugField("URL 标识", max_length=140, unique=True)
+    summary = models.TextField("专题简介", blank=True)
+    learning_goals = models.TextField("学习目标", blank=True)
+    exam_focus = models.TextField("考试重点", blank=True)
+    sort_order = models.PositiveIntegerField("排序", default=0)
+    status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.DRAFT)
+    named_reactions = models.ManyToManyField("NamedReaction", verbose_name="人名反应", blank=True, related_name="study_topics")
+    general_reactions = models.ManyToManyField("GeneralReaction", verbose_name="常见有机反应", blank=True, related_name="study_topics")
+    routes = models.ManyToManyField("SyntheticRoute", verbose_name="合成路线", blank=True, related_name="study_topics")
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "考研专题"
+        verbose_name_plural = "考研专题"
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("study_topic_detail", kwargs={"slug": self.slug})
+
+
+class ReactionComparison(models.Model):
+    Status = PublishStatus
+
+    title = models.CharField("对比标题", max_length=160)
+    slug = models.SlugField("URL 标识", max_length=180, unique=True)
+    summary = models.TextField("对比说明", blank=True)
+    reaction_a_content_type = models.ForeignKey(ContentType, verbose_name="反应 A 类型", on_delete=models.PROTECT, related_name="comparison_a_set")
+    reaction_a_object_id = models.PositiveIntegerField("反应 A ID")
+    reaction_a = GenericForeignKey("reaction_a_content_type", "reaction_a_object_id")
+    reaction_b_content_type = models.ForeignKey(ContentType, verbose_name="反应 B 类型", on_delete=models.PROTECT, related_name="comparison_b_set")
+    reaction_b_object_id = models.PositiveIntegerField("反应 B ID")
+    reaction_b = GenericForeignKey("reaction_b_content_type", "reaction_b_object_id")
+    substrate_difference = models.TextField("适用底物差异", blank=True)
+    condition_difference = models.TextField("反应条件差异", blank=True)
+    product_difference = models.TextField("主要产物差异", blank=True)
+    exam_patterns = models.TextField("常见考法", blank=True)
+    pitfalls = models.TextField("易错点", blank=True)
+    sort_order = models.PositiveIntegerField("排序", default=0)
+    status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.DRAFT)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "title"]
+        verbose_name = "易混反应对比"
+        verbose_name_plural = "易混反应对比"
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse("reaction_comparison_detail", kwargs={"slug": self.slug})
+
+    def clean(self):
+        super().clean()
+        if self.reaction_a_content_type_id and self.reaction_b_content_type_id:
+            if (
+                self.reaction_a_content_type_id == self.reaction_b_content_type_id
+                and self.reaction_a_object_id == self.reaction_b_object_id
+            ):
+                raise ValidationError("反应 A 和反应 B 必须是两个不同的反应。")
+
+
 class VisitCounter(models.Model):
     SITE_KEY = "site"
 

@@ -20,6 +20,10 @@ from .views import (
     SaveNoteView,
     ToggleFavoriteView,
     UpdateProgressView,
+    ReactionComparisonDetailView,
+    ReactionComparisonListView,
+    StudyTopicDetailView,
+    StudyTopicListView,
 )
 
 
@@ -43,4 +47,8 @@ urlpatterns = [
     path("routes/", RouteListView.as_view(), name="route_list"),
     path("routes/<slug:slug>/", RouteDetailView.as_view(), name="route_detail"),
     path("learning-resources/", LearningResourceListView.as_view(), name="learning_resource_list"),
+    path("study-topics/", StudyTopicListView.as_view(), name="study_topic_list"),
+    path("study-topics/<slug:slug>/", StudyTopicDetailView.as_view(), name="study_topic_detail"),
+    path("reaction-comparisons/", ReactionComparisonListView.as_view(), name="reaction_comparison_list"),
+    path("reaction-comparisons/<slug:slug>/", ReactionComparisonDetailView.as_view(), name="reaction_comparison_detail"),
 ]

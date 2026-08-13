@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}考研专题学习 | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="page-band">
+  <div class="container">
+    <p class="eyebrow mb-2">Exam Study Topics</p>
+    <h1 class="h2 mb-2">考研专题学习</h1>
+    <p class="text-secondary mb-0">按知识模块组织反应、路线和考点，建立清晰的复习入口。</p>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <form class="search-panel mb-4" method="get">
+      <div class="input-group">
+        <input class="form-control" name="q" value="{{ query }}" placeholder="搜索专题名称、学习目标或考试重点" aria-label="搜索考研专题">
+        <button class="btn btn-primary-ink" type="submit"><i class="bi bi-search me-1"></i>搜索专题</button>
+      </div>
+    </form>
+    <div class="section-title">
+      <h2>专题目录</h2>
+      <a href="{% url 'reaction_comparison_list' %}">查看易混反应对比</a>
+    </div>
+    <div class="row g-3">
+      {% for topic in topics %}
+      <div class="col-md-6 col-xl-4">
+        <a class="study-topic-card" href="{{ topic.get_absolute_url }}">
+          <div class="d-flex justify-content-between gap-3 align-items-start">
+            <h2 class="h5 mb-0">{{ topic.name }}</h2>
+            <i class="bi bi-arrow-up-right"></i>
+          </div>
+          <p class="text-secondary small mt-3 mb-3">{{ topic.summary|default:"专题内容整理中"|truncatechars:120 }}</p>
+          <div class="study-topic-card__meta"><span>{{ topic.named_reactions.count|add:topic.general_reactions.count }} 个反应</span><span>{{ topic.routes.count }} 条路线</span></div>
+        </a>
+      </div>
+      {% empty %}
+      <div class="col-12"><div class="empty-state">暂无已发布考研专题。</div></div>
+      {% endfor %}
+    </div>
+    {% include "reactions/partials/pagination.html" %}
+  </div>
+</section>
+{% endblock %}

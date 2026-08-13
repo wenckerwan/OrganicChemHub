@@ -11,6 +11,12 @@ from .reactions import (
     UpdateProgressView,
 )
 from .routes import RouteDetailView, RouteListView, SaveNoteView
+from .study import (
+    ReactionComparisonDetailView,
+    ReactionComparisonListView,
+    StudyTopicDetailView,
+    StudyTopicListView,
+)
 from .feedback import (
     FeedbackView,
     LearningResourceListView,

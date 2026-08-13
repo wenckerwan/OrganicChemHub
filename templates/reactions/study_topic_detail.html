@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}{{ topic.name }} | 考研专题 | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="page-band detail-hero">
+  <div class="container">
+    <p class="eyebrow mb-2">Exam Study Topic</p>
+    <h1 class="h2 mb-2">{{ topic.name }}</h1>
+    <p class="lead text-secondary mb-0">{{ topic.summary|default:"围绕考研重点整理相关反应和路线。" }}</p>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        {% if topic.learning_goals %}<section class="detail-section"><h2>学习目标</h2><p>{{ topic.learning_goals|linebreaksbr }}</p></section>{% endif %}
+        {% if topic.exam_focus %}<section class="detail-section"><h2>考试重点</h2><p>{{ topic.exam_focus|linebreaksbr }}</p></section>{% endif %}
+        <section class="detail-section">
+          <h2>关联人名反应</h2>
+          <div class="row g-3">
+            {% for reaction in named_reactions %}<div class="col-md-6">{% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}</div>{% empty %}<p class="text-muted">暂无已发布人名反应。</p>{% endfor %}
+          </div>
+        </section>
+        <section class="detail-section">
+          <h2>关联常见有机反应</h2>
+          <div class="row g-3">
+            {% for reaction in general_reactions %}<div class="col-md-6">{% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}</div>{% empty %}<p class="text-muted">暂无已发布常见反应。</p>{% endfor %}
+          </div>
+        </section>
+        <section class="detail-section">
+          <h2>关联合成路线</h2>
+          <div class="list-group route-list">
+            {% for route in routes %}<a class="list-group-item list-group-item-action" href="{{ route.get_absolute_url }}"><strong>{{ route.target_product }}</strong><span class="text-muted small ms-2">{{ route.get_difficulty_display }}</span></a>{% empty %}<p class="text-muted">暂无已发布合成路线。</p>{% endfor %}
+          </div>
+        </section>
+      </div>
+      <aside class="col-lg-4">
+        {% include "reactions/partials/visit_counter.html" with title="专题访问量" stats=content_visit_stats %}
+        <div class="side-panel mt-3">
+          <h2 class="h5">继续复习</h2>
+          <p class="text-secondary small">进入反应详情页后，可以标记待学习、已学或待复习。</p>
+          <a class="btn btn-primary-ink btn-sm" href="{% url 'profile' %}"><i class="bi bi-journal-check me-1"></i>进入复习中心</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

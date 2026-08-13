@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}易混反应对比 | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="page-band">
+  <div class="container">
+    <p class="eyebrow mb-2">Reaction Comparisons</p>
+    <h1 class="h2 mb-2">易混反应对比</h1>
+    <p class="text-secondary mb-0">从底物、条件、产物和常见考法对比容易混淆的反应。</p>
+  </div>
+</section>
+<section class="py-4"><div class="container">
+  <form class="search-panel mb-4" method="get"><div class="input-group"><input class="form-control" name="q" value="{{ query }}" placeholder="搜索对比标题或说明" aria-label="搜索易混反应对比"><button class="btn btn-primary-ink" type="submit"><i class="bi bi-search me-1"></i>搜索对比</button></div></form>
+  <div class="row g-3">
+    {% for comparison in comparisons %}<div class="col-md-6"><a class="comparison-card" href="{{ comparison.get_absolute_url }}"><h2 class="h5">{{ comparison.title }}</h2><p class="text-secondary small mb-0">{{ comparison.summary|default:"查看两个反应的关键差异。"|truncatechars:140 }}</p></a></div>{% empty %}<div class="col-12"><div class="empty-state">暂无已发布易混反应对比。</div></div>{% endfor %}
+  </div>
+  {% include "reactions/partials/pagination.html" %}
+</div></section>
+{% endblock %}

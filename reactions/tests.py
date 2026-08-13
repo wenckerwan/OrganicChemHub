@@ -35,6 +35,8 @@ from reactions.models import (
     SyntheticRoute,
     Tag,
     VisitCounter,
+    ReactionComparison,
+    StudyTopic,
 )
 from reactions.admin_tools import reaction_quality_stats
 from reactions.services.search import build_querystring
@@ -1516,3 +1518,153 @@ class V24ContentQualityTests(TestCase):
         self.assertEqual(stats["review_redraw"], 0)
         self.assertEqual(stats["high_traffic_incomplete"][0]["name"], "高访问不完整反应")
         self.assertEqual(stats["high_traffic_incomplete"][0]["total"], 88)
+
+
+class V25ModelTests(TestCase):
+    def test_study_topic_has_publishable_content_and_related_items(self):
+        topic = StudyTopic.objects.create(
+            name="羰基化学",
+            slug="carbonyl-chemistry",
+            summary="羰基反应专题",
+            status=PublishStatus.PUBLISHED,
+        )
+        reaction = NamedReaction.objects.create(
+            name_zh="专题反应",
+            name_en="Topic Reaction",
+            slug="topic-reaction",
+            status=PublishStatus.PUBLISHED,
+        )
+        topic.named_reactions.add(reaction)
+
+        self.assertEqual(topic.get_absolute_url(), "/study-topics/carbonyl-chemistry/")
+        self.assertEqual(list(topic.named_reactions.all()), [reaction])
+
+    def test_reaction_comparison_rejects_same_reaction_on_both_sides(self):
+        reaction = NamedReaction.objects.create(
+            name_zh="对比反应",
+            name_en="Comparison Reaction",
+            slug="comparison-reaction",
+        )
+        comparison = ReactionComparison(
+            title="同反应对比",
+            slug="same-reaction-comparison",
+            reaction_a=reaction,
+            reaction_b=reaction,
+        )
+
+        with self.assertRaises(ValidationError):
+            comparison.full_clean()
+
+
+class V25StudyTopicViewsTests(TestCase):
+    def _topic(self, slug, status=PublishStatus.PUBLISHED):
+        return StudyTopic.objects.create(
+            name="专题测试",
+            slug=slug,
+            summary="专题摘要",
+            learning_goals="学习目标",
+            exam_focus="考试重点",
+            status=status,
+        )
+
+    def test_published_topic_list_and_detail_show_related_content(self):
+        topic = self._topic("published-topic")
+        reaction = NamedReaction.objects.create(
+            name_zh="专题人名反应",
+            name_en="Topic Named Reaction",
+            slug="topic-named-reaction",
+            summary="摘要",
+            condition="条件",
+            exam_tips="考点",
+            reference="来源",
+            equation_img="reactions/topic_equation.svg",
+            thumbnail_img="reactions/topic_thumbnail.svg",
+            status=PublishStatus.PUBLISHED,
+        )
+        topic.named_reactions.add(reaction)
+
+        list_response = self.client.get(reverse("study_topic_list"))
+        detail_response = self.client.get(reverse("study_topic_detail", kwargs={"slug": topic.slug}))
+
+        self.assertContains(list_response, "专题测试")
+        self.assertContains(detail_response, "专题人名反应")
+        self.assertContains(detail_response, "学习目标")
+        self.assertContains(detail_response, "今日访问量")
+
+    def test_unpublished_topic_is_not_visible(self):
+        topic = self._topic("draft-topic", PublishStatus.DRAFT)
+
+        list_response = self.client.get(reverse("study_topic_list"))
+        detail_response = self.client.get(reverse("study_topic_detail", kwargs={"slug": topic.slug}))
+
+        self.assertNotContains(list_response, "专题测试")
+        self.assertEqual(detail_response.status_code, 404)
+
+    def test_homepage_and_profile_expose_study_entries(self):
+        self._topic("home-topic")
+
+        home_response = self.client.get(reverse("home"))
+        self.assertContains(home_response, reverse("study_topic_list"))
+        self.assertContains(home_response, reverse("reaction_comparison_list"))
+
+        user = User.objects.create_user("topic-user", password="password")
+        self.client.force_login(user)
+        profile_response = self.client.get(reverse("profile"))
+        self.assertContains(profile_response, "复习入口")
+
+
+class V25ComparisonViewsTests(TestCase):
+    def test_published_comparison_shows_two_reactions_and_comparison_fields(self):
+        reaction_a = NamedReaction.objects.create(name_zh="反应 A", name_en="Reaction A", slug="reaction-a", status=PublishStatus.PUBLISHED)
+        reaction_b = GeneralReaction.objects.create(name_zh="反应 B", name_en="Reaction B", slug="reaction-b", status=PublishStatus.PUBLISHED)
+        comparison = ReactionComparison.objects.create(
+            title="反应选择对比",
+            slug="reaction-choice-comparison",
+            reaction_a=reaction_a,
+            reaction_b=reaction_b,
+            substrate_difference="底物差异",
+            condition_difference="条件差异",
+            product_difference="产物差异",
+            exam_patterns="常见考法",
+            pitfalls="易错点",
+            status=PublishStatus.PUBLISHED,
+        )
+
+        response = self.client.get(reverse("reaction_comparison_detail", kwargs={"slug": comparison.slug}))
+
+        self.assertContains(response, "反应 A")
+        self.assertContains(response, "反应 B")
+        self.assertContains(response, "底物差异")
+        self.assertContains(response, "易错点")
+        self.assertContains(response, "本页访问量")
+
+    def test_comparison_is_hidden_when_related_reaction_is_archived(self):
+        reaction_a = NamedReaction.objects.create(name_zh="归档 A", name_en="Archived A", slug="archived-a")
+        reaction_b = GeneralReaction.objects.create(name_zh="正常 B", name_en="Normal B", slug="normal-b")
+        comparison = ReactionComparison.objects.create(
+            title="归档反应对比",
+            slug="archived-reaction-comparison",
+            reaction_a=reaction_a,
+            reaction_b=reaction_b,
+            status=PublishStatus.PUBLISHED,
+        )
+        reaction_a.status = PublishStatus.ARCHIVED
+        reaction_a.save(update_fields=["status"])
+
+        response = self.client.get(reverse("reaction_comparison_detail", kwargs={"slug": comparison.slug}))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_admin_lists_topics_and_comparisons(self):
+        user = User.objects.create_superuser("v25-admin", "v25@example.com", "password")
+        StudyTopic.objects.create(name="Admin 专题", slug="admin-topic", status=PublishStatus.PUBLISHED)
+        self.client.force_login(user)
+
+        topic_response = self.client.get("/admin/reactions/studytopic/")
+        comparison_response = self.client.get("/admin/reactions/reactioncomparison/")
+
+        self.assertEqual(topic_response.status_code, 200)
+        self.assertEqual(comparison_response.status_code, 200)
+        self.assertContains(topic_response, "Admin 专题")
+        self.assertContains(topic_response, "考研专题")
+        self.assertContains(comparison_response, "易混反应对比")

@@ -132,6 +132,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <a class="quick-link" href="{% url 'route_list' %}">
               <i class="bi bi-signpost-split me-2"></i>浏览合成路线
             </a>
+            <a class="quick-link" href="{% url 'study_topic_list' %}">
+              <i class="bi bi-journal-bookmark me-2"></i>考研专题学习
+            </a>
+            <a class="quick-link" href="{% url 'reaction_comparison_list' %}">
+              <i class="bi bi-columns-gap me-2"></i>易混反应对比
+            </a>
             {% if user.is_staff %}
             <a class="quick-link" href="/admin/">
               <i class="bi bi-pencil-square me-2"></i>进入后台维护
