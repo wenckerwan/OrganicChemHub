@@ -8,6 +8,10 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 更新日志：[docs/CHANGELOG.md](docs/CHANGELOG.md)
 后续规划：[docs/organic_chem_hub_update_roadmap.md](docs/organic_chem_hub_update_roadmap.md)
 
+开发文档索引：
+
+- v2.5 设计规格：[docs/superpowers/specs/2026-08-13-v25-study-topics-design.md](docs/superpowers/specs/2026-08-13-v25-study-topics-design.md)
+
 项目目录约定：业务代码位于 `organic_chem_hub/`、`reactions/`；前台模板和静态资源分别位于 `templates/`、`static/`；部署配置位于 `deploy/`；项目文档位于 `docs/`；本地资料和反应图片素材位于 `data/`，不上传服务器。
 
 ---
@@ -132,7 +136,16 @@ python manage.py setup_admin_roles
 
 ## Git 同步规范
 
-后续每次功能更新、修复或数据导入都需要同步更新根目录 `README.md`，至少补充“当前版本”和“版本历史”中的核心内容。
+后续每次功能更新、修复、数据导入、开发文档、设计规格或实施计划，都必须保存到项目目录，并同步更新根目录 `README.md`。
+
+文档更新要求：
+
+- 设计规格保存到 `docs/superpowers/specs/`。
+- 实施计划保存到 `docs/superpowers/plans/`。
+- 版本说明和变更记录保存到 `docs/CHANGELOG.md`。
+- 部署、开发和维护说明保存到 `docs/` 对应文档。
+- README 至少同步当前版本、文档入口和版本历史。
+- 文档与代码变更一起提交 Git，不单独留在聊天记录中。
 
 提交信息统一使用中文版本号格式：
 
