@@ -12,5 +12,5 @@ media/
 backups/
 scripts/__pycache__/
 .superpowers/
-picture/
-reaction_image_library/
+data/source/
+data/reaction_image_library/

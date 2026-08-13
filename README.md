@@ -8,6 +8,8 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 更新日志：[docs/CHANGELOG.md](docs/CHANGELOG.md)
 后续规划：[docs/organic_chem_hub_update_roadmap.md](docs/organic_chem_hub_update_roadmap.md)
 
+项目目录约定：业务代码位于 `organic_chem_hub/`、`reactions/`；前台模板和静态资源分别位于 `templates/`、`static/`；部署配置位于 `deploy/`；项目文档位于 `docs/`；本地资料和反应图片素材位于 `data/`，不上传服务器。
+
 ---
 
 ## 功能概览
@@ -61,7 +63,7 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 - 反应附图支持“待审核 / 已通过 / 需重画”状态，并支持后台批量审核。
 - 人名反应和常见反应后台列表展示总访问量、今日访问量。
 
-开发待办：本地反应图片素材目录 `picture/` 待解除文件占用后改名为 `reaction_image_library/`，该目录不提交 Git、不上传服务器。
+目录整理已完成：本地反应图片素材已归档到 `data/reaction_image_library/`，源资料已归档到 `data/source/`；两者均不提交 Git、不上传服务器。
 
 ---
 
@@ -178,3 +180,10 @@ git commit -m "v2.1: 内容发布完善 - 前台状态与自动发布工具"
 - 结构式展示采用图片上传与审核，不再回到文本结构式生成路线。
 - 人名反应和常见有机反应保持分库管理、分入口展示。
 - 后台优先服务内容录入、质量检查、批量维护和运营处理。
+
+## 本地资料目录
+
+- `data/source/`：数据库建设指引和考研反应整理等本地源资料。
+- `data/reaction_image_library/`：人工整理的反应图片素材库，按反应或专题分目录保存。
+- `.superpowers/`：本地开发过程记录，不参与项目运行，也不提交 Git。
+- `staticfiles/`、`.venv/`、`db.sqlite3`、`backups/`：本地运行或备份目录，不提交 Git。

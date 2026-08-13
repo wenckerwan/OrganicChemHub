@@ -245,4 +245,4 @@ python manage.py setup_admin_roles
 
 不再把复杂结构解析能力作为产品主线。
 
-本地素材待办：`picture/` 为人工整理的反应图片素材库，待解除文件占用后重命名为 `reaction_image_library/`；该目录不进入 Git 和生产服务器。
+本地素材目录：`data/reaction_image_library/` 为人工整理的反应图片素材库，`data/source/` 保存数据库建设指引和考研反应整理资料；两者均不进入 Git 和生产服务器。
