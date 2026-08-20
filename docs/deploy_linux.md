@@ -3,7 +3,7 @@
 目标环境：Debian / 宝塔面板 / Nginx / Gunicorn / Supervisor
 生产目录：`/www/wwwroot/chem.wencker.top`
 
-v2.8 运营与审计新增 `ContentBatch` 内容批次模型（迁移 `0022_content_batch`）；更新时必须执行 `python manage.py migrate` 和 `collectstatic`。
+v2.8 运营与审计新增 `ContentBatch` 内容批次模型（迁移 `0022_contentbatch`）；更新时必须执行 `python manage.py migrate` 和 `collectstatic`。
 
 ---
 
@@ -61,7 +61,7 @@ python manage.py setup_admin_roles
 /www/server/panel/pyenv/bin/supervisorctl restart all
 ```
 
-v2.5 新增考研专题和易混反应对比迁移 `0019_study_topics_and_comparisons`，用户互动模型迁移 `0020_user_tools_gfk`；v2.7 新增 `0021_routestep_is_key_step_and_more`（关键步骤 + 官能团关联）；v2.8 新增 `0022_content_batch`（内容批次记录），以上更新都必须执行 `python manage.py migrate`。v2.6 无新迁移，更新时执行 `collectstatic` 即可。
+v2.5 新增考研专题和易混反应对比迁移 `0019_study_topics_and_comparisons`，用户互动模型迁移 `0020_user_tools_gfk`；v2.7 新增 `0021_routestep_is_key_step_and_more`（关键步骤 + 官能团关联）；v2.8 新增 `0022_contentbatch`（内容批次记录），以上更新都必须执行 `python manage.py migrate`。v2.6 无新迁移，更新时执行 `collectstatic` 即可。
 
 可选：发布已经补全的草稿内容。
 

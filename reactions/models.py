@@ -918,6 +918,38 @@ class OpLog(models.Model):
         return f"{self.user} {self.action} {self.object_repr}"
 
 
+class ContentBatch(models.Model):
+    """Content operation batch record (import/publish/archive/cleanup)."""
+
+    class Kind(models.TextChoices):
+        IMPORT = "import", "导入"
+        PUBLISH = "publish", "发布"
+        ARCHIVE = "archive", "归档"
+        CLEANUP = "cleanup", "清理"
+        OTHER = "other", "其他"
+
+    kind = models.CharField("批次类型", max_length=20, choices=Kind.choices)
+    operator = models.ForeignKey(
+        "auth.User",
+        verbose_name="操作人",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    summary = models.CharField("摘要", max_length=200)
+    detail = models.TextField("详情", blank=True)
+    object_count = models.PositiveIntegerField("对象数量", default=0)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "内容批次"
+        verbose_name_plural = "内容批次"
+
+    def __str__(self):
+        return f"{self.get_kind_display()} {self.summary}"
+
+
 class CommonReaction(models.Model):
     """Non-person reactions — common/classic reactions like substitution, addition, elimination."""
     Status = PublishStatus

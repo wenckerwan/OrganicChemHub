@@ -18,7 +18,16 @@ from django.template.response import TemplateResponse
 
 from . import admin_tools
 from .admin_helpers import image_preview, thumbnail_img
-from .models import Announcement, CommonReaction, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionComparison, ReactionImage, ReactionType, RouteStep, StudyTopic, SyntheticRoute, Tag, VisitCounter
+from .models import Announcement, CommonReaction, ContentBatch, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionComparison, ReactionImage, ReactionType, RouteStep, StudyTopic, SyntheticRoute, Tag, VisitCounter
+from .services import audit
+
+
+def get_client_ip(request):
+    """Best-effort client IP extraction for audit logging."""
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
+    if forwarded:
+        return forwarded.split(",")[0].strip() or None
+    return request.META.get("REMOTE_ADDR") or None
 
 
 admin.site.site_header = "OrganicChemHub 管理后台"
@@ -30,6 +39,7 @@ class PublicationActionMixin:
     def _publish_selected(self, request, queryset):
         published_count = 0
         skipped_items = []
+        published_names = []
 
         for item in queryset:
             item.status = item.Status.PUBLISHED
@@ -41,8 +51,24 @@ class PublicationActionMixin:
 
             item.save(update_fields=["status", "updated_at"])
             published_count += 1
+            published_names.append(str(item))
 
         if published_count:
+            audit.log_operation(
+                request.user,
+                action="publish",
+                model_name=queryset.model._meta.model_name,
+                object_repr=f"{queryset.model._meta.verbose_name} 批量发布",
+                detail=f"已发布 {published_count} 条。",
+                ip=get_client_ip(request),
+            )
+            audit.record_batch(
+                kind=ContentBatch.Kind.PUBLISH,
+                operator=request.user,
+                summary=f"{queryset.model._meta.verbose_name} 批量发布",
+                objects=published_names,
+                detail={"published": published_names},
+            )
             self.message_user(request, f"已发布 {published_count} 条内容。", fail_silently=True)
         if skipped_items:
             preview = "、".join(skipped_items[:5])
@@ -55,6 +81,23 @@ class PublicationActionMixin:
 
     def _archive_selected(self, request, queryset):
         archived_count = queryset.update(status=queryset.model.Status.ARCHIVED)
+        archived_names = list(queryset.values_list("target_product" if hasattr(queryset.model, "target_product") else "name_zh", flat=True))
+        if archived_count:
+            audit.log_operation(
+                request.user,
+                action="archive",
+                model_name=queryset.model._meta.model_name,
+                object_repr=f"{queryset.model._meta.verbose_name} 批量归档",
+                detail=f"已归档 {archived_count} 条。",
+                ip=get_client_ip(request),
+            )
+            audit.record_batch(
+                kind=ContentBatch.Kind.ARCHIVE,
+                operator=request.user,
+                summary=f"{queryset.model._meta.verbose_name} 批量归档",
+                objects=archived_names,
+                detail={"archived": archived_names},
+            )
         self.message_user(request, f"已归档 {archived_count} 条内容。", fail_silently=True)
 
 
@@ -909,6 +952,24 @@ class OpLogAdmin(admin.ModelAdmin):
         return False
 
 
+@admin.register(ContentBatch)
+class ContentBatchAdmin(admin.ModelAdmin):
+    list_display = ("kind", "operator", "summary", "object_count", "created_at")
+    list_filter = ("kind", "operator", "created_at")
+    search_fields = ("summary", "detail")
+    readonly_fields = ("kind", "operator", "summary", "detail", "object_count", "created_at")
+    date_hierarchy = "created_at"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(VisitCounter)
 class VisitCounterAdmin(admin.ModelAdmin):
     list_display = ("label", "key", "total_count", "today_count", "today_date", "updated_at")
@@ -1029,6 +1090,7 @@ def _install_admin_tool_urls():
         custom_urls = [
             path("reactions/dashboard/", admin.site.admin_view(admin_tools.dashboard_view), name="och_reactions_dashboard"),
             path("reactions/import/", admin.site.admin_view(admin_tools.reaction_import_view), name="och_reactions_import"),
+            path("reactions/import/errors/download/", admin.site.admin_view(admin_tools.import_error_download_view), name="och_import_error_download"),
             path("reactions/images/", admin.site.admin_view(admin_tools.image_maintenance_view), name="och_reactions_images"),
             path("operations/messages/send/", admin.site.admin_view(admin_tools.message_broadcast_view), name="och_message_broadcast"),
             path("operations/messages/cleanup/", admin.site.admin_view(admin_tools.message_cleanup_view), name="och_message_cleanup"),

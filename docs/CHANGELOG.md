@@ -15,6 +15,8 @@
 - 导入错误报告下载：CSV 导入错误结构化（行号/字段/原始值/建议修复），支持下载 CSV 修复后重新导入。
 - 备份与恢复文档：部署文档新增数据库备份、media 备份、git 回滚流程。
 
+**当前实现范围（2026-08-20）：** 模型迁移 `0022_contentbatch`（`ContentBatch` 批次类型/操作人/摘要/详情/对象数量）；`reactions/services/audit.py` 统一入口（`log_operation`/`record_batch`）；`PublicationActionMixin` 批量发布/归档接入 OpLog + ContentBatch；CSV 导入接入 OpLog + ContentBatch；消息工具日志统一走 audit；导入错误结构化 + CSV 下载端点；`ContentBatchAdmin` 注册；部署文档备份恢复章节；V28 专项测试 9 个。
+
 ### v2.9 — 待定
 
 - 后续版本规划待 v2.8 验收后补充。

@@ -1,9 +1,11 @@
 import csv
 import io
+import json
 
 from django.contrib import admin, messages
 from django.contrib.auth.models import User
 from django.db.models import Count
+from django.http import HttpResponse
 from django.template.response import TemplateResponse
 from django.utils import timezone
 
@@ -13,7 +15,8 @@ from .admin_forms import (
     ReactionCsvImportForm,
     ResourceImportOrUploadForm,
 )
-from .models import GeneralReaction, LearningResource, Message, NamedReaction, OpLog, PublishStatus, ReactionImage, SyntheticRoute, VisitCounter
+from .models import ContentBatch, GeneralReaction, LearningResource, Message, NamedReaction, PublishStatus, ReactionImage, SyntheticRoute, VisitCounter
+from .services import audit
 from .services.publication import publication_ready_count
 
 
@@ -92,7 +95,7 @@ def import_reactions_from_csv(uploaded_file, target, mode):
     model = reaction_model_for_target(target)
     decoded = uploaded_file.read().decode("utf-8-sig")
     reader = csv.DictReader(io.StringIO(decoded))
-    result = {"created": 0, "updated": 0, "skipped": 0, "errors": []}
+    result = {"created": 0, "updated": 0, "skipped": 0, "errors": [], "names": []}
 
     missing_columns = [column for column in REQUIRED_IMPORT_COLUMNS if column not in (reader.fieldnames or [])]
     if missing_columns:
@@ -107,7 +110,12 @@ def import_reactions_from_csv(uploaded_file, target, mode):
         row_errors = [column for column in REQUIRED_IMPORT_COLUMNS if not (row.get(column) or "").strip()]
         if row_errors:
             result["skipped"] += 1
-            result["errors"].append(f"第 {line_number} 行缺少字段：{', '.join(row_errors)}")
+            result["errors"].append({
+                "line": line_number,
+                "fields": row_errors,
+                "raw": (row.get("name_zh") or "")[:50],
+                "reason": "缺少字段",
+            })
             continue
 
         lookup = model.objects.filter(name_zh=row["name_zh"].strip(), name_en=row["name_en"].strip()).first()
@@ -123,11 +131,17 @@ def import_reactions_from_csv(uploaded_file, target, mode):
         try:
             obj.full_clean()
         except Exception as exc:
-            result["skipped"] += 1
-            result["errors"].append(f"第 {line_number} 行校验失败：{exc}")
-            continue
+                result["skipped"] += 1
+                result["errors"].append({
+                    "line": line_number,
+                    "fields": [],
+                    "raw": (row.get("name_zh") or "")[:50],
+                    "reason": str(exc),
+                })
+                continue
 
         obj.save()
+        result["names"].append(str(obj))
         if lookup:
             result["updated"] += 1
         else:
@@ -165,6 +179,28 @@ def reaction_import_view(request):
                 form.cleaned_data["target"],
                 form.cleaned_data["mode"],
             )
+            target_label = "人名反应" if form.cleaned_data["target"] == "named" else "常见有机反应"
+            if result["created"] or result["updated"]:
+                audit.log_operation(
+                    request.user,
+                    action="csv_import",
+                    model_name=form.cleaned_data["target"],
+                    object_repr=f"{target_label} CSV 导入",
+                    detail=f"新增 {result['created']}，更新 {result['updated']}，跳过 {result['skipped']}。",
+                    ip=request.META.get("REMOTE_ADDR"),
+                )
+                audit.record_batch(
+                    kind=ContentBatch.Kind.IMPORT,
+                    operator=request.user,
+                    summary="CSV 导入",
+                    objects=result["names"],
+                    detail={
+                        "target": form.cleaned_data["target"],
+                        "created": result["created"],
+                        "updated": result["updated"],
+                        "skipped": result["skipped"],
+                    },
+                )
             messages.success(
                 request,
                 f"CSV 导入完成：新增 {result['created']}，更新 {result['updated']}，跳过 {result['skipped']}。",
@@ -173,6 +209,26 @@ def reaction_import_view(request):
         form = ReactionCsvImportForm()
     context = admin_context(request, "CSV 导入", form=form, result=result)
     return TemplateResponse(request, "admin/reactions/import.html", context)
+
+
+def import_error_download_view(request):
+    """Download structured import errors as CSV for re-import after fixing."""
+    if request.method != "POST":
+        return HttpResponse(status=405)
+    errors = json.loads(request.POST.get("errors", "[]"))
+
+    response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+    response["Content-Disposition"] = "attachment; filename=import_errors.csv"
+    writer = csv.writer(response)
+    writer.writerow(["行号", "错误字段", "原始值", "建议修复"])
+    for err in errors:
+        writer.writerow([
+            err.get("line", ""),
+            "、".join(err.get("fields", [])),
+            err.get("raw", ""),
+            err.get("reason", ""),
+        ])
+    return response
 
 
 def image_maintenance_view(request):
@@ -215,8 +271,8 @@ def message_broadcast_view(request):
                 ]
             )
             result = {"sent": users.count()}
-            OpLog.objects.create(
-                user=request.user,
+            audit.log_operation(
+                request.user,
                 action="broadcast_message",
                 model_name="Message",
                 object_repr=form.cleaned_data["title"],
@@ -242,8 +298,8 @@ def message_cleanup_view(request):
             deleted_count = queryset.count()
             queryset.delete()
             result = {"deleted": deleted_count}
-            OpLog.objects.create(
-                user=request.user,
+            audit.log_operation(
+                request.user,
                 action="cleanup_messages",
                 model_name="Message",
                 object_repr=f"{months} months",

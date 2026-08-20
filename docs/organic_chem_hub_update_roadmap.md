@@ -1,7 +1,7 @@
 # OrganicChemHub 后续更新规划
 
-当前版本：**v2.8 运营与审计（开发中）**
-下个版本：**v3.0 公开稳定版**
+当前版本：**v3.0 公开稳定版（开发中）**
+下个版本：**待定**
 规划日期：2026-08-03（各版本日期见章节标题）
 
 本规划以图片结构式和人工审核内容为核心。后续版本不再规划文本结构式生成、结构编辑器或子结构检索能力，重点回到内容质量、后台效率、考研学习体验和生产运维稳定性。
@@ -197,7 +197,7 @@ v2.3-v2.6 迭代中已具备：路线列表搜索、难度筛选、排序（步�
 
 ---
 
-## 10. v2.8 运营与审计（开发中，2026-08-20）
+## 10. v2.8 运营与审计（2026-08-20，已完成）
 
 ### 目标
 
@@ -207,13 +207,16 @@ v2.3-v2.6 迭代中已具备：路线列表搜索、难度筛选、排序（步�
 
 `OpLog` 模型已存在但仅覆盖站内消息群发与清理；批量发布/归档与 CSV 导入无审计；导入错误为纯文本仅页面展示不可下载；部署文档无独立备份恢复章节。
 
-### 实现范围
+### 实现范围（2026-08-20 已完成）
 
-- 内容批次记录：新增 `ContentBatch` 模型（kind/operator/summary/detail/object_count/created_at），批量发布/归档、CSV 导入、消息清理自动记录。
-- 操作日志覆盖增强：新增 `reactions/services/audit.py` 统一入口；批量发布/归档与 CSV 导入写入 OpLog；`OpLogAdmin` 增加 action 筛选与日期层级。
-- 导入错误报告：errors 结构化（行号/字段/原始值/建议修复），新增 CSV 下载端点。
-- 备份与恢复文档：部署文档新增数据库备份、media 备份、git 回滚流程。
-- 不实现：Celery/后台任务/邮件通知；`OpLog` 不加字段；前台无改动。
+- 模型与迁移 `0022_contentbatch`：`ContentBatch`（Kind/operator/summary/detail/object_count/created_at）。
+- 审计服务层 `reactions/services/audit.py`：`log_operation`（OpLog 统一写入）、`record_batch`（ContentBatch 创建，detail 截断 2000）。
+- 批量发布/归档接入：`PublicationActionMixin._publish_selected` / `_archive_selected` 写入 OpLog + ContentBatch。
+- CSV 导入接入：`reaction_import_view` 写入 OpLog + ContentBatch；`import_reactions_from_csv` 返回 names 列表。
+- 消息工具日志统一：`message_broadcast_view` / `message_cleanup_view` 走 audit 入口。
+- 导入错误结构化：errors 改为 dict（line/fields/raw/reason），新增下载端点 `/admin/reactions/import/errors/download/`。
+- Admin：`ContentBatchAdmin` 注册（只读），`OpLogAdmin` 已有 action/日期筛选。
+- 文档：部署文档新增备份与恢复章节（数据库备份、media 备份、git 回滚、更新检查清单、故障恢复）。
 
 ### 验收标准
 

@@ -211,6 +211,7 @@ class AdminMaintenanceTests(TestCase):
 
     def _request(self):
         request = self.factory.post("/admin/")
+        request.user = User.objects.get_or_create(username="test-admin-maintenance", defaults={"is_staff": True})[0]
         request._messages = CookieStorage(request)
         return request
 
@@ -808,6 +809,7 @@ class AdminRedesignRegistrationTests(TestCase):
         )
         model_admin = admin.site._registry[NamedReaction]
         request = RequestFactory().post("/admin/")
+        request.user = User.objects.create_user("test-mech-pub", password="test")
         request._messages = CookieStorage(request)
 
         model_admin.publish_selected(request, NamedReaction.objects.filter(pk=reaction.pk))
@@ -2180,3 +2182,236 @@ class V27RouteFrontendTests(TestCase):
 
         self.assertNotContains(list_response, "草稿路线")
         self.assertEqual(detail_response.status_code, 404)
+
+
+class V28AuditModelTests(TestCase):
+    """v2.8 ContentBatch model and audit service layer."""
+
+    def setUp(self):
+        self.user = User.objects.create_superuser("v28-admin", "v28@example.com", "password")
+
+    def test_content_batch_creation_and_ordering(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from reactions.models import ContentBatch
+
+        first = ContentBatch.objects.create(
+            kind=ContentBatch.Kind.IMPORT,
+            operator=self.user,
+            summary="第一次导入",
+            object_count=2,
+        )
+        # 制造时间差，保证 -created_at 排序断言稳定
+        ContentBatch.objects.filter(pk=first.pk).update(
+            created_at=timezone.now() - timedelta(minutes=1)
+        )
+        second = ContentBatch.objects.create(
+            kind=ContentBatch.Kind.PUBLISH,
+            operator=self.user,
+            summary="批量发布",
+            object_count=5,
+        )
+
+        self.assertEqual(first.kind, ContentBatch.Kind.IMPORT)
+        self.assertEqual(second.kind, ContentBatch.Kind.PUBLISH)
+        self.assertEqual(second.operator, self.user)
+        self.assertEqual(first.object_count, 2)
+        self.assertEqual(list(ContentBatch.objects.all()), [second, first])
+
+    def test_log_operation_creates_oplog(self):
+        from reactions.models import OpLog
+        from reactions.services import audit
+
+        audit.log_operation(
+            self.user,
+            action="publish",
+            model_name="NamedReaction",
+            object_repr="测试反应",
+            detail="已发布 3 条",
+            ip="127.0.0.1",
+        )
+
+        log = OpLog.objects.get()
+        self.assertEqual(log.user, self.user)
+        self.assertEqual(log.action, "publish")
+        self.assertEqual(log.model_name, "NamedReaction")
+        self.assertEqual(log.object_repr, "测试反应")
+        self.assertEqual(log.detail, "已发布 3 条")
+        self.assertEqual(str(log.ip), "127.0.0.1")
+
+    def test_record_batch_counts_and_truncates_json(self):
+        from reactions.models import ContentBatch
+        from reactions.services import audit
+
+        objects = [f"反应 {i}" for i in range(10)]
+        long_detail = "x" * 3000
+
+        audit.record_batch(
+            kind="import",
+            operator=self.user,
+            summary="批量导入",
+            objects=objects,
+            detail=long_detail,
+        )
+
+        batch = ContentBatch.objects.get()
+        self.assertEqual(batch.object_count, 10)
+        self.assertEqual(batch.summary, "批量导入")
+        self.assertEqual(len(batch.detail), 2000)
+
+
+class V28BatchRecordingTests(TestCase):
+    """v2.8 admin actions and CSV import record OpLog + ContentBatch."""
+
+    def setUp(self):
+        from reactions.models import ContentBatch
+
+        self.user = User.objects.create_superuser("v28-batch", "v28b@example.com", "password")
+        self.client.force_login(self.user)
+        self.site = AdminSite()
+        self.factory = RequestFactory()
+        ContentBatch.objects.all().delete()
+
+    def _request(self):
+        request = self.factory.post("/admin/")
+        request.user = self.user
+        request._messages = CookieStorage(request)
+        return request
+
+    def test_publish_action_records_oplog_and_batch(self):
+        from reactions.models import ContentBatch, OpLog
+
+        reaction = Reaction.objects.create(
+            name_zh="批量发布反应",
+            name_en="Batch Publish",
+            slug="batch-publish",
+            summary="摘要。",
+            condition="条件。",
+            reference="来源。",
+        )
+        model_admin = ReactionAdmin(Reaction, self.site)
+
+        model_admin.publish_selected(self._request(), Reaction.objects.filter(pk=reaction.pk))
+
+        self.assertTrue(
+            OpLog.objects.filter(action="publish", model_name="reaction").exists()
+        )
+        batch = ContentBatch.objects.get(kind=ContentBatch.Kind.PUBLISH)
+        self.assertEqual(batch.object_count, 1)
+        self.assertEqual(batch.operator, self.user)
+
+    def test_archive_action_records_oplog_and_batch(self):
+        from reactions.models import ContentBatch, OpLog
+
+        reaction = Reaction.objects.create(
+            name_zh="批量归档反应",
+            name_en="Batch Archive",
+            slug="batch-archive",
+            summary="摘要。",
+            condition="条件。",
+            reference="来源。",
+            status=Reaction.Status.PUBLISHED,
+        )
+        model_admin = ReactionAdmin(Reaction, self.site)
+
+        model_admin.archive_selected(self._request(), Reaction.objects.filter(pk=reaction.pk))
+
+        self.assertTrue(OpLog.objects.filter(action="archive", model_name="reaction").exists())
+        batch = ContentBatch.objects.get(kind=ContentBatch.Kind.ARCHIVE)
+        self.assertEqual(batch.object_count, 1)
+
+    def test_csv_import_records_oplog_and_batch(self):
+        from reactions.models import ContentBatch, OpLog
+
+        csv_file = SimpleUploadedFile(
+            "batch-import.csv",
+            (
+                "name_zh,name_en,slug,summary,condition,exam_tips,reference,status\n"
+                "导入反应,Import Reaction,import-reaction,摘要,条件,考点,来源,draft\n"
+            ).encode("utf-8-sig"),
+            content_type="text/csv",
+        )
+
+        response = self.client.post(
+            "/admin/reactions/import/",
+            {"target": "named", "mode": "create", "csv_file": csv_file},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(OpLog.objects.filter(action="csv_import").exists())
+        batch = ContentBatch.objects.get(kind=ContentBatch.Kind.IMPORT)
+        self.assertEqual(batch.object_count, 1)
+        self.assertEqual(batch.summary, "CSV 导入")
+
+    def test_batch_admin_pages_accessible(self):
+        response = self.client.get("/admin/reactions/contentbatch/")
+        oplog_response = self.client.get("/admin/reactions/oplog/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "内容批次")
+        self.assertEqual(oplog_response.status_code, 200)
+
+
+class V28ImportReportTests(TestCase):
+    """v2.8 structured import errors and CSV download."""
+
+    def setUp(self):
+        self.user = User.objects.create_superuser("v28-report", "v28r@example.com", "password")
+        self.client.force_login(self.user)
+
+    def test_import_errors_are_structured_dicts(self):
+        from reactions.admin_tools import import_reactions_from_csv
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        csv_file = SimpleUploadedFile(
+            "bad.csv",
+            ("name_zh,name_en,slug,summary,condition,exam_tips,reference,status\n"
+             "缺少字段1,,,摘要,条件,考点,来源,draft\n"
+             "完整行,Full,full-slug,摘要,条件,考点,来源,draft\n"
+             "缺少字段2,,,摘要,条件,考点,来源,draft\n"
+            ).encode("utf-8-sig"),
+            content_type="text/csv",
+        )
+
+        result = import_reactions_from_csv(csv_file, "named", "create")
+
+        self.assertGreaterEqual(len(result["errors"]), 1)
+        for error in result["errors"]:
+            self.assertIsInstance(error, dict)
+            self.assertIn("line", error)
+            self.assertIn("fields", error)
+            self.assertIn("reason", error)
+
+    def test_error_download_endpoint_returns_csv_attachment(self):
+        import json
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        csv_file = SimpleUploadedFile(
+            "bad.csv",
+            ("name_zh,name_en,slug,summary,condition,exam_tips,reference,status\n"
+             "缺少字段1,,,摘要,条件,考点,来源,draft\n"
+            ).encode("utf-8-sig"),
+            content_type="text/csv",
+        )
+
+        import_response = self.client.post(
+            "/admin/reactions/import/",
+            {"target": "named", "mode": "create", "csv_file": csv_file},
+        )
+        self.assertEqual(import_response.status_code, 200)
+
+        errors = json.dumps([{"line": 2, "fields": ["name_en", "slug"], "raw": "缺少字段1", "reason": "缺少字段"}])
+        download_response = self.client.post(
+            "/admin/reactions/import/errors/download/",
+            {"errors": errors},
+        )
+
+        self.assertEqual(download_response.status_code, 200)
+        self.assertEqual(download_response["Content-Type"], "text/csv; charset=utf-8-sig")
+        self.assertIn("attachment", download_response["Content-Disposition"])
+        content = download_response.content.decode("utf-8-sig")
+        self.assertIn("行号", content)
+        self.assertIn("错误字段", content)
+        self.assertIn("建议修复", content)
