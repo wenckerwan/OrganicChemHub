@@ -1,9 +1,9 @@
-# OrganicChemHub v2.5 Linux 部署指南
+# OrganicChemHub v2.6 Linux 部署指南
 
 目标环境：Debian / 宝塔面板 / Nginx / Gunicorn / Supervisor
 生产目录：`/www/wwwroot/chem.wencker.top`
 
-v2.5 新增考研专题、易混反应对比和用户互动模型迁移，服务器部署不需要额外安装依赖；更新时执行数据库迁移即可。
+v2.6 学习进度与复习系统**不新增数据模型和迁移**，仅包含前台视图、模板与服务层改动；更新时执行 `collectstatic` 即可，无需数据库迁移。
 
 ---
 
@@ -61,7 +61,7 @@ python manage.py setup_admin_roles
 /www/server/panel/pyenv/bin/supervisorctl restart all
 ```
 
-v2.5 新增考研专题和易混反应对比迁移 `0019_study_topics_and_comparisons`，用户互动模型迁移 `0020_user_tools_gfk`，更新时必须执行 `python manage.py migrate`。
+v2.5 新增考研专题和易混反应对比迁移 `0019_study_topics_and_comparisons`，用户互动模型迁移 `0020_user_tools_gfk`，更新时必须执行 `python manage.py migrate`。v2.6 无新迁移，更新时执行 `collectstatic` 即可。
 
 可选：发布已经补全的草稿内容。
 

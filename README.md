@@ -2,8 +2,8 @@
 
 OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机反应资料库。项目采用 Django Admin 作为标准内容管理层，前台负责清晰展示人名反应、常见有机反应、合成路线、学习资料、公告和用户互动数据。
 
-当前版本：**v2.5（已完成）**
-下个版本：**v2.6 学习进度与复习系统**
+当前版本：**v2.6 开发中**
+下个版本：**v2.7 合成路线扩充**
 
 部署文档：[docs/deploy_linux.md](docs/deploy_linux.md)
 更新日志：[docs/CHANGELOG.md](docs/CHANGELOG.md)
@@ -11,6 +11,8 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 
 开发文档索引：
 
+- v2.6 设计规格：[docs/superpowers/specs/2026-08-20-v26-study-progress-design.md](docs/superpowers/specs/2026-08-20-v26-study-progress-design.md)
+- v2.6 实施计划：[docs/superpowers/plans/2026-08-20-v26-study-progress-implementation.md](docs/superpowers/plans/2026-08-20-v26-study-progress-implementation.md)
 - v2.5 设计规格：[docs/superpowers/specs/2026-08-13-v25-study-topics-design.md](docs/superpowers/specs/2026-08-13-v25-study-topics-design.md)
 - v2.5 实施计划：[docs/superpowers/plans/2026-08-13-v25-study-topics-implementation.md](docs/superpowers/plans/2026-08-13-v25-study-topics-implementation.md)
 
@@ -69,6 +71,12 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 - 内容质量仪表盘增加图片审核状态、缺失项统计和“高访问但未完整”优先补全列表。
 - 反应附图支持“待审核 / 已通过 / 需重画”状态，并支持后台批量审核。
 - 人名反应和常见反应后台列表展示总访问量、今日访问量。
+
+### v2.6 开发中
+- 专题进度：专题详情页展示"我的专题进度"进度条（已学/总数），反应和路线卡片显示学习状态徽标，支持专题内直接切换状态。
+- 复习清单：个人中心集中展示全部待复习内容，按最近标记时间排序。
+- 最近学习记录：个人中心按时间倒序展示最近学习动态。
+- 个人中心新增专题进度聚合列表，按专题查看完成度。
 
 ### v2.5 新增
 - 新增考研专题学习：专题分类、学习目标、考试重点、关联反应和合成路线。
@@ -172,6 +180,7 @@ git commit -m "v2.1: 内容发布完善 - 前台状态与自动发布工具"
 
 | 版本 | 日期 | 核心内容 |
 |------|------|---------|
+| v2.6 | 2026-08-20 | 学习进度与复习系统：专题进度、复习清单、最近学习记录（开发中） |
 | v2.5 | 2026-08-20 | 考研专题学习：专题分类、易混反应对比与复习入口（已完成）；用户互动支持新反应库 |
 | v2.4 | 2026-08-03 | 内容质量增强：图片审核状态、质量仪表盘、高访问不完整内容、反应列表访问量 |
 | v2.3 | 2026-08-03 | 访问统计：网站总访问量/今日访问量，反应与合成路线详情页本页访问量，后台只读统计 |
