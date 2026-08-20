@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.views.generic import DetailView, ListView
 
-from ..models import GeneralReaction, NamedReaction, ReactionComparison, StudyTopic
+from ..models import GeneralReaction, NamedReaction, ReactionComparison, StudyTopic, SyntheticRoute
 from ..services.visits import increment_object_visit
 
 
@@ -46,7 +46,7 @@ class StudyTopicDetailView(DetailView):
         topic = self.object
         context["named_reactions"] = topic.named_reactions.filter(status=NamedReaction.Status.PUBLISHED)
         context["general_reactions"] = topic.general_reactions.filter(status=GeneralReaction.Status.PUBLISHED)
-        context["routes"] = topic.routes.filter(status=StudyTopic.Status.PUBLISHED)
+        context["routes"] = topic.routes.filter(status=SyntheticRoute.Status.PUBLISHED)
         context["content_visit_stats"] = increment_object_visit(topic)
         return context
 
