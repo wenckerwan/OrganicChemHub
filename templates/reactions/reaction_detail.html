@@ -21,6 +21,7 @@
           <form method="post" action="{% url 'toggle_favorite' %}">
             {% csrf_token %}
             <input type="hidden" name="reaction" value="{{ reaction.pk }}">
+            <input type="hidden" name="content_type" value="{{ content_type_id }}">
             <button type="submit" class="btn btn-sm {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %}" title="收藏">
               <i class="bi bi-heart{% if not is_favorited %}-{% endif %}"></i>
             </button>
@@ -28,6 +29,7 @@
           <form method="post" action="{% url 'update_progress' %}">
             {% csrf_token %}
             <input type="hidden" name="reaction" value="{{ reaction.pk }}">
+            <input type="hidden" name="content_type" value="{{ content_type_id }}">
             <select name="status" onchange="this.form.submit()" class="form-select form-select-sm" style="width:auto;">
               <option value="pending" {% if user_progress.status == "pending" %}selected{% endif %}>待学习</option>
               <option value="learned" {% if user_progress.status == "learned" %}selected{% endif %}>已学</option>
@@ -128,6 +130,7 @@
           <form method="post" action="{% url 'save_note' %}">
             {% csrf_token %}
             <input type="hidden" name="reaction" value="{{ reaction.pk }}">
+            <input type="hidden" name="content_type" value="{{ content_type_id }}">
             <textarea name="content" class="form-control" rows="4" placeholder="写下你的学习笔记……">{{ user_note.content|default:"" }}</textarea>
             <button type="submit" class="btn btn-primary-ink btn-sm mt-2">保存笔记</button>
           </form>

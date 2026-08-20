@@ -1,5 +1,6 @@
 """Reaction list, detail, and common reactions views."""
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.shortcuts import redirect
 from django.views.generic import DetailView, ListView, View
@@ -168,11 +169,13 @@ class ReactionDetailView(DetailView):
         user = self.request.user
         rxn = self.object
         context["content_visit_stats"] = increment_object_visit(rxn)
-        context["supports_reaction_user_tools"] = False
-        if user.is_authenticated and context["supports_reaction_user_tools"]:
-            context["is_favorited"] = Favorite.objects.filter(user=user, reaction=rxn).exists()
-            context["user_note"] = StudyNote.objects.filter(user=user, reaction=rxn).first()
-            context["user_progress"] = StudyProgress.objects.filter(user=user, reaction=rxn).first()
+        context["supports_reaction_user_tools"] = True
+        if user.is_authenticated:
+            ct = ContentType.objects.get_for_model(rxn)
+            context["is_favorited"] = Favorite.objects.filter(user=user, content_type=ct, object_id=rxn.pk).exists()
+            context["user_note"] = StudyNote.objects.filter(user=user, content_type=ct, object_id=rxn.pk).first()
+            context["user_progress"] = StudyProgress.objects.filter(user=user, content_type=ct, object_id=rxn.pk).first()
+            context["content_type_id"] = ct.pk
         return context
 
 
@@ -184,19 +187,31 @@ class GeneralReactionDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["content_visit_stats"] = increment_object_visit(self.object)
+        user = self.request.user
+        rxn = self.object
+        context["content_visit_stats"] = increment_object_visit(rxn)
         context["is_general_view"] = True
-        context["supports_reaction_user_tools"] = False
+        context["supports_reaction_user_tools"] = True
+        if user.is_authenticated:
+            ct = ContentType.objects.get_for_model(rxn)
+            context["is_favorited"] = Favorite.objects.filter(user=user, content_type=ct, object_id=rxn.pk).exists()
+            context["user_note"] = StudyNote.objects.filter(user=user, content_type=ct, object_id=rxn.pk).first()
+            context["user_progress"] = StudyProgress.objects.filter(user=user, content_type=ct, object_id=rxn.pk).first()
+            context["content_type_id"] = ct.pk
         return context
 
 
 class ToggleFavoriteView(LoginRequiredMixin, View):
     def post(self, request):
-        reaction_pk = request.POST.get("reaction")
+        content_type_id = request.POST.get("content_type")
+        object_id = request.POST.get("reaction")
         route_pk = request.POST.get("route")
         user = request.user
-        if reaction_pk:
-            fav, created = Favorite.objects.get_or_create(user=user, reaction_id=reaction_pk)
+        if content_type_id and object_id:
+            ct = ContentType.objects.get_for_id(content_type_id)
+            fav, created = Favorite.objects.get_or_create(
+                user=user, content_type=ct, object_id=object_id,
+            )
             if not created:
                 fav.delete()
         elif route_pk:
@@ -208,12 +223,17 @@ class ToggleFavoriteView(LoginRequiredMixin, View):
 
 class UpdateProgressView(LoginRequiredMixin, View):
     def post(self, request):
-        reaction_pk = request.POST.get("reaction")
+        content_type_id = request.POST.get("content_type")
+        object_id = request.POST.get("reaction")
         route_pk = request.POST.get("route")
         status = request.POST.get("status", StudyProgress.Status.PENDING)
         user = request.user
-        if reaction_pk:
-            StudyProgress.objects.update_or_create(user=user, reaction_id=reaction_pk, defaults={"status": status})
+        if content_type_id and object_id:
+            ct = ContentType.objects.get_for_id(content_type_id)
+            StudyProgress.objects.update_or_create(
+                user=user, content_type=ct, object_id=object_id,
+                defaults={"status": status},
+            )
         elif route_pk:
             StudyProgress.objects.update_or_create(user=user, route_id=route_pk, defaults={"status": status})
         return redirect(request.META.get("HTTP_REFERER", "/"))

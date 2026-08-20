@@ -915,7 +915,9 @@ class CommonReaction(models.Model):
 
 class Favorite(models.Model):
     user = models.ForeignKey("auth.User", verbose_name="用户", on_delete=models.CASCADE)
-    reaction = models.ForeignKey(Reaction, verbose_name="反应", on_delete=models.CASCADE, null=True, blank=True)
+    content_type = models.ForeignKey(ContentType, verbose_name="内容类型", on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField("内容 ID", null=True, blank=True)
+    content_object = GenericForeignKey("content_type", "object_id")
     route = models.ForeignKey(SyntheticRoute, verbose_name="路线", on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField("收藏时间", auto_now_add=True)
 
@@ -923,13 +925,13 @@ class Favorite(models.Model):
         verbose_name = "收藏"
         verbose_name_plural = "收藏"
         constraints = [
-            models.UniqueConstraint(fields=["user", "reaction"], name="unique_fav_reaction"),
+            models.UniqueConstraint(fields=["user", "content_type", "object_id"], name="unique_fav_content"),
             models.UniqueConstraint(fields=["user", "route"], name="unique_fav_route"),
         ]
 
     def __str__(self):
-        if self.reaction:
-            return f"{self.user.username} 收藏反应: {self.reaction.name_zh}"
+        if self.content_object:
+            return f"{self.user.username} 收藏: {self.content_object}"
         if self.route:
             return f"{self.user.username} 收藏路线: {self.route.target_product}"
         return str(self.pk)
@@ -937,7 +939,9 @@ class Favorite(models.Model):
 
 class StudyNote(models.Model):
     user = models.ForeignKey("auth.User", verbose_name="用户", on_delete=models.CASCADE)
-    reaction = models.ForeignKey(Reaction, verbose_name="反应", on_delete=models.CASCADE, null=True, blank=True)
+    content_type = models.ForeignKey(ContentType, verbose_name="内容类型", on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField("内容 ID", null=True, blank=True)
+    content_object = GenericForeignKey("content_type", "object_id")
     route = models.ForeignKey(SyntheticRoute, verbose_name="路线", on_delete=models.CASCADE, null=True, blank=True)
     content = models.TextField("笔记内容")
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
@@ -948,7 +952,7 @@ class StudyNote(models.Model):
         verbose_name_plural = "学习笔记"
 
     def __str__(self):
-        target = self.reaction or self.route
+        target = self.content_object or self.route
         return f"{self.user.username} 的笔记 - {target}"
 
 
@@ -959,7 +963,9 @@ class StudyProgress(models.Model):
         REVIEW = "review", "待复习"
 
     user = models.ForeignKey("auth.User", verbose_name="用户", on_delete=models.CASCADE)
-    reaction = models.ForeignKey(Reaction, verbose_name="反应", on_delete=models.CASCADE, null=True, blank=True)
+    content_type = models.ForeignKey(ContentType, verbose_name="内容类型", on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField("内容 ID", null=True, blank=True)
+    content_object = GenericForeignKey("content_type", "object_id")
     route = models.ForeignKey(SyntheticRoute, verbose_name="路线", on_delete=models.CASCADE, null=True, blank=True)
     status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
@@ -969,11 +975,11 @@ class StudyProgress(models.Model):
         verbose_name = "学习进度"
         verbose_name_plural = "学习进度"
         constraints = [
-            models.UniqueConstraint(fields=["user", "reaction"], name="unique_progress_reaction"),
+            models.UniqueConstraint(fields=["user", "content_type", "object_id"], name="unique_progress_content"),
             models.UniqueConstraint(fields=["user", "route"], name="unique_progress_route"),
         ]
 
     def __str__(self):
-        target = self.reaction or self.route
+        target = self.content_object or self.route
         return f"{self.user.username} - {target} - {self.get_status_display()}"
 

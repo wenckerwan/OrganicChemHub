@@ -2,6 +2,7 @@
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.views.generic import TemplateView
 
 from ..models import Favorite, Feedback, StudyNote, StudyProgress
@@ -29,14 +30,14 @@ class ProfileView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        context["favorites"] = Favorite.objects.filter(user=user).select_related("reaction", "route").order_by("-created_at")
+        context["favorites"] = Favorite.objects.filter(user=user).select_related("route").order_by("-created_at")
         context["favorites_count"] = context["favorites"].count()
-        context["notes"] = StudyNote.objects.filter(user=user).select_related("reaction", "route").order_by("-updated_at")
+        context["notes"] = StudyNote.objects.filter(user=user).select_related("route").order_by("-updated_at")
         context["notes_count"] = context["notes"].count()
         context["learned_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).count()
         context["review_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).count()
-        context["pending_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.PENDING).select_related("reaction", "route").order_by("-updated_at")[:8]
-        context["review_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).select_related("reaction", "route").order_by("-updated_at")[:8]
-        context["learned_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).select_related("reaction", "route").order_by("-updated_at")[:8]
+        context["pending_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.PENDING).select_related("route").order_by("-updated_at")[:8]
+        context["review_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).select_related("route").order_by("-updated_at")[:8]
+        context["learned_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).select_related("route").order_by("-updated_at")[:8]
         context["user_feedbacks"] = Feedback.objects.filter(user=user).order_by("-created_at")
         return context

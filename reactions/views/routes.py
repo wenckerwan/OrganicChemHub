@@ -1,5 +1,6 @@
 """Route list, detail, and note saving views."""
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.views.generic import DetailView, ListView, View
@@ -78,11 +79,16 @@ class RouteDetailView(DetailView):
 
 class SaveNoteView(LoginRequiredMixin, View):
     def post(self, request):
-        reaction_pk = request.POST.get("reaction")
+        content_type_id = request.POST.get("content_type")
+        object_id = request.POST.get("reaction")
         route_pk = request.POST.get("route")
         content = request.POST.get("content", "").strip()
-        if reaction_pk:
-            StudyNote.objects.update_or_create(user=request.user, reaction_id=reaction_pk, defaults={"content": content})
+        if content_type_id and object_id:
+            ct = ContentType.objects.get_for_id(content_type_id)
+            StudyNote.objects.update_or_create(
+                user=request.user, content_type=ct, object_id=object_id,
+                defaults={"content": content},
+            )
         elif route_pk:
             StudyNote.objects.update_or_create(user=request.user, route_id=route_pk, defaults={"content": content})
         return redirect(request.META.get("HTTP_REFERER", "/"))

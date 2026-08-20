@@ -47,15 +47,15 @@
       <div class="row g-3">
         <div class="col-lg-4">
           <h3 class="h6">待学习</h3>
-          <div class="list-group list-group-flush">{% for item in pending_progress %}<a class="list-group-item px-0" href="{% if item.reaction %}{{ item.reaction.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">{% if item.reaction %}{{ item.reaction.name_zh }}{% else %}{{ item.route.target_product }}{% endif %}</a>{% empty %}<span class="text-muted small">暂无待学习内容</span>{% endfor %}</div>
+          <div class="list-group list-group-flush">{% for item in pending_progress %}<a class="list-group-item px-0" href="{% if item.content_object %}{{ item.content_object.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">{% if item.content_object %}{{ item.content_object }}{% else %}{{ item.route.target_product }}{% endif %}</a>{% empty %}<span class="text-muted small">暂无待学习内容</span>{% endfor %}</div>
         </div>
         <div class="col-lg-4">
           <h3 class="h6">待复习</h3>
-          <div class="list-group list-group-flush">{% for item in review_progress %}<a class="list-group-item px-0" href="{% if item.reaction %}{{ item.reaction.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">{% if item.reaction %}{{ item.reaction.name_zh }}{% else %}{{ item.route.target_product }}{% endif %}</a>{% empty %}<span class="text-muted small">暂无待复习内容</span>{% endfor %}</div>
+          <div class="list-group list-group-flush">{% for item in review_progress %}<a class="list-group-item px-0" href="{% if item.content_object %}{{ item.content_object.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">{% if item.content_object %}{{ item.content_object }}{% else %}{{ item.route.target_product }}{% endif %}</a>{% empty %}<span class="text-muted small">暂无待复习内容</span>{% endfor %}</div>
         </div>
         <div class="col-lg-4">
           <h3 class="h6">已学</h3>
-          <div class="list-group list-group-flush">{% for item in learned_progress %}<a class="list-group-item px-0" href="{% if item.reaction %}{{ item.reaction.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">{% if item.reaction %}{{ item.reaction.name_zh }}{% else %}{{ item.route.target_product }}{% endif %}</a>{% empty %}<span class="text-muted small">暂无已学内容</span>{% endfor %}</div>
+          <div class="list-group list-group-flush">{% for item in learned_progress %}<a class="list-group-item px-0" href="{% if item.content_object %}{{ item.content_object.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">{% if item.content_object %}{{ item.content_object }}{% else %}{{ item.route.target_product }}{% endif %}</a>{% empty %}<span class="text-muted small">暂无已学内容</span>{% endfor %}</div>
         </div>
       </div>
     </div>
@@ -97,9 +97,9 @@
             <div class="list-group list-group-flush">
               {% for fav in favorites %}
                 <a class="list-group-item px-0" href="
-                  {% if fav.reaction %}{{ fav.reaction.get_absolute_url }}
+                  {% if fav.content_object %}{{ fav.content_object.get_absolute_url }}
                   {% elif fav.route %}{{ fav.route.get_absolute_url }}{% endif %}">
-                  {% if fav.reaction %}{{ fav.reaction.name_zh }}（{{ fav.reaction.name_en }}）
+                  {% if fav.content_object %}{{ fav.content_object }}
                   {% elif fav.route %}{{ fav.route.target_product }}{% endif %}
                   <span class="text-muted small ms-2">{{ fav.created_at|date:"Y-m-d" }}</span>
                 </a>
@@ -119,10 +119,10 @@
             <div class="list-group list-group-flush">
               {% for note in notes %}
                 <a class="list-group-item px-0" href="
-                  {% if note.reaction %}{{ note.reaction.get_absolute_url }}
+                  {% if note.content_object %}{{ note.content_object.get_absolute_url }}
                   {% elif note.route %}{{ note.route.get_absolute_url }}{% endif %}">
                   <strong>
-                    {% if note.reaction %}{{ note.reaction.name_zh }}
+                    {% if note.content_object %}{{ note.content_object }}
                     {% elif note.route %}{{ note.route.target_product }}{% endif %}
                   </strong>
                   <p class="mb-0 text-secondary small">{{ note.content|truncatechars:80 }}</p>
