@@ -17,22 +17,67 @@
       <div class="col-lg-8">
         {% if topic.learning_goals %}<section class="detail-section"><h2>学习目标</h2><p>{{ topic.learning_goals|linebreaksbr }}</p></section>{% endif %}
         {% if topic.exam_focus %}<section class="detail-section"><h2>考试重点</h2><p>{{ topic.exam_focus|linebreaksbr }}</p></section>{% endif %}
+        {% if user.is_authenticated and topic_progress %}
+        <section class="detail-section">
+          <h2>我的专题进度</h2>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-secondary">已学 {{ topic_progress.learned }}/{{ topic_progress.total }}</span>
+            <span class="fw-bold">{{ topic_progress.percent }}%</span>
+          </div>
+          <div class="progress" style="height:8px;">
+            <div class="progress-bar" role="progressbar" style="width: {{ topic_progress.percent }}%;" aria-valuenow="{{ topic_progress.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div class="d-flex gap-3 mt-2 text-muted small">
+            <span>待学习 {{ topic_progress.pending }}</span>
+            <span>已学 {{ topic_progress.learned }}</span>
+            <span>待复习 {{ topic_progress.review }}</span>
+          </div>
+        </section>
+        {% endif %}
         <section class="detail-section">
           <h2>关联人名反应</h2>
           <div class="row g-3">
-            {% for reaction in named_reactions %}<div class="col-md-6">{% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}</div>{% empty %}<p class="text-muted">暂无已发布人名反应。</p>{% endfor %}
+            {% for reaction in named_reactions %}<div class="col-md-6">
+              {% if user.is_authenticated %}
+              <form method="post" action="{% url 'update_progress' %}" class="topic-status-row">
+                {% csrf_token %}
+                <input type="hidden" name="reaction" value="{{ reaction.pk }}">
+                <input type="hidden" name="content_type" value="{{ named_ct_id }}">
+                <select name="status" onchange="this.form.submit()" class="form-select form-select-sm topic-status-select {% if reaction.user_status == 'learned' %}is-learned{% elif reaction.user_status == 'review' %}is-review{% endif %}" aria-label="{{ reaction.name_zh }} 学习状态">
+                  <option value="pending" {% if reaction.user_status == "pending" %}selected{% endif %}>待学习</option>
+                  <option value="learned" {% if reaction.user_status == "learned" %}selected{% endif %}>已学</option>
+                  <option value="review" {% if reaction.user_status == "review" %}selected{% endif %}>待复习</option>
+                </select>
+              </form>
+              {% endif %}
+              {% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}
+            </div>{% empty %}<p class="text-muted">暂无已发布人名反应。</p>{% endfor %}
           </div>
         </section>
         <section class="detail-section">
           <h2>关联常见有机反应</h2>
           <div class="row g-3">
-            {% for reaction in general_reactions %}<div class="col-md-6">{% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}</div>{% empty %}<p class="text-muted">暂无已发布常见反应。</p>{% endfor %}
+            {% for reaction in general_reactions %}<div class="col-md-6">
+              {% if user.is_authenticated %}
+              <form method="post" action="{% url 'update_progress' %}" class="topic-status-row">
+                {% csrf_token %}
+                <input type="hidden" name="reaction" value="{{ reaction.pk }}">
+                <input type="hidden" name="content_type" value="{{ general_ct_id }}">
+                <select name="status" onchange="this.form.submit()" class="form-select form-select-sm topic-status-select {% if reaction.user_status == 'learned' %}is-learned{% elif reaction.user_status == 'review' %}is-review{% endif %}" aria-label="{{ reaction.name_zh }} 学习状态">
+                  <option value="pending" {% if reaction.user_status == "pending" %}selected{% endif %}>待学习</option>
+                  <option value="learned" {% if reaction.user_status == "learned" %}selected{% endif %}>已学</option>
+                  <option value="review" {% if reaction.user_status == "review" %}selected{% endif %}>待复习</option>
+                </select>
+              </form>
+              {% endif %}
+              {% include "reactions/partials/reaction_card.html" with reaction=reaction query="" %}
+            </div>{% empty %}<p class="text-muted">暂无已发布常见反应。</p>{% endfor %}
           </div>
         </section>
         <section class="detail-section">
           <h2>关联合成路线</h2>
           <div class="list-group route-list">
-            {% for route in routes %}<a class="list-group-item list-group-item-action" href="{{ route.get_absolute_url }}"><strong>{{ route.target_product }}</strong><span class="text-muted small ms-2">{{ route.get_difficulty_display }}</span></a>{% empty %}<p class="text-muted">暂无已发布合成路线。</p>{% endfor %}
+            {% for route in routes %}<a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="{{ route.get_absolute_url }}"><strong>{{ route.target_product }}</strong><span class="d-flex align-items-center gap-2"><span class="text-muted small">{{ route.get_difficulty_display }}</span>{% if user.is_authenticated %}<span class="badge {% if route.user_status == 'learned' %}bg-success{% elif route.user_status == 'review' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{% if route.user_status == 'learned' %}已学{% elif route.user_status == 'review' %}待复习{% else %}待学习{% endif %}</span>{% endif %}</span></a>{% empty %}<p class="text-muted">暂无已发布合成路线。</p>{% endfor %}
           </div>
         </section>
       </div>

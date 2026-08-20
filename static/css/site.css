@@ -300,6 +300,28 @@ a:hover {
   font-size: 0.8rem;
 }
 
+/* v2.6 专题内联学习状态切换 */
+.topic-status-row {
+  margin-bottom: 0.5rem;
+}
+
+.topic-status-select {
+  max-width: 130px;
+  border-color: rgba(216, 226, 223, 0.92);
+  color: var(--och-muted);
+  font-size: 0.8125rem;
+}
+
+.topic-status-select.is-learned {
+  border-color: #198754;
+  color: #198754;
+}
+
+.topic-status-select.is-review {
+  border-color: #fd7e14;
+  color: #fd7e14;
+}
+
 .comparison-grid {
   display: grid;
   gap: 1rem;

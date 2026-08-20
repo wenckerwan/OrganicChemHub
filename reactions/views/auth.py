@@ -2,10 +2,10 @@
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.contenttypes.models import ContentType
 from django.views.generic import TemplateView
 
 from ..models import Favorite, Feedback, StudyNote, StudyProgress
+from ..services.progress import recent_activity, review_queue, user_topic_summary
 
 
 class RegisterView(TemplateView):
@@ -36,8 +36,11 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         context["notes_count"] = context["notes"].count()
         context["learned_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).count()
         context["review_count"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).count()
-        context["pending_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.PENDING).select_related("route").order_by("-updated_at")[:8]
-        context["review_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).select_related("route").order_by("-updated_at")[:8]
-        context["learned_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).select_related("route").order_by("-updated_at")[:8]
+        context["pending_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.PENDING).select_related("route").order_by("-updated_at")[:6]
+        context["review_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.REVIEW).select_related("route").order_by("-updated_at")[:6]
+        context["learned_progress"] = StudyProgress.objects.filter(user=user, status=StudyProgress.Status.LEARNED).select_related("route").order_by("-updated_at")[:6]
         context["user_feedbacks"] = Feedback.objects.filter(user=user).order_by("-created_at")
+        context["topic_progress_list"] = user_topic_summary(user)
+        context["review_queue"] = review_queue(user)
+        context["recent_activity"] = recent_activity(user, limit=10)
         return context

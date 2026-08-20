@@ -60,6 +60,74 @@
       </div>
     </div>
 
+    <!-- 专题进度 -->
+    <div class="quick-panel mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0">专题进度</h2>
+        <a href="{% url 'study_topic_list' %}" class="btn btn-sm btn-outline-primary">浏览全部专题</a>
+      </div>
+      {% if topic_progress_list %}
+        <div class="row g-3">
+          {% for row in topic_progress_list %}
+          <div class="col-md-6 col-xl-4">
+            <a class="study-topic-card h-100 d-block" href="{{ row.topic.get_absolute_url }}">
+              <div class="d-flex justify-content-between gap-3 align-items-start">
+                <h3 class="h6 mb-0">{{ row.topic.name }}</h3>
+                <span class="text-muted small">{{ row.learned }}/{{ row.total }}</span>
+              </div>
+              <div class="progress mt-2" style="height:6px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ row.percent }}%;" aria-valuenow="{{ row.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <div class="text-muted small mt-1">{{ row.percent }}% 已完成</div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">暂无专题进度。进入考研专题学习并标记学习状态后，这里会展示完成度。</p>
+      {% endif %}
+    </div>
+
+    <!-- 复习清单 -->
+    <div class="quick-panel mb-4">
+      <h2 class="h5 mb-3">复习清单</h2>
+      {% if review_queue %}
+        <div class="list-group list-group-flush">
+          {% for item in review_queue %}
+            <a class="list-group-item px-0 d-flex justify-content-between align-items-center" href="{% if item.content_object %}{{ item.content_object.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">
+              <div>
+                {% if item.content_object %}{{ item.content_object }}{% else %}{{ item.route.target_product }}{% endif %}
+                {% if item.content_object %}{% for t in item.content_object.study_topics.all %}<span class="badge bg-light text-dark ms-2">{{ t.name }}</span>{% endfor %}{% else %}{% for t in item.route.study_topics.all %}<span class="badge bg-light text-dark ms-2">{{ t.name }}</span>{% endfor %}{% endif %}
+              </div>
+              <span class="text-muted small">{{ item.updated_at|date:"Y-m-d" }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">暂无待复习内容。把反应标记为“待复习”后会出现在这里。</p>
+      {% endif %}
+    </div>
+
+    <!-- 最近学习 -->
+    <div class="quick-panel mb-4">
+      <h2 class="h5 mb-3">最近学习</h2>
+      {% if recent_activity %}
+        <div class="list-group list-group-flush">
+          {% for item in recent_activity %}
+            <a class="list-group-item px-0 d-flex justify-content-between align-items-center" href="{% if item.content_object %}{{ item.content_object.get_absolute_url }}{% else %}{{ item.route.get_absolute_url }}{% endif %}">
+              <div>
+                {% if item.content_object %}{{ item.content_object }}{% else %}{{ item.route.target_product }}{% endif %}
+                <span class="badge ms-2 {% if item.status == 'learned' %}bg-success{% elif item.status == 'review' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ item.get_status_display }}</span>
+              </div>
+              <span class="text-muted small">{{ item.updated_at|date:"Y-m-d H:i" }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">暂无学习记录。在反应或路线详情页标记学习状态后会显示在这里。</p>
+      {% endif %}
+    </div>
+
     <!-- 我的反馈 -->
     <div class="quick-panel mb-4">
       <h2 class="h5 mb-3">我的反馈</h2>

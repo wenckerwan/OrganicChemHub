@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -37,6 +37,7 @@ from reactions.models import (
     VisitCounter,
     ReactionComparison,
     StudyTopic,
+    StudyProgress,
 )
 from reactions.admin_tools import reaction_quality_stats
 from reactions.services.search import build_querystring
@@ -1668,3 +1669,369 @@ class V25ComparisonViewsTests(TestCase):
         self.assertContains(topic_response, "Admin 专题")
         self.assertContains(topic_response, "考研专题")
         self.assertContains(comparison_response, "易混反应对比")
+
+
+class V26ProgressServiceTests(TestCase):
+    """v2.6 progress service layer (reactions/services/progress.py)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user("v26-service", "v26@example.com", "password")
+        self.anonymous = AnonymousUser()
+
+    # ---- helpers -------------------------------------------------------
+
+    def _named(self, slug, status=PublishStatus.PUBLISHED):
+        return NamedReaction.objects.create(name_zh=f"反应{slug}", name_en=slug, slug=slug, status=status)
+
+    def _general(self, slug, status=PublishStatus.PUBLISHED):
+        return GeneralReaction.objects.create(name_zh=f"常见{slug}", name_en=slug, slug=slug, status=status)
+
+    def _route(self, slug, status=PublishStatus.PUBLISHED):
+        return SyntheticRoute.objects.create(target_product=f"产物{slug}", slug=slug, summary="摘要", status=status)
+
+    def _topic(self, slug, sort_order=0, status=PublishStatus.PUBLISHED):
+        return StudyTopic.objects.create(name=f"专题{slug}", slug=slug, summary="简介", sort_order=sort_order, status=status)
+
+    def _mark(self, obj, status):
+        from django.contrib.contenttypes.models import ContentType
+        if isinstance(obj, SyntheticRoute):
+            return StudyProgress.objects.create(user=self.user, route=obj, status=status)
+        ct = ContentType.objects.get_for_model(obj)
+        return StudyProgress.objects.create(user=self.user, content_type=ct, object_id=obj.pk, status=status)
+
+    def _service(self):
+        from reactions.services.progress import (
+            recent_activity,
+            review_queue,
+            topic_progress,
+            topic_status_map,
+            user_topic_summary,
+        )
+        return topic_progress, topic_status_map, user_topic_summary, review_queue, recent_activity
+
+    # ---- topic_progress ------------------------------------------------
+
+    def test_topic_progress_empty_topic_returns_none(self):
+        topic = self._topic("empty-topic")
+        topic_progress, *_ = self._service()
+
+        self.assertIsNone(topic_progress(self.user, topic))
+
+    def test_topic_progress_anonymous_returns_none(self):
+        topic = self._topic("anon-topic")
+        topic.named_reactions.add(self._named("anon-reaction"))
+        topic_progress, *_ = self._service()
+
+        self.assertIsNone(topic_progress(self.anonymous, topic))
+
+    def test_topic_progress_counts_mixed_content_and_percent(self):
+        topic = self._topic("mixed-topic")
+        named = self._named("mixed-named")
+        general = self._general("mixed-general")
+        route = self._route("mixed-route")
+        topic.named_reactions.add(named)
+        topic.general_reactions.add(general)
+        topic.routes.add(route)
+        self._mark(named, StudyProgress.Status.LEARNED)
+        self._mark(route, StudyProgress.Status.REVIEW)
+        topic_progress, *_ = self._service()
+
+        progress = topic_progress(self.user, topic)
+
+        self.assertEqual(progress["total"], 3)
+        self.assertEqual(progress["learned"], 1)
+        self.assertEqual(progress["review"], 1)
+        self.assertEqual(progress["pending"], 1)
+        self.assertEqual(progress["percent"], 33)
+
+    def test_topic_progress_only_counts_published_content(self):
+        topic = self._topic("published-only-topic")
+        topic.named_reactions.add(self._named("published-named"))
+        topic.named_reactions.add(self._named("draft-named", PublishStatus.DRAFT))
+        topic.routes.add(self._route("published-route"))
+        topic_progress, *_ = self._service()
+
+        progress = topic_progress(self.user, topic)
+
+        self.assertEqual(progress["total"], 2)
+
+    # ---- topic_status_map ----------------------------------------------
+
+    def test_topic_status_map_merges_reaction_and_route_keys(self):
+        from django.contrib.contenttypes.models import ContentType
+
+        topic = self._topic("map-topic")
+        named = self._named("map-named")
+        general = self._general("map-general")
+        route = self._route("map-route")
+        topic.named_reactions.add(named)
+        topic.general_reactions.add(general)
+        topic.routes.add(route)
+        self._mark(named, StudyProgress.Status.LEARNED)
+        self._mark(route, StudyProgress.Status.REVIEW)
+        _, topic_status_map, *_ = self._service()
+
+        status_map = topic_status_map(self.user, topic)
+
+        named_ct = ContentType.objects.get_for_model(NamedReaction).pk
+        self.assertEqual(status_map[(named_ct, named.pk)], StudyProgress.Status.LEARNED)
+        self.assertEqual(status_map[route.pk], StudyProgress.Status.REVIEW)
+        self.assertNotIn((ContentType.objects.get_for_model(GeneralReaction).pk, general.pk), status_map)
+
+    def test_topic_status_map_empty_for_anonymous(self):
+        topic = self._topic("anon-map-topic")
+        topic.named_reactions.add(self._named("anon-map-reaction"))
+        _, topic_status_map, *_ = self._service()
+
+        self.assertEqual(topic_status_map(self.anonymous, topic), {})
+
+    # ---- user_topic_summary --------------------------------------------
+
+    def test_user_topic_summary_sorted_and_published_only(self):
+        topic_a = self._topic("summary-a", sort_order=2)
+        topic_b = self._topic("summary-b", sort_order=1)
+        topic_draft = self._topic("summary-draft", sort_order=0, status=PublishStatus.DRAFT)
+        topic_empty = self._topic("summary-empty", sort_order=3)
+        topic_a.named_reactions.add(self._named("summary-a-reaction"))
+        topic_b.named_reactions.add(self._named("summary-b-reaction"))
+        topic_draft.named_reactions.add(self._named("summary-draft-reaction"))
+        _, _, user_topic_summary, *_ = self._service()
+
+        summary = user_topic_summary(self.user)
+
+        self.assertEqual([row["topic"].slug for row in summary], ["summary-b", "summary-a"])
+        self.assertEqual(summary[0]["total"], 1)
+
+    def test_user_topic_summary_empty_for_anonymous(self):
+        topic = self._topic("anon-summary-topic")
+        topic.named_reactions.add(self._named("anon-summary-reaction"))
+        _, _, user_topic_summary, *_ = self._service()
+
+        self.assertEqual(user_topic_summary(self.anonymous), [])
+
+    # ---- review_queue / recent_activity --------------------------------
+
+    def test_review_queue_orders_by_updated_at_desc(self):
+        from datetime import timedelta
+
+        topic = self._topic("queue-topic")
+        reaction = self._named("queue-reaction")
+        route = self._route("queue-route")
+        topic.named_reactions.add(reaction)
+        topic.routes.add(route)
+        older = self._mark(reaction, StudyProgress.Status.REVIEW)
+        newer = self._mark(route, StudyProgress.Status.REVIEW)
+        StudyProgress.objects.filter(pk=older.pk).update(updated_at=timezone.now() - timedelta(days=2))
+        _, _, _, review_queue, _ = self._service()
+
+        queue = list(review_queue(self.user))
+
+        self.assertEqual([q.pk for q in queue], [newer.pk, older.pk])
+
+    def test_recent_activity_limits_and_orders(self):
+        from datetime import timedelta
+
+        topic = self._topic("activity-topic")
+        reactions = [self._named(f"activity-{i}") for i in range(12)]
+        topic.named_reactions.add(*reactions)
+        marks = [self._mark(r, StudyProgress.Status.LEARNED) for r in reactions]
+        for index, record in enumerate(marks):
+            StudyProgress.objects.filter(pk=record.pk).update(updated_at=timezone.now() - timedelta(minutes=index))
+        _, _, _, _, recent_activity = self._service()
+
+        recent = list(recent_activity(self.user, limit=10))
+
+        self.assertEqual(len(recent), 10)
+        self.assertEqual(recent[0].pk, marks[0].pk)
+        self.assertEqual(recent[-1].pk, marks[9].pk)
+
+    def test_review_queue_and_recent_activity_empty_for_anonymous(self):
+        topic = self._topic("anon-activity-topic")
+        topic.named_reactions.add(self._named("anon-activity-reaction"))
+        _, _, _, review_queue, recent_activity = self._service()
+
+        self.assertEqual(list(review_queue(self.anonymous)), [])
+        self.assertEqual(list(recent_activity(self.anonymous)), [])
+
+
+class V26ProfileViewsTests(TestCase):
+    """v2.6 profile review blocks (topic progress, review queue, recent activity)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user("v26-profile", "v26@example.com", "password")
+
+    def _named(self, slug, status=PublishStatus.PUBLISHED):
+        return NamedReaction.objects.create(name_zh=f"反应{slug}", name_en=slug, slug=slug, status=status)
+
+    def _route(self, slug, status=PublishStatus.PUBLISHED):
+        return SyntheticRoute.objects.create(target_product=f"产物{slug}", slug=slug, summary="摘要", status=status)
+
+    def _topic(self, slug, sort_order=0):
+        return StudyTopic.objects.create(name=f"专题{slug}", slug=slug, summary="简介", sort_order=sort_order, status=PublishStatus.PUBLISHED)
+
+    def _mark(self, obj, status):
+        from django.contrib.contenttypes.models import ContentType
+        if isinstance(obj, SyntheticRoute):
+            return StudyProgress.objects.create(user=self.user, route=obj, status=status)
+        ct = ContentType.objects.get_for_model(obj)
+        return StudyProgress.objects.create(user=self.user, content_type=ct, object_id=obj.pk, status=status)
+
+    def test_anonymous_user_is_redirected_from_profile(self):
+        response = self.client.get(reverse("profile"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response.url)
+
+    def test_profile_shows_topic_progress_review_queue_and_recent_activity(self):
+        topic = self._topic("profile-topic")
+        reaction = self._named("profile-reaction")
+        route = self._route("profile-route")
+        topic.named_reactions.add(reaction)
+        topic.routes.add(route)
+        self._mark(reaction, StudyProgress.Status.LEARNED)
+        self._mark(route, StudyProgress.Status.REVIEW)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("profile"))
+
+        self.assertContains(response, "专题进度")
+        self.assertContains(response, "复习清单")
+        self.assertContains(response, "最近学习")
+        self.assertContains(response, "profile-topic")
+
+    def test_profile_topic_progress_reflects_learned_status(self):
+        topic = self._topic("progress-topic")
+        reaction = self._named("progress-reaction")
+        topic.named_reactions.add(reaction)
+        self._mark(reaction, StudyProgress.Status.LEARNED)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("profile"))
+
+        self.assertContains(response, "100%")
+        self.assertContains(response, "1/1")
+
+    def test_review_queue_lists_review_content_with_topic_link(self):
+        topic = self._topic("review-topic")
+        reaction = self._named("review-reaction")
+        topic.named_reactions.add(reaction)
+        self._mark(reaction, StudyProgress.Status.REVIEW)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("profile"))
+
+        self.assertContains(response, "review-reaction")
+        self.assertContains(response, reverse("study_topic_detail", kwargs={"slug": topic.slug}))
+
+    def test_recent_activity_shows_newest_mark_first(self):
+        from datetime import timedelta
+
+        topic = self._topic("recent-topic")
+        older = self._named("recent-older")
+        newer = self._named("recent-newer")
+        topic.named_reactions.add(older, newer)
+        older_record = self._mark(older, StudyProgress.Status.LEARNED)
+        newer_record = self._mark(newer, StudyProgress.Status.LEARNED)
+        StudyProgress.objects.filter(pk=older_record.pk).update(updated_at=timezone.now() - timedelta(days=1))
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("profile"))
+
+        self.assertLess(
+            response.content.find("recent-newer".encode()),
+            response.content.find("recent-older".encode()),
+        )
+
+
+class V26TopicProgressViewsTests(TestCase):
+    """v2.6 study topic detail progress bar, status badges and inline switching."""
+
+    def setUp(self):
+        self.user = User.objects.create_user("v26-topic", "v26@example.com", "password")
+
+    def _named(self, slug, status=PublishStatus.PUBLISHED):
+        return NamedReaction.objects.create(name_zh=f"反应{slug}", name_en=slug, slug=slug, status=status)
+
+    def _route(self, slug, status=PublishStatus.PUBLISHED):
+        return SyntheticRoute.objects.create(target_product=f"产物{slug}", slug=slug, summary="摘要", status=status)
+
+    def _topic(self, slug):
+        return StudyTopic.objects.create(name=f"专题{slug}", slug=slug, summary="简介", status=PublishStatus.PUBLISHED)
+
+    def _mark(self, obj, status):
+        from django.contrib.contenttypes.models import ContentType
+        if isinstance(obj, SyntheticRoute):
+            return StudyProgress.objects.create(user=self.user, route=obj, status=status)
+        ct = ContentType.objects.get_for_model(obj)
+        return StudyProgress.objects.create(user=self.user, content_type=ct, object_id=obj.pk, status=status)
+
+    def test_topic_detail_anonymous_has_no_progress_block(self):
+        topic = self._topic("anon-detail-topic")
+        topic.named_reactions.add(self._named("anon-detail-reaction"))
+
+        response = self.client.get(reverse("study_topic_detail", kwargs={"slug": topic.slug}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "我的专题进度")
+
+    def test_topic_detail_shows_progress_bar_and_status_badges(self):
+        topic = self._topic("detail-topic")
+        learned = self._named("detail-learned")
+        pending = self._named("detail-pending")
+        route = self._route("detail-route")
+        topic.named_reactions.add(learned, pending)
+        topic.routes.add(route)
+        self._mark(learned, StudyProgress.Status.LEARNED)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("study_topic_detail", kwargs={"slug": topic.slug}))
+
+        self.assertContains(response, "我的专题进度")
+        self.assertContains(response, "1/3")
+        self.assertContains(response, "33%")
+        self.assertContains(response, "待学习")
+        self.assertContains(response, "已学")
+
+    def test_topic_detail_status_switch_form_submits_to_update_progress(self):
+        topic = self._topic("switch-topic")
+        reaction = self._named("switch-reaction")
+        topic.named_reactions.add(reaction)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("study_topic_detail", kwargs={"slug": topic.slug}))
+
+        self.assertContains(response, reverse("update_progress"))
+        self.assertContains(response, 'name="reaction"')
+        self.assertContains(response, 'name="content_type"')
+
+    def test_inline_status_switch_updates_progress_and_redirects_back(self):
+        from django.contrib.contenttypes.models import ContentType
+
+        topic = self._topic("inline-topic")
+        reaction = self._named("inline-reaction")
+        topic.named_reactions.add(reaction)
+        ct = ContentType.objects.get_for_model(NamedReaction)
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("update_progress"),
+            {"content_type": ct.pk, "reaction": reaction.pk, "status": StudyProgress.Status.LEARNED},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            StudyProgress.objects.filter(
+                user=self.user, content_type=ct, object_id=reaction.pk, status=StudyProgress.Status.LEARNED
+            ).exists()
+        )
+
+    def test_topic_detail_only_shows_published_related_badges(self):
+        topic = self._topic("published-badges-topic")
+        topic.named_reactions.add(self._named("badges-published"))
+        topic.named_reactions.add(self._named("badges-draft", PublishStatus.DRAFT))
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("study_topic_detail", kwargs={"slug": topic.slug}))
+
+        self.assertContains(response, "badges-published")
+        self.assertNotContains(response, "badges-draft")

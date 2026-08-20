@@ -16,6 +16,8 @@
 - 个人中心新增专题进度聚合列表，按专题查看完成度。
 - 不新增模型，全部复用现有 `StudyProgress`；新增 `reactions/services/progress.py` 服务层集中统计。
 
+**当前实现范围（2026-08-20）：** 进度服务层（`topic_progress`/`topic_status_map`/`user_topic_summary`/`review_queue`/`recent_activity`）；个人中心专题进度、复习清单、最近学习三个区块；专题详情"我的专题进度"进度条、反应卡片内联状态切换、路线状态徽标；对应 V26 专项测试 21 个。
+
 ### v2.7 — 合成路线扩充
 
 - 路线步骤编辑体验增强。

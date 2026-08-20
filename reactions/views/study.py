@@ -1,10 +1,12 @@
 """Study topics and reaction comparison pages."""
 
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
 from django.views.generic import DetailView, ListView
 
-from ..models import GeneralReaction, NamedReaction, ReactionComparison, StudyTopic, SyntheticRoute
+from ..models import GeneralReaction, NamedReaction, ReactionComparison, StudyProgress, StudyTopic, SyntheticRoute
+from ..services.progress import topic_progress, topic_status_map
 from ..services.visits import increment_object_visit
 
 
@@ -44,9 +46,27 @@ class StudyTopicDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         topic = self.object
-        context["named_reactions"] = topic.named_reactions.filter(status=NamedReaction.Status.PUBLISHED)
-        context["general_reactions"] = topic.general_reactions.filter(status=GeneralReaction.Status.PUBLISHED)
-        context["routes"] = topic.routes.filter(status=SyntheticRoute.Status.PUBLISHED)
+        user = self.request.user
+        named = list(topic.named_reactions.filter(status=NamedReaction.Status.PUBLISHED))
+        general = list(topic.general_reactions.filter(status=GeneralReaction.Status.PUBLISHED))
+        routes = list(topic.routes.filter(status=SyntheticRoute.Status.PUBLISHED))
+
+        named_ct = ContentType.objects.get_for_model(NamedReaction)
+        general_ct = ContentType.objects.get_for_model(GeneralReaction)
+        status_map = topic_status_map(user, topic)
+        for reaction in named:
+            reaction.user_status = status_map.get((named_ct.pk, reaction.pk), StudyProgress.Status.PENDING)
+        for reaction in general:
+            reaction.user_status = status_map.get((general_ct.pk, reaction.pk), StudyProgress.Status.PENDING)
+        for route in routes:
+            route.user_status = status_map.get(route.pk, StudyProgress.Status.PENDING)
+
+        context["named_reactions"] = named
+        context["general_reactions"] = general
+        context["routes"] = routes
+        context["named_ct_id"] = named_ct.pk
+        context["general_ct_id"] = general_ct.pk
+        context["topic_progress"] = topic_progress(user, topic)
         context["content_visit_stats"] = increment_object_visit(topic)
         return context
 
