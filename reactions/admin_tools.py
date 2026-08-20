@@ -155,6 +155,15 @@ def dashboard_view(request):
     general_stats = reaction_quality_stats(GeneralReaction)
     route_total = SyntheticRoute.objects.count()
     routes_missing_steps = sum(1 for route in SyntheticRoute.objects.all() if not route.steps.exists())
+
+    def _placeholder_count(model):
+        return sum(
+            1 for obj in model.objects.all()
+            if (getattr(obj, "equation_img", None) and "placeholder" in (obj.equation_img.name or ""))
+        )
+
+    placeholders_pending = _placeholder_count(NamedReaction) + _placeholder_count(GeneralReaction)
+
     context = admin_context(
         request,
         "内容质量仪表盘",
@@ -165,6 +174,7 @@ def dashboard_view(request):
         routes_total=route_total,
         routes_missing_steps=routes_missing_steps,
         resources_total=LearningResource.objects.count(),
+        placeholders_pending=placeholders_pending,
     )
     return TemplateResponse(request, "admin/reactions/dashboard.html", context)
 
@@ -232,23 +242,64 @@ def import_error_download_view(request):
 
 
 def image_maintenance_view(request):
-    named_with_images = NamedReaction.objects.prefetch_related("images")
-    general_with_images = GeneralReaction.objects.prefetch_related("images")
+    from django.core.paginator import Paginator
+
+    from .services.placeholder import placeholder_for
+
+    missing_filter = request.GET.get("missing", "")
+    page_number = request.GET.get("page", 1)
+
+    if request.method == "POST" and "generate_placeholders" in request.POST:
+        pk_list = request.POST.getlist("selected")
+        generated = 0
+        for model_cls in (NamedReaction, GeneralReaction):
+            for obj in model_cls.objects.filter(pk__in=pk_list):
+                bound = placeholder_for(obj)
+                if bound:
+                    generated += 1
+        if generated:
+            audit.log_operation(
+                request.user,
+                action="placeholder_generate",
+                model_name="NamedReaction|GeneralReaction",
+                object_repr=f"批量生成占位图 {generated} 条",
+                detail=f"为 {generated} 条反应生成了占位图。",
+            )
+            audit.record_batch(
+                kind=ContentBatch.Kind.OTHER,
+                operator=request.user,
+                summary="批量生成占位图",
+                objects=pk_list,
+                detail={"generated": generated, "missing_filter": missing_filter},
+            )
+            messages.success(request, f"已为 {generated} 条反应生成占位图。")
+
+    named_qs = NamedReaction.objects.prefetch_related("images")
+    general_qs = GeneralReaction.objects.prefetch_related("images")
+
+    if missing_filter == "equation":
+        named_qs = [obj for obj in named_qs if "equation_img" in obj.get_publication_missing_fields()]
+        general_qs = [obj for obj in general_qs if "equation_img" in obj.get_publication_missing_fields()]
+    elif missing_filter == "thumbnail":
+        named_qs = [obj for obj in named_qs if "thumbnail_img" in obj.get_publication_missing_fields()]
+        general_qs = [obj for obj in general_qs if "thumbnail_img" in obj.get_publication_missing_fields()]
+    elif missing_filter == "mechanism":
+        named_qs = [obj for obj in named_qs if not obj.mechanism_img and not obj.mechanism_gallery_images.exists()]
+        general_qs = [obj for obj in general_qs if not obj.mechanism_img and not obj.mechanism_gallery_images.exists()]
+    else:
+        named_qs = [obj for obj in named_qs if {"equation_img", "thumbnail_img"} & set(obj.get_publication_missing_fields())]
+        general_qs = [obj for obj in general_qs if {"equation_img", "thumbnail_img"} & set(obj.get_publication_missing_fields())]
+
+    paginator = Paginator(named_qs + general_qs, 50)
+    page_obj = paginator.get_page(page_number)
+
     context = admin_context(
         request,
         "图片维护",
-        named_missing_images=[
-            obj for obj in named_with_images if {"equation_img", "thumbnail_img"} & set(obj.get_publication_missing_fields())
-        ][:50],
-        general_missing_images=[
-            obj for obj in general_with_images if {"equation_img", "thumbnail_img"} & set(obj.get_publication_missing_fields())
-        ][:50],
-        named_missing_mechanism=[
-            obj for obj in named_with_images if not obj.mechanism_img and not obj.mechanism_gallery_images.exists()
-        ][:50],
-        general_missing_mechanism=[
-            obj for obj in general_with_images if not obj.mechanism_img and not obj.mechanism_gallery_images.exists()
-        ][:50],
+        page_obj=page_obj,
+        missing_filter=missing_filter,
+        total_count=named_qs if isinstance(named_qs, list) else named_qs.count(),
+        total_general_count=general_qs if isinstance(general_qs, list) else general_qs.count(),
     )
     return TemplateResponse(request, "admin/reactions/images.html", context)
 

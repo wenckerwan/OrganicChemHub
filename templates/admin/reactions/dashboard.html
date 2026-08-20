@@ -36,6 +36,20 @@
     </div>
   </section>
 
+  {% if placeholders_pending %}
+  <section class="och-admin-panel" style="background:#fff3cd;border:1px solid #ffc107;">
+    <div class="och-admin-section-heading">
+      <h2>⚠️ 占位图待替换</h2>
+      <span>Placeholder Images</span>
+    </div>
+    <div class="och-admin-alert-line">
+      <span>使用占位图的反应数量</span>
+      <strong style="color:#856404;">{{ placeholders_pending }}</strong>
+    </div>
+    <p class="text-muted" style="margin-top:0.5rem;">这些反应已发布但使用占位图（非真实结构式），建议在<a href="{% url 'admin:och_reactions_images' %}">图片维护</a>中替换为真实图片。</p>
+  </section>
+  {% endif %}
+
   <div class="och-admin-two-col">
     <section class="och-admin-panel">
       <div class="och-admin-section-heading">

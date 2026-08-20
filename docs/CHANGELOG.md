@@ -1,20 +1,22 @@
 # OrganicChemHub 更新日志
 
-> 当前基准版本：v2.8
-> 当前开发版本：v3.0
+> 当前基准版本：v3.0
+> 当前开发版本：v4.0
 > 更新方向：图片结构式、内容质量、后台运营、学习体验。不再规划文本结构式生成、结构编辑器或子结构检索路线。
 
 ---
 
 ## 后续规划
 
-### v3.0 — 公开稳定版（开发中）
+### v3.0 — 公开稳定版（已完成，2026-08-20）
 
 - 占位图工作流：为缺图反应一键生成中性占位图（方程图 + 缩略图），让内容通过发布校验并上线，待替换真图。
 - 图片维护工具增强：按缺失类型筛选、全量分页展示、批量生成占位图（写入 OpLog + ContentBatch）。
 - 内容就绪报告：`content_readiness_report` 管理命令输出各库就绪度统计与逐条缺失清单 CSV。
 - 发布流程闭环：`publish_ready_content` 发布后写操作日志与内容批次；仪表盘增加占位图待替换计数。
 - 零模型变更、零迁移。
+
+**当前实现范围（2026-08-20）：** `reactions/services/placeholder.py`（equation_svg/thumbnail_svg/placeholder_for）；图片维护页全量分页 + missing 筛选 + 批量生成占位图；`reactions/services/readiness.py`（summary/export_rows）+ `content_readiness_report` 命令；`publish_ready_content` 写 OpLog + ContentBatch；仪表盘 `placeholders_pending` 计数；V30 专项测试 9 个。
 
 ### v4.0 — 待定
 

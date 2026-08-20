@@ -864,7 +864,7 @@ class AdminToolPageTests(TestCase):
 
         self.assertContains(self.client.get("/admin/reactions/dashboard/"), "och-admin-stat-grid")
         self.assertContains(self.client.get("/admin/reactions/import/"), "och-admin-form-card")
-        self.assertContains(self.client.get("/admin/reactions/images/"), "och-admin-list-card")
+        self.assertContains(self.client.get("/admin/reactions/images/"), "och-admin-table")
 
     def test_dashboard_loads(self):
         response = self.client.get("/admin/reactions/dashboard/")
@@ -2415,3 +2415,166 @@ class V28ImportReportTests(TestCase):
         self.assertIn("行号", content)
         self.assertIn("错误字段", content)
         self.assertIn("建议修复", content)
+
+
+class V30PlaceholderTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_superuser("v30-placeholder", "v30p@example.com", "password")
+        self.site = AdminSite()
+        self.factory = RequestFactory()
+
+    def _request(self):
+        request = self.factory.post("/admin/")
+        request.user = self.user
+        from django.contrib.messages.storage.cookie import CookieStorage
+        request._messages = CookieStorage(request)
+        return request
+
+    def test_equation_svg_contains_title_and_hint(self):
+        from reactions.services.placeholder import equation_svg
+
+        svg = equation_svg("维蒂希反应")
+        self.assertIn("维蒂希反应", svg)
+        self.assertIn("svg", svg.lower())
+
+    def test_thumbnail_svg_nonempty(self):
+        from reactions.services.placeholder import thumbnail_svg
+
+        svg = thumbnail_svg("Aldol")
+        self.assertIn("svg", svg.lower())
+        self.assertGreater(len(svg), 100)
+
+    def test_placeholder_for_binds_fields_and_creates_files(self):
+        from reactions.models import NamedReaction
+        from reactions.services.placeholder import placeholder_for
+
+        reaction = NamedReaction.objects.create(
+            name_zh="SVG占位测试",
+            name_en="SVG Placeholder Test",
+            slug="svg-placeholder-test",
+            summary="摘要。",
+            condition="条件。",
+            reference="来源。",
+        )
+        bound = placeholder_for(reaction)
+
+        self.assertIn("equation_img", bound)
+        self.assertIn("thumbnail_img", bound)
+        reaction.refresh_from_db()
+        self.assertTrue(reaction.equation_img)
+        self.assertTrue(reaction.thumbnail_img)
+        self.assertIn("placeholder", reaction.equation_img.name)
+        self.assertIn("placeholder", reaction.thumbnail_img.name)
+
+    def test_missing_equation_filter(self):
+        from reactions.models import NamedReaction
+
+        NamedReaction.objects.create(
+            name_zh="缺方程图", name_en="NoEq", slug="no-eq",
+            summary="S", condition="C", reference="R",
+        )
+        self.client.force_login(self.user)
+        response = self.client.get("/admin/reactions/images/?missing=equation")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "缺方程图")
+
+    def test_batch_generate_placeholders_records_oplog_and_batch(self):
+        from reactions.models import ContentBatch, NamedReaction, OpLog
+
+        reaction = NamedReaction.objects.create(
+            name_zh="批量占位", name_en="Batch Placeholder", slug="batch-placeholder",
+            summary="S", condition="C", reference="R",
+        )
+        self.client.force_login(self.user)
+        response = self.client.post(
+            "/admin/reactions/images/",
+            {"generate_placeholders": "1", "selected": [str(reaction.pk)]},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(OpLog.objects.filter(action="placeholder_generate").exists())
+        self.assertTrue(ContentBatch.objects.filter(kind="other").exists())
+
+
+class V30ReadinessTests(TestCase):
+    def setUp(self):
+        from reactions.models import NamedReaction, GeneralReaction
+
+        self.react1 = NamedReaction.objects.create(
+            name_zh="完整反应A", name_en="Complete A", slug="complete-a",
+            summary="S", condition="C", reference="R", exam_tips="T",
+        )
+        self.react2 = NamedReaction.objects.create(
+            name_zh="缺图反应B", name_en="NoImg B", slug="noimg-b",
+            summary="S", condition="C", reference="R", exam_tips="T",
+        )
+        self.react3 = NamedReaction.objects.create(
+            name_zh="缺字段C", name_en="Partial C", slug="partial-c",
+            summary="S",
+        )
+
+    def test_summary_returns_correct_counts(self):
+        from reactions.services.readiness import summary
+
+        stats = summary()
+        named = stats["NamedReaction"]
+        self.assertEqual(named["total"], 3)
+        self.assertEqual(named["ready"], 0)
+        self.assertEqual(named["missing_images"], 3)
+
+    def test_export_rows_contains_all_entries(self):
+        from reactions.services.readiness import export_rows
+
+        rows = list(export_rows())
+        self.assertEqual(len(rows), 3)
+        self.assertIn("complete-a", rows[0]["slug"])
+        self.assertIn("condition", rows[2]["missing"])
+
+
+class V30PublishLoopTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        from reactions.models import ContentBatch, NamedReaction, OpLog
+
+        self.user = User.objects.create_superuser("v30-publish", "v30p@example.com", "password")
+        ContentBatch.objects.all().delete()
+        OpLog.objects.all().delete()
+
+        self.reaction = NamedReaction.objects.create(
+            name_zh="发布闭环测试", name_en="Publish Loop Test", slug="publish-loop",
+            summary="S", condition="C", reference="R", exam_tips="T",
+        )
+
+    def test_publish_command_writes_oplog_and_batch(self):
+        from django.core.management import call_command
+
+        from reactions.models import ContentBatch, OpLog
+
+        self.reaction.equation_img = "reaction_images/placeholder/reaction_publish-loop_equation.svg"
+        self.reaction.thumbnail_img = "reaction_images/placeholder/reaction_publish-loop_thumbnail.svg"
+        self.reaction.save()
+
+        call_command("publish_ready_content", target="named")
+
+        self.reaction.refresh_from_db()
+        self.assertEqual(self.reaction.status, "published")
+        self.assertTrue(
+            OpLog.objects.filter(action="publish", model_name="namedreaction").exists(),
+            "命令发布后应写入 OpLog",
+        )
+        self.assertTrue(
+            ContentBatch.objects.filter(kind="publish").exists(),
+            "命令发布后应写入 ContentBatch",
+        )
+
+    def test_dashboard_shows_placeholder_count(self):
+        from reactions.models import NamedReaction
+
+        self.reaction.equation_img = "reaction_images/placeholder/reaction_publish-loop_equation.svg"
+        self.reaction.thumbnail_img = "reaction_images/placeholder/reaction_publish-loop_thumbnail.svg"
+        self.reaction.save()
+
+        self.client.force_login(self.user)
+        response = self.client.get("/admin/reactions/dashboard/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "占位图待替换")

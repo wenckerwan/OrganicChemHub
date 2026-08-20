@@ -6,28 +6,76 @@
     <div>
       <p class="och-admin-eyebrow">Image Maintenance</p>
       <h1>图片维护</h1>
-      <p>方程式图和缩略图属于发布质量检查项；机理图可选，单独列出。</p>
+      <p>方程式图和缩略图属于发布质量检查项。可为缺图反应生成占位图，先上线，再替换真图。</p>
     </div>
     <a class="och-admin-action-button" href="{% url 'admin:och_reactions_import' %}">CSV 导入</a>
   </div>
 
-  <div class="och-admin-two-col">
-    <section class="och-admin-list-card">
-      <h2>缺少必要图片的人名反应</h2>
-      <ul>{% for reaction in named_missing_images %}<li><span>{{ reaction.name_zh }}</span><small>{{ reaction.missing_fields_display }}</small></li>{% empty %}<li><span>暂无</span></li>{% endfor %}</ul>
-    </section>
-    <section class="och-admin-list-card">
-      <h2>缺少必要图片的常见有机反应</h2>
-      <ul>{% for reaction in general_missing_images %}<li><span>{{ reaction.name_zh }}</span><small>{{ reaction.missing_fields_display }}</small></li>{% empty %}<li><span>暂无</span></li>{% endfor %}</ul>
-    </section>
-    <section class="och-admin-list-card">
-      <h2>未上传机理图的人名反应</h2>
-      <ul>{% for reaction in named_missing_mechanism %}<li><span>{{ reaction.name_zh }}</span></li>{% empty %}<li><span>暂无</span></li>{% endfor %}</ul>
-    </section>
-    <section class="och-admin-list-card">
-      <h2>未上传机理图的常见有机反应</h2>
-      <ul>{% for reaction in general_missing_mechanism %}<li><span>{{ reaction.name_zh }}</span></li>{% empty %}<li><span>暂无</span></li>{% endfor %}</ul>
-    </section>
+  <div class="och-admin-toolbar" style="margin-bottom:1rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center;">
+    <form method="get" style="display:flex;gap:0.5rem;align-items:center;">
+      <select name="missing" style="padding:0.4rem 0.6rem;border:1px solid #ccc;border-radius:4px;">
+        <option value="" {% if not missing_filter %}selected{% endif %}>全部缺图反应</option>
+        <option value="equation" {% if missing_filter == 'equation' %}selected{% endif %}>缺方程图</option>
+        <option value="thumbnail" {% if missing_filter == 'thumbnail' %}selected{% endif %}>缺缩略图</option>
+        <option value="mechanism" {% if missing_filter == 'mechanism' %}selected{% endif %}>缺机理图</option>
+      </select>
+      <button type="submit" class="och-admin-action-button" style="padding:0.4rem 1rem;">筛选</button>
+    </form>
+    <span class="text-muted" style="font-size:0.9rem;">共 {{ page_obj.paginator.count }} 条</span>
   </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <table class="och-admin-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="select-all" onclick="Array.from(document.querySelectorAll('.batch-select')).forEach(cb=>cb.checked=this.checked)"></th>
+          <th>类型</th>
+          <th>名称</th>
+          <th>缺项</th>
+          <th>状态</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for obj in page_obj %}
+        <tr>
+          <td><input type="checkbox" class="batch-select" name="selected" value="{{ obj.pk }}"></td>
+          <td>{% if obj.category %}{{ obj.category }}{% else %}{{ obj.get_status_display|default:"-" }}{% endif %}</td>
+          <td>{{ obj.name_zh }}</td>
+          <td>{{ obj.missing_fields_display }}</td>
+          <td>
+            {% if obj.status == "published" %}
+              <span class="och-badge och-badge--success">已发布</span>
+            {% elif obj.status == "draft" %}
+              <span class="och-badge och-badge--warning">草稿</span>
+            {% else %}
+              {{ obj.status }}
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:2rem;color:#868e96;">暂无匹配记录</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center;">
+      {% if page_obj.has_previous %}
+        <a href="?missing={{ missing_filter }}&page={{ page_obj.previous_page_number }}" class="och-admin-action-button" style="padding:0.3rem 0.8rem;">上一页</a>
+      {% endif %}
+      <span>第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 页</span>
+      {% if page_obj.has_next %}
+        <a href="?missing={{ missing_filter }}&page={{ page_obj.next_page_number }}" class="och-admin-action-button" style="padding:0.3rem 0.8rem;">下一页</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top:1rem;">
+      <button type="submit" name="generate_placeholders" value="1" class="och-admin-action-button" style="background:#198754;color:#fff;">
+        为选中反应生成占位图
+      </button>
+    </div>
+  </form>
 </div>
 {% endblock %}
