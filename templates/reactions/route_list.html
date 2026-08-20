@@ -21,6 +21,15 @@
           {% endfor %}
         </select>
       </div>
+      <div class="col-md-3">
+        <label class="form-label" for="functional_group">目标官能团</label>
+        <select id="functional_group" class="form-select" name="functional_group">
+          <option value="">全部官能团</option>
+          {% for group in functional_group_choices %}
+            <option value="{{ group.name_en }}" {% if selected_functional_group == group.name_en %}selected{% endif %}>{{ group.name_zh }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <div class="col-md-2">
         <label class="form-label" for="sort">排序</label>
         <select id="sort" class="form-select" name="sort">

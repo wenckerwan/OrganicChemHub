@@ -2035,3 +2035,148 @@ class V26TopicProgressViewsTests(TestCase):
 
         self.assertContains(response, "badges-published")
         self.assertNotContains(response, "badges-draft")
+
+
+class V27RouteModelTests(TestCase):
+    """v2.7 route model changes: key steps and functional groups."""
+
+    def _route(self, slug="v27-route"):
+        return SyntheticRoute.objects.create(
+            target_product="v27 目标产物",
+            summary="v27 摘要",
+            slug=slug,
+            status=PublishStatus.DRAFT,
+        )
+
+    def _step(self, route, step_number, title="步骤"):
+        return RouteStep.objects.create(route=route, step_number=step_number, title=title)
+
+    def test_key_step_defaults_to_false_and_counts(self):
+        route = self._route("key-step-count")
+        step_one = self._step(route, 1, "第一步")
+        self._step(route, 2, "第二步")
+        self.assertFalse(step_one.is_key_step)
+
+        step_one.is_key_step = True
+        step_one.save(update_fields=["is_key_step"])
+
+        self.assertEqual(route.get_key_step_count(), 1)
+
+    def test_related_functional_groups_association(self):
+        aldehyde = FunctionalGroup.objects.create(name_zh="醛基", name_en="aldehyde")
+        ketone = FunctionalGroup.objects.create(name_zh="酮羰基", name_en="ketone")
+        route = self._route("fg-association")
+
+        route.related_functional_groups.add(aldehyde, ketone)
+
+        self.assertCountEqual(route.related_functional_groups.all(), [aldehyde, ketone])
+        self.assertCountEqual(aldehyde.routes.all(), [route])
+
+    def test_step_number_must_start_at_one_and_be_continuous(self):
+        from django.core.exceptions import ValidationError as FieldValidationError
+
+        route = self._route("step-number-check")
+        self._step(route, 1, "第一步")
+        gap_step = self._step(route, 3, "缺第二步")
+
+        with self.assertRaises(FieldValidationError):
+            gap_step.full_clean()
+
+
+class V27RouteAdminTests(TestCase):
+    """v2.7 route admin enhancements."""
+
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser("v27-admin", "v27@example.com", "password")
+        self.client.force_login(self.admin_user)
+        self.route = SyntheticRoute.objects.create(
+            target_product="Admin 路线",
+            summary="摘要",
+            slug="v27-admin-route",
+            status=PublishStatus.PUBLISHED,
+        )
+        RouteStep.objects.create(route=self.route, step_number=1, title="第一步")
+
+    def test_route_admin_has_functional_group_selector(self):
+        response = self.client.get("/admin/reactions/syntheticroute/1/change/")
+
+        self.assertContains(response, "related_functional_groups")
+
+    def test_route_admin_lists_key_step_count_and_missing_image_warning(self):
+        response = self.client.get("/admin/reactions/syntheticroute/")
+
+        self.assertContains(response, "关键步骤")
+        self.assertContains(response, "缺步骤图")
+
+    def test_route_step_inline_has_key_step_field(self):
+        response = self.client.get("/admin/reactions/syntheticroute/1/change/")
+
+        self.assertContains(response, "is_key_step")
+
+    def test_route_step_admin_lists_key_step(self):
+        response = self.client.get("/admin/reactions/routestep/")
+
+        self.assertContains(response, "关键步骤")
+
+
+class V27RouteFrontendTests(TestCase):
+    """v2.7 frontend functional group filter and key step display."""
+
+    def _route(self, slug, target_product, difficulty=SyntheticRoute.Difficulty.BEGINNER, status=PublishStatus.PUBLISHED):
+        return SyntheticRoute.objects.create(
+            target_product=target_product,
+            summary="摘要",
+            slug=slug,
+            difficulty=difficulty,
+            status=status,
+        )
+
+    def setUp(self):
+        self.aldehyde = FunctionalGroup.objects.create(name_zh="醛基", name_en="aldehyde")
+        self.ketone = FunctionalGroup.objects.create(name_zh="酮羰基", name_en="ketone")
+        self.aldol_route = self._route("aldol-route", "羟醛缩合产物")
+        self.aldol_route.related_functional_groups.add(self.aldehyde)
+        self.ketone_route = self._route(
+            "ketone-route", "酮合成产物", difficulty=SyntheticRoute.Difficulty.INTERMEDIATE
+        )
+        self.ketone_route.related_functional_groups.add(self.ketone)
+
+    def test_route_list_filters_by_functional_group(self):
+        response = self.client.get(reverse("route_list"), {"functional_group": "aldehyde"})
+
+        self.assertContains(response, "羟醛缩合产物")
+        self.assertNotContains(response, "酮合成产物")
+
+    def test_route_list_filter_combines_with_difficulty(self):
+        # 醛基路线的难度为 beginner，与 intermediate 叠加后无匹配 → 空状态
+        response = self.client.get(
+            reverse("route_list"),
+            {"functional_group": "aldehyde", "difficulty": SyntheticRoute.Difficulty.INTERMEDIATE},
+        )
+
+        self.assertContains(response, "没有找到匹配的已发布路线")
+
+    def test_route_detail_shows_functional_group_badges_with_link(self):
+        response = self.client.get(reverse("route_detail", kwargs={"slug": self.aldol_route.slug}))
+
+        self.assertContains(response, "醛基")
+        self.assertContains(response, 'functional_group=aldehyde')
+
+    def test_route_detail_shows_key_step_badge(self):
+        key_step = RouteStep.objects.create(route=self.aldol_route, step_number=1, title="关键转化", is_key_step=True)
+        RouteStep.objects.create(route=self.aldol_route, step_number=2, title="普通后处理")
+        key_step.refresh_from_db()
+
+        response = self.client.get(reverse("route_detail", kwargs={"slug": self.aldol_route.slug}))
+
+        self.assertContains(response, "关键步骤")
+        self.assertContains(response, "关键转化")
+
+    def test_draft_route_not_visible(self):
+        draft = self._route("draft-route", "草稿路线", status=PublishStatus.DRAFT)
+
+        list_response = self.client.get(reverse("route_list"))
+        detail_response = self.client.get(reverse("route_detail", kwargs={"slug": draft.slug}))
+
+        self.assertNotContains(list_response, "草稿路线")
+        self.assertEqual(detail_response.status_code, 404)

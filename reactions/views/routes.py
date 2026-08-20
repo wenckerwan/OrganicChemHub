@@ -5,7 +5,7 @@ from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.views.generic import DetailView, ListView, View
 
-from ..models import Favorite, RouteStep, StudyNote, StudyProgress, SyntheticRoute
+from ..models import Favorite, FunctionalGroup, PublishStatus, RouteStep, StudyNote, StudyProgress, SyntheticRoute
 from ..services.visits import increment_object_visit
 
 
@@ -19,9 +19,11 @@ class RouteListView(ListView):
         queryset = SyntheticRoute.published.prefetch_related(
             "related_named_reactions",
             "related_general_reactions",
+            "related_functional_groups",
         ).annotate(step_total=Count("steps"))
         query = self.request.GET.get("q", "").strip()
         difficulty = self.request.GET.get("difficulty", "").strip()
+        functional_group = self.request.GET.get("functional_group", "").strip()
         sort = self.request.GET.get("sort", "").strip()
 
         if query:
@@ -34,6 +36,8 @@ class RouteListView(ListView):
             )
         if difficulty:
             queryset = queryset.filter(difficulty=difficulty)
+        if functional_group:
+            queryset = queryset.filter(related_functional_groups__name_en__iexact=functional_group)
         queryset = queryset.distinct()
         if sort == "steps":
             return queryset.order_by("-step_total", "target_product")
@@ -47,8 +51,10 @@ class RouteListView(ListView):
         context = super().get_context_data(**kwargs)
         context["query"] = self.request.GET.get("q", "").strip()
         context["selected_difficulty"] = self.request.GET.get("difficulty", "").strip()
+        context["selected_functional_group"] = self.request.GET.get("functional_group", "").strip()
         context["selected_sort"] = self.request.GET.get("sort", "target").strip() or "target"
         context["difficulty_choices"] = SyntheticRoute.Difficulty.choices
+        context["functional_group_choices"] = FunctionalGroup.objects.filter(routes__status=PublishStatus.PUBLISHED).distinct().order_by("name_zh")
         context["recommended_routes"] = SyntheticRoute.published.annotate(step_total=Count("steps")).order_by("-updated_at")[:3]
         return context
 
@@ -60,6 +66,7 @@ class RouteDetailView(DetailView):
     queryset = SyntheticRoute.published.prefetch_related(
         "related_named_reactions",
         "related_general_reactions",
+        "related_functional_groups",
         "steps",
         "steps__related_named_reactions",
         "steps__related_general_reactions",

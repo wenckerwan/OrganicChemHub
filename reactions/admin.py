@@ -487,14 +487,30 @@ class ReactionAdmin(PublicationActionMixin, admin.ModelAdmin):
         return TemplateResponse(request, "admin/reactions/dashboard.html", context)
 
 
+def _step_image_preview(step, method_name):
+    """Small thumbnail preview for route step structure images (inline usage)."""
+    if not step or not step.pk:
+        return "—"
+    src = getattr(step, method_name)()
+    if not src:
+        return "暂无图片"
+    return format_html(
+        '<img src="{}" alt="步骤结构式预览" style="max-width: 120px; max-height: 90px; background: #fff; border: 1px solid #d8dee8; border-radius: 6px; padding: 4px;">',
+        src,
+    )
+
+
 class RouteStepInline(admin.TabularInline):
     model = RouteStep
     extra = 1
     fields = (
         "step_number",
         "title",
+        "is_key_step",
+        "reactant_preview",
         "reactant_structure_image",
         "reactant_structure_image_url",
+        "product_preview",
         "product_structure_image",
         "product_structure_image_url",
         "structure_image_caption",
@@ -502,7 +518,16 @@ class RouteStepInline(admin.TabularInline):
         "condition",
         "yield_text",
     )
+    readonly_fields = ("reactant_preview", "product_preview")
     ordering = ("step_number",)
+
+    @admin.display(description="反应物结构式预览")
+    def reactant_preview(self, obj):
+        return _step_image_preview(obj, "get_reactant_structure_image_src")
+
+    @admin.display(description="产物结构式预览")
+    def product_preview(self, obj):
+        return _step_image_preview(obj, "get_product_structure_image_src")
 
 
 
@@ -551,14 +576,16 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
         "difficulty",
         "status",
         "step_count",
+        "key_step_count_display",
+        "missing_step_images_display",
         "content_completeness_display",
         "source",
         "updated_at",
     )
-    list_filter = ("status", "difficulty", "related_named_reactions", "related_general_reactions", "created_at", "updated_at")
+    list_filter = ("status", "difficulty", "related_named_reactions", "related_general_reactions", "related_functional_groups", "created_at", "updated_at")
     search_fields = ("target_product", "summary", "source")
     prepopulated_fields = {"slug": ("target_product",)}
-    filter_horizontal = ("related_named_reactions", "related_general_reactions")
+    filter_horizontal = ("related_named_reactions", "related_general_reactions", "related_functional_groups")
     readonly_fields = ("target_structure_image_preview", "created_at", "updated_at")
     inlines = (RouteStepInline,)
     fieldsets = (
@@ -575,13 +602,30 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
                 )
             },
         ),
-        ("路线说明", {"fields": ("summary", "advantages", "disadvantages", "source", "related_named_reactions", "related_general_reactions")}),
+        ("路线说明", {"fields": ("summary", "advantages", "disadvantages", "source", "related_named_reactions", "related_general_reactions", "related_functional_groups")}),
         ("时间", {"fields": ("created_at", "updated_at")}),
     )
 
     @admin.display(description="步骤数")
     def step_count(self, obj):
         return obj.steps.count()
+
+    @admin.display(description="关键步骤")
+    def key_step_count_display(self, obj):
+        return obj.get_key_step_count()
+
+    @admin.display(description="缺步骤图")
+    def missing_step_images_display(self, obj):
+        steps = obj.steps.all()
+        if not steps.exists():
+            return "—"
+        missing = sum(
+            1 for step in steps
+            if not step.get_reactant_structure_image_src() and not step.get_product_structure_image_src()
+        )
+        if not missing:
+            return "无"
+        return format_html('<span style="color:#b45309;font-weight:600;">{} 步缺图</span>', missing)
 
     @admin.display(description="完整度")
     def content_completeness_display(self, obj):
@@ -621,8 +665,8 @@ class SyntheticRouteAdmin(PublicationActionMixin, admin.ModelAdmin):
 
 @admin.register(RouteStep)
 class RouteStepAdmin(admin.ModelAdmin):
-    list_display = ("route", "step_number", "title", "yield_text")
-    list_filter = ("route", "related_named_reactions", "related_general_reactions")
+    list_display = ("route", "step_number", "title", "is_key_step", "yield_text")
+    list_filter = ("route", "is_key_step", "related_named_reactions", "related_general_reactions")
     search_fields = ("route__target_product", "title", "reagents", "condition", "note")
     filter_horizontal = ("related_named_reactions", "related_general_reactions")
     readonly_fields = ("reactant_structure_image_preview", "product_structure_image_preview")

@@ -179,12 +179,13 @@ v2.3 已调整为访问统计版本，已完成：
 
 v2.3-v2.6 迭代中已具备：路线列表搜索、难度筛选、排序（步骤数/难度/最近更新）；详情页步骤时间线（试剂/条件/产率/结构式/说明/关联反应）、优缺点、来源、相关反应、用户互动与访问统计；后台内联步骤编辑与 CSV 导出。本版本在此基础上补齐官能团筛选、关键步骤与维护增强。
 
-### 实现范围
+### 实现范围（2026-08-20 已完成）
 
-- 路线列表按目标官能团筛选（`functional_group` 参数，与难度/搜索/排序叠加）。
-- 路线详情页展示目标官能团徽标（可回跳列表预选）与关键步骤高亮。
-- 模型变更：`RouteStep.is_key_step`（关键步骤标记）、`SyntheticRoute.related_functional_groups`（复用现有 `FunctionalGroup`）。
-- 后台增强：内联步骤图片缩略图预览、关键步骤编辑、步骤序号连续性校验（1 起连续无缺号）、列表关键步骤数与缺图提醒。
+- 模型与迁移 `0021_routestep_is_key_step_and_more`：`RouteStep.is_key_step` 关键步骤标记、`SyntheticRoute.related_functional_groups` 官能团关联（复用现有 `FunctionalGroup`）、`SyntheticRoute.get_key_step_count()`。
+- 步骤序号连续性校验：`RouteStep.clean()` 校验序号从 1 开始且连续（无缺号）。
+- 后台增强：官能团 `filter_horizontal` 选择与 `list_filter`；列表"关键步骤"数与"缺步骤图"提醒列；内联步骤图片缩略图预览 + `is_key_step` 字段；`RouteStepAdmin` 关键步骤列。
+- 前台列表：官能团筛选下拉（`functional_group` 参数按 `name_en` 匹配，与难度/搜索/排序叠加）。
+- 前台详情：标题下方官能团徽标（回跳列表预选）、关键步骤时间线金色高亮。
 - 不实现：步骤拖拽排序（避免引入第三方 JS）、SMARTS 子结构检索。
 - 路线库规模扩充属内容运营：以至少 20 条已发布路线为验收目标，代码层提供完整度与缺图提醒支撑。
 

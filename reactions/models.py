@@ -524,6 +524,12 @@ class SyntheticRoute(models.Model):
         blank=True,
         related_name="routes",
     )
+    related_functional_groups = models.ManyToManyField(
+        FunctionalGroup,
+        verbose_name="目标官能团",
+        blank=True,
+        related_name="routes",
+    )
     status = models.CharField("状态", max_length=20, choices=Status.choices, default=Status.DRAFT)
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
     updated_at = models.DateTimeField("更新时间", auto_now=True)
@@ -565,6 +571,9 @@ class SyntheticRoute(models.Model):
         complete = total - len(self.get_publication_missing_fields())
         return f"{complete}/{total}"
 
+    def get_key_step_count(self):
+        return self.steps.filter(is_key_step=True).count()
+
     def clean(self):
         super().clean()
         if self.status != self.Status.PUBLISHED:
@@ -590,6 +599,7 @@ class RouteStep(models.Model):
     reagents = models.TextField("试剂", blank=True)
     condition = models.TextField("条件", blank=True)
     yield_text = models.CharField("产率", max_length=50, blank=True)
+    is_key_step = models.BooleanField("关键步骤", default=False)
     related_reactions = models.ManyToManyField(Reaction, verbose_name="相关反应", blank=True, related_name="route_steps")
     related_named_reactions = models.ManyToManyField(
         NamedReaction,
@@ -619,6 +629,23 @@ class RouteStep(models.Model):
 
     def get_product_structure_image_src(self):
         return first_image_source(self.product_structure_image, self.product_structure_image_url)
+
+    def clean(self):
+        super().clean()
+        if not self.route_id or not self.step_number:
+            return
+        numbers = set(
+            RouteStep.objects.filter(route=self.route)
+            .exclude(pk=self.pk)
+            .values_list("step_number", flat=True)
+        )
+        numbers.add(self.step_number)
+        expected = set(range(1, max(numbers) + 1))
+        missing = sorted(expected - numbers)
+        if missing:
+            raise ValidationError(
+                {"step_number": f"步骤序号必须从 1 开始且连续，当前缺失：{', '.join(map(str, missing))}。"}
+            )
 
 
 class LearningResource(models.Model):

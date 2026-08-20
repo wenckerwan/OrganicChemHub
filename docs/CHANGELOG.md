@@ -16,6 +16,8 @@
 - 模型变更：`SyntheticRoute.related_functional_groups` 复用现有官能团模型。
 - 路线库规模扩充（内容运营）：以至少 20 条已发布路线为验收目标，代码层提供完整度与缺图提醒支撑。
 
+**当前实现范围（2026-08-20）：** 模型迁移 `0021_routestep_is_key_step_and_more`（`is_key_step` + `related_functional_groups` + `get_key_step_count`）；步骤序号连续性校验（`RouteStep.clean`）；Admin 官能团选择/筛选、关键步骤列、缺图提醒列、内联图片预览；前台官能团筛选下拉与详情页官能团徽标、关键步骤金色高亮；V27 专项测试 12 个。
+
 ### v2.8 — 运营与数据维护
 
 - 管理员操作审计增强。

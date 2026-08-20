@@ -9,6 +9,13 @@
       <div>
         <h1 class="h2 mb-1">{{ route.target_product }}</h1>
         {% if route.summary %}<p class="lead text-secondary mb-0">{{ route.summary }}</p>{% endif %}
+        {% if route.related_functional_groups.all %}
+          <div class="mt-2">
+            {% for group in route.related_functional_groups.all %}
+              <a class="badge rounded-pill text-bg-light text-decoration-none me-1" href="{% url 'route_list' %}?functional_group={{ group.name_en }}">{{ group.name_zh }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
       <div class="d-flex align-items-center gap-2">
         <div class="detail-badges">
@@ -52,10 +59,13 @@
           <h2>路线步骤</h2>
           <div class="timeline">
             {% for step in route.steps.all %}
-              <article class="timeline-step">
+              <article class="timeline-step{% if step.is_key_step %} timeline-step--key{% endif %}">
                 <div class="step-number">{{ step.step_number }}</div>
                 <div>
-                  <h3 class="h5">{{ step.title }}</h3>
+                  <h3 class="h5">
+                    {{ step.title }}
+                    {% if step.is_key_step %}<span class="badge key-step-badge">关键步骤</span>{% endif %}
+                  </h3>
                   {% if step.reagents %}<p><strong>试剂：</strong>{{ step.reagents|linebreaksbr }}</p>{% endif %}
                   {% if step.condition %}<p><strong>条件：</strong>{{ step.condition|linebreaksbr }}</p>{% endif %}
                   {% if step.yield_text %}<p><strong>产率：</strong>{{ step.yield_text }}</p>{% endif %}

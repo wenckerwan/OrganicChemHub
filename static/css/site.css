@@ -957,6 +957,18 @@ a:hover {
   padding: 1rem;
 }
 
+.timeline-step--key > div:last-child {
+  border-color: #d97706;
+  box-shadow: 0 0 0 1px rgba(217, 119, 6, 0.18);
+}
+
+.key-step-badge {
+  background: #f59e0b;
+  color: #fff;
+  font-size: 0.72rem;
+  vertical-align: middle;
+}
+
 .step-number {
   align-items: center;
   background: var(--och-warm);
