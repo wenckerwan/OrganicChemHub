@@ -1,9 +1,9 @@
-# OrganicChemHub v2.7 Linux 部署指南
+# OrganicChemHub v2.8 Linux 部署指南
 
 目标环境：Debian / 宝塔面板 / Nginx / Gunicorn / Supervisor
 生产目录：`/www/wwwroot/chem.wencker.top`
 
-v2.7 合成路线扩充新增 `RouteStep.is_key_step` 关键步骤字段和 `SyntheticRoute.related_functional_groups` 官能团关联（迁移 `0021_routestep_is_key_step_and_more`）；更新时必须执行 `python manage.py migrate` 和 `collectstatic`。
+v2.8 运营与审计新增 `ContentBatch` 内容批次模型（迁移 `0022_content_batch`）；更新时必须执行 `python manage.py migrate` 和 `collectstatic`。
 
 ---
 
@@ -61,7 +61,7 @@ python manage.py setup_admin_roles
 /www/server/panel/pyenv/bin/supervisorctl restart all
 ```
 
-v2.5 新增考研专题和易混反应对比迁移 `0019_study_topics_and_comparisons`，用户互动模型迁移 `0020_user_tools_gfk`；v2.7 新增 `0021_routestep_is_key_step_and_more`（关键步骤 + 官能团关联），以上更新都必须执行 `python manage.py migrate`。v2.6 无新迁移，更新时执行 `collectstatic` 即可。
+v2.5 新增考研专题和易混反应对比迁移 `0019_study_topics_and_comparisons`，用户互动模型迁移 `0020_user_tools_gfk`；v2.7 新增 `0021_routestep_is_key_step_and_more`（关键步骤 + 官能团关联）；v2.8 新增 `0022_content_batch`（内容批次记录），以上更新都必须执行 `python manage.py migrate`。v2.6 无新迁移，更新时执行 `collectstatic` 即可。
 
 可选：发布已经补全的草稿内容。
 
@@ -160,19 +160,65 @@ curl -I -H "Host: chem.wencker.top" http://127.0.0.1/
 
 ---
 
-## 6. 备份建议
+## 6. 备份与恢复
 
-更新前备份数据库：
+### 6.1 数据库备份
+
+`db.sqlite3` 不提交 Git，更新前必须单独备份：
 
 ```bash
 cd /www/wwwroot/chem.wencker.top
 cp db.sqlite3 db.sqlite3.bak_$(date +%Y%m%d_%H%M%S)
 ```
 
-用户上传图片位于：
+建议保留最近 7 天的备份文件，定期清理旧备份。
 
-```text
-/www/wwwroot/chem.wencker.top/media/
+### 6.2 media 文件备份
+
+用户上传图片位于 `media/`，同样不提交 Git：
+
+```bash
+cd /www/wwwroot
+tar czf chem_media_backup_$(date +%Y%m%d).tar.gz chem.wencker.top/media/
 ```
 
-`db.sqlite3` 和 `media/` 不提交 Git，需要单独备份。
+备份文件应存放在站点目录之外（如 `/www/backup/`）。
+
+### 6.3 git 版本回滚
+
+代码版本回滚（谨慎操作，先备份数据库）：
+
+```bash
+cd /www/wwwroot/chem.wencker.top
+source .venv/bin/activate
+# 查看历史版本
+git log --oneline -10
+# 回滚到指定提交（保留工作区，仅移动指针）
+git reset --hard <commit_hash>
+python manage.py migrate
+python manage.py collectstatic --noinput
+/www/server/panel/pyenv/bin/supervisorctl restart all
+```
+
+> 注意：`git reset --hard` 会丢弃该提交之后的所有本地改动。如果只是暂时回退，建议使用 `git revert <commit_hash>` 生成反向提交，保留历史。
+
+### 6.4 更新前后检查清单
+
+更新前：
+
+1. 备份数据库：`cp db.sqlite3 db.sqlite3.bak_$(date +%Y%m%d_%H%M%S)`。
+2. 备份 media：`tar czf /www/backup/chem_media_$(date +%Y%m%d).tar.gz media/`。
+3. 确认当前版本：`git log --oneline -1`。
+
+更新后：
+
+1. `python manage.py check` 无错误。
+2. `python manage.py migrate` 无报错。
+3. 前台首页、详情页可访问，静态资源正常加载。
+4. 后台仪表盘、CSV 导入页可访问。
+
+### 6.5 故障恢复
+
+- 数据库损坏：用最近的 `db.sqlite3.bak_*` 覆盖 `db.sqlite3`，重启服务。
+- 代码异常：用 `git revert` 回退到上一个稳定提交，执行 migrate + collectstatic + 重启。
+- 图片丢失：用 media 备份 tar 包解压覆盖 `media/`。

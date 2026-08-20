@@ -2,8 +2,8 @@
 
 OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机反应资料库。项目采用 Django Admin 作为标准内容管理层，前台负责清晰展示人名反应、常见有机反应、合成路线、学习资料、公告和用户互动数据。
 
-当前版本：**v2.7 开发中**
-下个版本：**v2.8 运营与审计**
+当前版本：**v2.8 开发中**
+下个版本：**v3.0 公开稳定版**
 
 部署文档：[docs/deploy_linux.md](docs/deploy_linux.md)
 更新日志：[docs/CHANGELOG.md](docs/CHANGELOG.md)
@@ -11,6 +11,8 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 
 开发文档索引：
 
+- v2.8 设计规格：[docs/superpowers/specs/2026-08-20-v28-ops-audit-design.md](docs/superpowers/specs/2026-08-20-v28-ops-audit-design.md)
+- v2.8 实施计划：[docs/superpowers/plans/2026-08-20-v28-ops-audit-implementation.md](docs/superpowers/plans/2026-08-20-v28-ops-audit-implementation.md)
 - v2.7 设计规格：[docs/superpowers/specs/2026-08-20-v27-routes-expansion-design.md](docs/superpowers/specs/2026-08-20-v27-routes-expansion-design.md)
 - v2.7 实施计划：[docs/superpowers/plans/2026-08-20-v27-routes-expansion-implementation.md](docs/superpowers/plans/2026-08-20-v27-routes-expansion-implementation.md)
 - v2.6 设计规格：[docs/superpowers/specs/2026-08-20-v26-study-progress-design.md](docs/superpowers/specs/2026-08-20-v26-study-progress-design.md)
@@ -46,9 +48,10 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 - Django Admin 维护人名反应、常见有机反应、合成路线、分类、标签、官能团、公告、反馈和站内消息。
 - 列表页支持搜索、筛选、排序、缩略图预览、完整度展示和批量发布/归档。
 - 内容质量仪表盘：`/admin/reactions/dashboard/`。
-- CSV 导入入口：`/admin/reactions/import/`，支持人名反应和常见有机反应。
+- CSV 导入入口：`/admin/reactions/import/`，支持人名反应和常见有机反应，导入错误可下载 CSV 修复后重导。
 - 图片维护入口：`/admin/reactions/images/`，集中查看缺方程式图、缺缩略图和缺机理图内容。
 - 消息群发与消息清理：运营人员可通过专用后台工具完成站内通知维护。
+- 内容批次记录与操作日志：批量发布/归档、CSV 导入、消息清理自动记录批次与审计日志，后台可筛选追踪。
 - 访问统计：后台可只读查看网站、反应和合成路线访问量。
 
 ### v2.1 新增
@@ -73,6 +76,12 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 - 内容质量仪表盘增加图片审核状态、缺失项统计和“高访问但未完整”优先补全列表。
 - 反应附图支持“待审核 / 已通过 / 需重画”状态，并支持后台批量审核。
 - 人名反应和常见反应后台列表展示总访问量、今日访问量。
+
+### v2.8 开发中
+- 内容批次记录：新增 `ContentBatch` 模型，批量发布/归档、CSV 导入、消息清理自动记录批次（类型/操作人/数量/对象摘要）。
+- 操作日志覆盖增强：新增 `reactions/services/audit.py` 统一写入入口；批量发布/归档与 CSV 导入均写入 OpLog；后台日志按操作筛选。
+- 导入错误报告下载：CSV 导入错误结构化（行号/字段/原始值/建议修复），支持下载 CSV 修复后重新导入。
+- 备份与恢复文档：部署文档新增数据库备份、media 备份、git 回滚流程。
 
 ### v2.7 开发中
 - 目标官能团筛选：路线列表支持按目标官能团筛选（与难度/搜索/排序叠加），详情页展示官能团徽标并可回跳列表。
@@ -189,7 +198,8 @@ git commit -m "v2.1: 内容发布完善 - 前台状态与自动发布工具"
 
 | 版本 | 日期 | 核心内容 |
 |------|------|---------|
-| v2.7 | 2026-08-20 | 合成路线扩充：目标官能团筛选、关键步骤标记、后台步骤编辑增强（开发中） |
+| v2.8 | 2026-08-20 | 运营与审计：内容批次记录、操作日志覆盖、导入错误报告下载、备份恢复文档（开发中） |
+| v2.7 | 2026-08-20 | 合成路线扩充：目标官能团筛选、关键步骤标记、后台步骤编辑增强（已完成） |
 | v2.6 | 2026-08-20 | 学习进度与复习系统：专题进度、复习清单、最近学习记录（已完成） |
 | v2.5 | 2026-08-20 | 考研专题学习：专题分类、易混反应对比与复习入口（已完成）；用户互动支持新反应库 |
 | v2.4 | 2026-08-03 | 内容质量增强：图片审核状态、质量仪表盘、高访问不完整内容、反应列表访问量 |
