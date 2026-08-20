@@ -245,3 +245,11 @@ v2.3-v2.6 迭代中已具备：路线列表搜索、难度筛选、排序（步�
 - 学生可以稳定查询、收藏、记录和复习。
 - 管理员可以独立完成内容录入、图片上传、质量检查和发布。
 - 网站更新不依赖复杂手工步骤。
+
+### 实现范围（2026-08-20 开发中）
+
+- 占位图服务 `reactions/services/placeholder.py`：缺图反应一键生成中性占位图（方程图 1200×360 + 缩略图 400×300），路径 `reaction_images/placeholder/` 标记待替换，绑定字段后内容通过发布校验。
+- 图片维护工具增强：`?missing=` 类型筛选（equation/thumbnail/mechanism）、全量分页、批量生成占位图（写 OpLog + ContentBatch）。
+- 内容就绪报告：`reactions/services/readiness.py` + 管理命令 `content_readiness_report`（统计 + `--export` 逐条 CSV）。
+- 发布流程闭环：`publish_ready_content` 写 OpLog + ContentBatch；仪表盘 `placeholders_pending` 计数。
+- 零模型变更、零迁移。

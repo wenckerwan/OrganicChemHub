@@ -11,6 +11,8 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 
 开发文档索引：
 
+- v3.0 设计规格：[docs/superpowers/specs/2026-08-20-v30-public-stable-design.md](docs/superpowers/specs/2026-08-20-v30-public-stable-design.md)
+- v3.0 实施计划：[docs/superpowers/plans/2026-08-20-v30-public-stable-implementation.md](docs/superpowers/plans/2026-08-20-v30-public-stable-implementation.md)
 - v2.8 设计规格：[docs/superpowers/specs/2026-08-20-v28-ops-audit-design.md](docs/superpowers/specs/2026-08-20-v28-ops-audit-design.md)
 - v2.8 实施计划：[docs/superpowers/plans/2026-08-20-v28-ops-audit-implementation.md](docs/superpowers/plans/2026-08-20-v28-ops-audit-implementation.md)
 - v2.7 设计规格：[docs/superpowers/specs/2026-08-20-v27-routes-expansion-design.md](docs/superpowers/specs/2026-08-20-v27-routes-expansion-design.md)
@@ -77,13 +79,20 @@ OrganicChemHub 是一个面向本科有机化学学习和考研复习的有机�
 - 反应附图支持“待审核 / 已通过 / 需重画”状态，并支持后台批量审核。
 - 人名反应和常见反应后台列表展示总访问量、今日访问量。
 
-### v2.8 开发中
+### v3.0 开发中
+- 占位图工作流：新增 `reactions/services/placeholder.py`，为缺图反应一键生成中性占位图（方程图 + 缩略图），让内容通过发布校验并上线，待替换真图。
+- 图片维护工具增强：按缺失类型筛选（方程图/缩略图/机理图）、全量分页展示、批量生成占位图（写入 OpLog + ContentBatch）。
+- 内容就绪报告：新增 `content_readiness_report` 管理命令，输出各库就绪度统计与逐条缺失清单 CSV（`--export`）。
+- 发布流程闭环：`publish_ready_content` 发布后写入操作日志与内容批次；仪表盘增加占位图待替换计数。
+- 零模型变更、零迁移。
+
+### v2.8 已交付
 - 内容批次记录：新增 `ContentBatch` 模型，批量发布/归档、CSV 导入、消息清理自动记录批次（类型/操作人/数量/对象摘要）。
 - 操作日志覆盖增强：新增 `reactions/services/audit.py` 统一写入入口；批量发布/归档与 CSV 导入均写入 OpLog；后台日志按操作筛选。
 - 导入错误报告下载：CSV 导入错误结构化（行号/字段/原始值/建议修复），支持下载 CSV 修复后重新导入。
 - 备份与恢复文档：部署文档新增数据库备份、media 备份、git 回滚流程。
 
-### v2.7 开发中
+### v2.7 已交付
 - 目标官能团筛选：路线列表支持按目标官能团筛选（与难度/搜索/排序叠加），详情页展示官能团徽标并可回跳列表。
 - 关键步骤标记：路线步骤支持标记"关键步骤"，详情页时间线高亮展示，后台可维护。
 - 后台步骤编辑增强：内联步骤支持图片缩略图预览、关键步骤编辑；步骤序号校验从 1 连续无缺号；列表显示关键步骤数与缺图提醒。
@@ -198,6 +207,7 @@ git commit -m "v2.1: 内容发布完善 - 前台状态与自动发布工具"
 
 | 版本 | 日期 | 核心内容 |
 |------|------|---------|
+| v3.0 | 2026-08-20 | 公开稳定版：占位图工作流、图片维护增强、内容就绪报告、发布流程闭环（开发中） |
 | v2.8 | 2026-08-20 | 运营与审计：内容批次记录、操作日志覆盖、导入错误报告下载、备份恢复文档（已完成） |
 | v2.7 | 2026-08-20 | 合成路线扩充：目标官能团筛选、关键步骤标记、后台步骤编辑增强（已完成） |
 | v2.6 | 2026-08-20 | 学习进度与复习系统：专题进度、复习清单、最近学习记录（已完成） |
