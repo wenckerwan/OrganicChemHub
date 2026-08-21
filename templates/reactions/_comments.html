@@ -1,0 +1,77 @@
+{% comment %}评论区共享模板：context 需提供 comments（可见评论）、comment_form（登录用户）、comment_target（被评论对象）{% endcomment %}
+<section id="comments" class="comments-section mt-5">
+  <div class="comments-header d-flex align-items-center justify-content-between">
+    <h2 class="h4 mb-0">评论 <span class="text-muted">({{ comments|length }})</span></h2>
+  </div>
+
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'submit_comment' %}" class="comment-form mt-3">
+      {% csrf_token %}
+      <input type="hidden" name="content_type" value="{{ comment_content_type_id }}">
+      <input type="hidden" name="object_id" value="{{ comment_target.pk }}">
+      {{ comment_form.body }}
+      {% if comment_form.body.errors %}
+        <div class="text-danger small">{{ comment_form.body.errors }}</div>
+      {% endif %}
+      <button type="submit" class="btn btn-primary-ink btn-sm mt-2">发表评论</button>
+    </form>
+  {% else %}
+    <div class="alert alert-secondary mt-3 mb-0">
+      登录后参与评论。
+      <a href="{% url 'login' %}?next={{ request.path }}">登录</a>
+      <span class="text-muted">·</span>
+      <a href="{% url 'register' %}">注册</a>
+    </div>
+  {% endif %}
+
+  {% if comments %}
+    <ul class="comment-list list-unstyled mt-4">
+      {% for comment in comments %}
+        {% if not comment.parent_id %}
+          <li class="comment-item mb-4">
+            <div class="comment-body">
+              <div class="d-flex justify-content-between">
+                <strong>{{ comment.user.username }}</strong>
+                <small class="text-muted">{{ comment.created_at|date:"Y-m-d H:i" }}</small>
+              </div>
+              <p class="mb-1 mt-1">{{ comment.body|linebreaksbr }}</p>
+              {% if user.is_authenticated %}
+                <button type="button" class="btn btn-link btn-sm p-0 comment-reply-toggle" data-target="reply-{{ comment.pk }}">回复</button>
+                <form method="post" action="{% url 'submit_comment' %}" class="comment-reply-form mt-2" id="reply-{{ comment.pk }}" style="display:none;">
+                  {% csrf_token %}
+                  <input type="hidden" name="content_type" value="{{ comment_content_type_id }}">
+                  <input type="hidden" name="object_id" value="{{ comment_target.pk }}">
+                  <input type="hidden" name="parent_id" value="{{ comment.pk }}">
+                  {{ comment_form.body }}
+                  <button type="submit" class="btn btn-primary-ink btn-sm mt-2">提交回复</button>
+                </form>
+              {% endif %}
+            </div>
+            {% for reply in comment.replies.all %}
+              {% if not reply.is_hidden %}
+                <div class="comment-reply ms-4 mt-2 border-start ps-3">
+                  <div class="d-flex justify-content-between">
+                    <strong>{{ reply.user.username }}</strong>
+                    <small class="text-muted">{{ reply.created_at|date:"Y-m-d H:i" }}</small>
+                  </div>
+                  <p class="mb-1">{{ reply.body|linebreaksbr }}</p>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted mt-3 mb-0">还没有评论，来发表第一条吧。</p>
+  {% endif %}
+</section>
+
+<script>
+  document.querySelectorAll('.comment-reply-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var target = document.getElementById(btn.dataset.target);
+      if (target) { target.style.display = target.style.display === 'none' ? 'block' : 'none'; }
+    });
+  });
+</script>

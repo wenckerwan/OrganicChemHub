@@ -7,6 +7,7 @@ from django.views.generic import DetailView, ListView, View
 
 from ..models import Favorite, FunctionalGroup, PublishStatus, RouteStep, StudyNote, StudyProgress, SyntheticRoute
 from ..services.visits import increment_object_visit
+from .mixins import CommentContextMixin
 
 
 class RouteListView(ListView):
@@ -59,7 +60,7 @@ class RouteListView(ListView):
         return context
 
 
-class RouteDetailView(DetailView):
+class RouteDetailView(CommentContextMixin, DetailView):
     model = SyntheticRoute
     template_name = "reactions/route_detail.html"
     context_object_name = "route"

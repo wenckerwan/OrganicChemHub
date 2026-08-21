@@ -18,7 +18,7 @@ from django.template.response import TemplateResponse
 
 from . import admin_tools
 from .admin_helpers import image_preview, thumbnail_img
-from .models import Announcement, CommonReaction, ContentBatch, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionComparison, ReactionImage, ReactionType, RouteStep, StudyTopic, SyntheticRoute, Tag, VisitCounter
+from .models import Announcement, Comment, CommonReaction, ContentBatch, Feedback, FunctionalGroup, GeneralReaction, GeneralReactionCategory, LearningResource, Message, NamedReaction, NamedReactionCategory, NavItem, OpLog, Reaction, ReactionComparison, ReactionImage, ReactionType, RouteStep, StudyTopic, SyntheticRoute, Tag, VisitCounter
 from .services import audit
 
 
@@ -935,6 +935,58 @@ class SendMessageForm(forms.Form):
     recipient = forms.ChoiceField(label="接收用户", choices=[])
     title = forms.CharField(label="消息标题", max_length=200)
     content = forms.CharField(label="消息内容", widget=forms.Textarea)
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("short_body", "user", "content_link", "is_hidden", "created_at")
+    list_filter = ("is_hidden", "created_at", "content_type")
+    search_fields = ("body", "user__username")
+    actions = ("hide_comments", "unhide_comments")
+    readonly_fields = ("user", "content_type", "object_id", "body", "parent", "is_hidden", "created_at", "updated_at")
+
+    def short_body(self, obj):
+        return obj.body[:40]
+    short_body.short_description = "评论内容"
+
+    def content_link(self, obj):
+        target = obj.content_object
+        if target is None:
+            return "-"
+        url = getattr(target, "get_absolute_url", None)
+        if callable(url):
+            try:
+                return format_html('<a href="{}" target="_blank">{}</a>', url(), str(target)[:30])
+            except Exception:
+                return str(target)[:30]
+        return str(target)[:30]
+    content_link.short_description = "关联内容"
+
+    @admin.action(description="隐藏所选评论")
+    def hide_comments(self, request, queryset):
+        count = queryset.update(is_hidden=True)
+        audit.log_operation(
+            request.user,
+            action="hide_comment",
+            model_name="comment",
+            object_repr=f"隐藏评论 {count} 条",
+            detail=f"批量隐藏评论 {count} 条。",
+            ip=get_client_ip(request),
+        )
+        self.message_user(request, f"已隐藏 {count} 条评论。")
+
+    @admin.action(description="恢复显示所选评论")
+    def unhide_comments(self, request, queryset):
+        count = queryset.update(is_hidden=False)
+        audit.log_operation(
+            request.user,
+            action="unhide_comment",
+            model_name="comment",
+            object_repr=f"恢复评论 {count} 条",
+            detail=f"批量恢复评论显示 {count} 条。",
+            ip=get_client_ip(request),
+        )
+        self.message_user(request, f"已恢复 {count} 条评论。")
 
 
 @admin.register(OpLog)

@@ -5,6 +5,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}OrganicChemHub{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}OrganicChemHub 有机化学学习资料库：人名反应、常见有机反应、合成路线、考研专题与易混对比，面向本科学习和考研复习。{% endblock %}">
+  {% block canonical %}
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  {% endblock %}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="OrganicChemHub">
+  <meta property="og:title" content="{% block og_title %}OrganicChemHub{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}OrganicChemHub 有机化学学习资料库：人名反应、常见有机反应、合成路线、考研专题与易混对比，面向本科学习和考研复习。{% endblock %}">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link href="{% static 'css/site.css' %}?v={{ ASSET_VERSION }}" rel="stylesheet">

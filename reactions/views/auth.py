@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 
-from ..models import Favorite, Feedback, StudyNote, StudyProgress
+from ..models import Comment, Favorite, Feedback, StudyNote, StudyProgress
 from ..services.progress import recent_activity, review_queue, user_topic_summary
 
 
@@ -43,4 +43,5 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         context["topic_progress_list"] = user_topic_summary(user)
         context["review_queue"] = review_queue(user)
         context["recent_activity"] = recent_activity(user, limit=10)
+        context["my_comments"] = Comment.objects.filter(user=user).select_related("parent__user").order_by("-created_at", "-pk")
         return context

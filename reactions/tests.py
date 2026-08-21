@@ -2578,3 +2578,246 @@ class V30PublishLoopTests(TestCase):
         response = self.client.get("/admin/reactions/dashboard/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "占位图待替换")
+
+class V40CommentModelTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        from reactions.models import NamedReaction
+
+        self.user = User.objects.create_user("v40-commenter", "v40c@example.com", "password")
+        self.reaction = NamedReaction.objects.create(
+            name_zh="可评论反应", name_en="Commentable", slug="commentable",
+            summary="S", condition="C", reference="R", exam_tips="T",
+        )
+
+    def _comment(self, body="不错，机理清晰"):
+        from reactions.models import Comment
+
+        return Comment.objects.create(user=self.user, content_object=self.reaction, body=body)
+
+    def _visible(self):
+        from django.contrib.contenttypes.models import ContentType
+
+        from reactions.models import Comment
+
+        ct = ContentType.objects.get_for_model(self.reaction)
+        return Comment.objects.filter(content_type=ct, object_id=self.reaction.pk, is_hidden=False)
+
+    def test_create_comment_binds_gfk_and_orders_oldest_first(self):
+        c1 = self._comment("第一条")
+        c2 = self._comment("第二条")
+        comments = list(self._visible())
+        self.assertEqual(len(comments), 2)
+        self.assertEqual(comments[0].pk, c1.pk)
+        self.assertEqual(comments[1].pk, c2.pk)
+        self.assertEqual(comments[0].content_object, self.reaction)
+
+    def test_reply_allowed_only_to_top_level(self):
+        from django.core.exceptions import ValidationError
+
+        from reactions.models import Comment
+
+        top = self._comment("顶层评论")
+        reply = Comment(user=self.user, content_object=self.reaction, body="回复", parent=top)
+        reply.full_clean()
+        reply.save()
+        nested = Comment(user=self.user, content_object=self.reaction, body="回复的回复", parent=reply)
+        with self.assertRaises(ValidationError):
+            nested.full_clean()
+
+    def test_blank_body_rejected(self):
+        from django.core.exceptions import ValidationError
+
+        from reactions.models import Comment
+
+        with self.assertRaises(ValidationError):
+            Comment(user=self.user, content_object=self.reaction, body="").full_clean()
+
+    def test_hidden_comments_excluded_from_visible_queryset(self):
+        self._comment("正常评论")
+        hidden = self._comment("违规评论")
+        hidden.is_hidden = True
+        hidden.save()
+        self.assertEqual(len(list(self._visible())), 1)
+
+class V40CommentFrontendTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        from reactions.models import NamedReaction, PublishStatus
+
+        self.user = User.objects.create_user("v40-fe", "v40fe@example.com", "password")
+        self.reaction = NamedReaction.objects.create(
+            name_zh="前台评论测试", name_en="Frontend Comment", slug="frontend-comment",
+            summary="S", condition="C", reference="R", exam_tips="T",
+            status=PublishStatus.PUBLISHED,
+        )
+        self.url = self.reaction.get_absolute_url()
+
+    def _post_comment(self, body="测试评论", parent_id=""):
+        from django.contrib.contenttypes.models import ContentType
+
+        from reactions.models import Comment
+
+        ct = ContentType.objects.get_for_model(self.reaction)
+        return self.client.post(
+            "/comment/submit/",
+            {"content_type": ct.pk, "object_id": self.reaction.pk, "body": body, "parent_id": parent_id},
+        )
+
+    def test_anonymous_redirected_to_login_and_sees_prompt(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, "登录后参与评论")
+        self.assertContains(response, "还没有评论")
+
+    def test_authenticated_can_post_comment_and_reply(self):
+        from reactions.models import Comment
+
+        self.client.force_login(self.user)
+        response = self._post_comment("第一条评论")
+        self.assertRedirects(response, f"{self.url}#comments")
+        comment = Comment.objects.get()
+        self.assertEqual(comment.user, self.user)
+        self.assertEqual(comment.body, "第一条评论")
+        self.assertIsNone(comment.parent)
+
+        self._post_comment("回复内容", parent_id=str(comment.pk))
+        reply = Comment.objects.get(parent=comment)
+        self.assertEqual(reply.body, "回复内容")
+
+        page = self.client.get(self.url)
+        self.assertContains(page, "第一条评论")
+        self.assertContains(page, "回复内容")
+        self.assertContains(page, "评论 <span class=\"text-muted\">(2)</span>")
+
+    def test_hidden_comment_not_shown_on_detail_page(self):
+        from reactions.models import Comment
+
+        self.client.force_login(self.user)
+        self._post_comment("可见评论")
+        self._post_comment("被隐藏评论")
+        hidden = Comment.objects.get(body="被隐藏评论")
+        hidden.is_hidden = True
+        hidden.save()
+        page = self.client.get(self.url)
+        self.assertContains(page, "可见评论")
+        self.assertNotContains(page, "被隐藏评论")
+
+    def test_blank_comment_rejected(self):
+        from reactions.models import Comment
+
+        self.client.force_login(self.user)
+        response = self._post_comment("   ")
+        self.assertRedirects(response, f"{self.url}#comments")
+        self.assertEqual(Comment.objects.count(), 0)
+
+class V40CommentAdminTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        from reactions.models import Comment, NamedReaction, PublishStatus
+
+        self.admin = User.objects.create_superuser("v40-admin", "v40a@example.com", "password")
+        self.user = User.objects.create_user("v40-cu", "v40cu@example.com", "password")
+        self.reaction = NamedReaction.objects.create(
+            name_zh="后台评论管理", name_en="Admin Comments", slug="admin-comments",
+            summary="S", condition="C", reference="R", exam_tips="T",
+            status=PublishStatus.PUBLISHED,
+        )
+        self.comment = Comment.objects.create(user=self.user, content_object=self.reaction, body="待审核评论")
+        self.client.force_login(self.admin)
+
+    def test_admin_list_shows_comment_and_filter(self):
+        response = self.client.get("/admin/reactions/comment/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "待审核评论")
+
+    def test_bulk_hide_action_writes_oplog(self):
+        from reactions.models import OpLog
+
+        self.client.post(
+            "/admin/reactions/comment/",
+            {"action": "hide_comments", "_selected_action": [str(self.comment.pk)], "index": "0"},
+        )
+        self.comment.refresh_from_db()
+        self.assertTrue(self.comment.is_hidden)
+        self.assertTrue(OpLog.objects.filter(action="hide_comment").exists())
+
+    def test_hidden_comment_invisible_on_frontend(self):
+        self.comment.is_hidden = True
+        self.comment.save()
+        response = self.client.get(self.reaction.get_absolute_url())
+        self.assertNotContains(response, "待审核评论")
+
+class V40ProfileCommentsTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        from reactions.models import Comment, NamedReaction, PublishStatus
+
+        self.user = User.objects.create_user("v40-profile", "v40p@example.com", "password")
+        self.reaction = NamedReaction.objects.create(
+            name_zh="个人中心评论", name_en="Profile Comment", slug="profile-comment",
+            summary="S", condition="C", reference="R", exam_tips="T",
+            status=PublishStatus.PUBLISHED,
+        )
+        self.old = Comment.objects.create(user=self.user, content_object=self.reaction, body="较早评论")
+        self.latest = Comment.objects.create(user=self.user, content_object=self.reaction, body="最新评论")
+
+    def test_profile_shows_my_comments_newest_first(self):
+        self.client.force_login(self.user)
+        response = self.client.get("/profile/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "我的评论")
+        self.assertContains(response, "最新评论")
+        self.assertContains(response, "较早评论")
+        self.assertLess(
+            response.content.decode().find("最新评论"),
+            response.content.decode().find("较早评论"),
+            "最新评论应排在前面",
+        )
+
+    def test_anonymous_redirected_from_profile(self):
+        response = self.client.get("/profile/")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response.url)
+
+    def test_hidden_comment_shows_badge(self):
+        self.latest.is_hidden = True
+        self.latest.save()
+        self.client.force_login(self.user)
+        response = self.client.get("/profile/")
+        self.assertContains(response, "已隐藏")
+
+class V40SeoTests(TestCase):
+    def setUp(self):
+        from reactions.models import NamedReaction, PublishStatus
+
+        self.reaction = NamedReaction.objects.create(
+            name_zh="SEO测试反应", name_en="SEO Test", slug="seo-test",
+            summary="这是一个用于 SEO 测试的反应摘要。", condition="C", reference="R", exam_tips="T",
+            status=PublishStatus.PUBLISHED,
+        )
+
+    def test_sitemap_lists_published_reaction(self):
+        response = self.client.get("/sitemap.xml")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.reaction.get_absolute_url())
+
+    def test_robots_txt_points_to_sitemap(self):
+        response = self.client.get("/robots.txt")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Sitemap:", response.content.decode())
+
+    def test_detail_page_has_meta_description_and_canonical(self):
+        response = self.client.get(self.reaction.get_absolute_url())
+        content = response.content.decode()
+        self.assertIn('name="description"', content)
+        self.assertIn('rel="canonical"', content)
+        self.assertIn('property="og:title"', content)
+
+    def test_404_page_friendly(self):
+        response = self.client.get("/nonexistent-page-xyz/")
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "页面不存在", status_code=404)

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}服务器开小差了 | OrganicChemHub{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container text-center">
+    <h1 class="display-4 mb-3">500</h1>
+    <p class="lead text-secondary mb-4">服务器开小差了，请稍后重试。</p>
+    <p class="text-muted mb-4">如果问题持续出现，请通过首页的反馈入口告诉我们。</p>
+    <div>
+      <a class="btn btn-primary-ink" href="{% url 'home' %}"><i class="bi bi-house me-1"></i>返回首页</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

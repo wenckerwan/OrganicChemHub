@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.shortcuts import redirect
 from django.views.generic import DetailView, ListView, View
 
+from ..forms import CommentForm
 from ..models import (
     Favorite,
     FunctionalGroup,
@@ -16,7 +17,9 @@ from ..models import (
     StudyProgress,
     Tag,
 )
+from ..services.comments import create_comment
 from ..services.visits import increment_object_visit
+from .mixins import CommentContextMixin
 
 
 class ReactionListView(ListView):
@@ -157,7 +160,7 @@ class CommonReactionListView(View):
         return redirect("general_reaction_list")
 
 
-class ReactionDetailView(DetailView):
+class ReactionDetailView(CommentContextMixin, DetailView):
     model = NamedReaction
     template_name = "reactions/reaction_detail.html"
     context_object_name = "reaction"
@@ -179,7 +182,7 @@ class ReactionDetailView(DetailView):
         return context
 
 
-class GeneralReactionDetailView(DetailView):
+class GeneralReactionDetailView(CommentContextMixin, DetailView):
     model = GeneralReaction
     template_name = "reactions/general_reaction_detail.html"
     context_object_name = "reaction"
@@ -237,3 +240,31 @@ class UpdateProgressView(LoginRequiredMixin, View):
         elif route_pk:
             StudyProgress.objects.update_or_create(user=user, route_id=route_pk, defaults={"status": status})
         return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+class SubmitCommentView(LoginRequiredMixin, View):
+    """Create a comment on any content object via POST (v4.0)."""
+
+    def post(self, request):
+        content_type_id = request.POST.get("content_type")
+        object_id = request.POST.get("object_id")
+        if not content_type_id or not object_id:
+            return redirect(request.META.get("HTTP_REFERER", "/"))
+        ct = ContentType.objects.get_for_id(content_type_id)
+        model = ct.model_class()
+        obj = model.objects.filter(pk=object_id).first() if model else None
+        if obj is None:
+            return redirect(request.META.get("HTTP_REFERER", "/"))
+        form = CommentForm(request.POST)
+        if not form.is_valid():
+            return redirect(f"{obj.get_absolute_url()}#comments")
+        try:
+            create_comment(
+                request.user,
+                obj,
+                form.cleaned_data["body"],
+                parent_id=form.cleaned_data.get("parent_id"),
+            )
+        except ValueError:
+            return redirect(f"{obj.get_absolute_url()}#comments")
+        return redirect(f"{obj.get_absolute_url()}#comments")

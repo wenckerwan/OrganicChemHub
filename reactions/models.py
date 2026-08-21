@@ -1042,3 +1042,45 @@ class StudyProgress(models.Model):
         target = self.content_object or self.route
         return f"{self.user.username} - {target} - {self.get_status_display()}"
 
+
+class Comment(models.Model):
+    """User comment on any content via GenericForeignKey (v4.0)."""
+
+    user = models.ForeignKey("auth.User", verbose_name="评论者", on_delete=models.CASCADE, related_name="comments")
+    content_type = models.ForeignKey(ContentType, verbose_name="内容类型", on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField("内容 ID", null=True, blank=True)
+    content_object = GenericForeignKey("content_type", "object_id")
+    body = models.TextField("评论内容")
+    parent = models.ForeignKey("self", verbose_name="父评论", on_delete=models.CASCADE, null=True, blank=True, related_name="replies")
+    is_hidden = models.BooleanField("已隐藏", default=False)
+    created_at = models.DateTimeField("评论时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        verbose_name = "评论"
+        verbose_name_plural = "评论"
+        ordering = ["created_at", "id"]
+        indexes = [
+            models.Index(fields=["content_type", "object_id", "created_at"], name="comment_gfk_idx"),
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        body = (self.body or "").strip()
+        if not body:
+            raise ValidationError({"body": "评论内容不能为空。"})
+        if len(body) > 2000:
+            raise ValidationError({"body": "评论内容不能超过 2000 字。"})
+        if self.parent_id and self.parent_id != self.pk:
+            if self.parent.parent_id:
+                raise ValidationError({"parent": "回复只能针对顶级评论，不支持二级回复。"})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} 评论 {self.content_object}: {self.body[:30]}"
+

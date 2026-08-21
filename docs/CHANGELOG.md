@@ -1,14 +1,14 @@
 # OrganicChemHub 更新日志
 
-> 当前基准版本：v3.0
-> 当前开发版本：v4.0
+> 当前基准版本：v4.0
+> 当前开发版本：待定
 > 更新方向：图片结构式、内容质量、后台运营、学习体验。不再规划文本结构式生成、结构编辑器或子结构检索路线。
 
 ---
 
 ## 后续规划
 
-### v4.0 — 评论与公开化（开发中，2026-08-21）
+### v4.0 — 评论与公开化（已完成，2026-08-21）
 
 - 评论/社区：新增 `Comment` 模型（GFK 通用内容关联）；详情页评论区登录发表/回复、匿名登录引导；后台审核隐藏（写 OpLog）；个人中心"我的评论"。
 - SEO 公开化：sitemap.xml + robots.txt；详情页独立 description/canonical/OG；404/500 错误页。
@@ -31,6 +31,16 @@
 ---
 
 ## 版本历史
+
+### v4.0 评论与公开化（2026-08-21，已完成）
+
+- 模型迁移 `0023_comment`：新增 `Comment` 评论模型（GFK 通用内容关联 + 父评论回复 + 隐藏标记），`Comment.clean` 校验正文非空/长度/仅一级回复。
+- 评论服务层 `reactions/services/comments.py`：`comments_for` / `create_comment` / `comment_count`；`CommentContextMixin` 统一注入 5 类详情页。
+- 前台评论区：登录发表/回复（回复表单 JS 折叠）、匿名登录引导、正序展示 + 回复缩进。
+- 后台评论管理 `CommentAdmin`：内容/用户/状态筛选搜索，批量隐藏/恢复（写 OpLog）。
+- 个人中心"我的评论"：关联内容链接、最新在前、隐藏状态提示。
+- SEO：`django.contrib.sitemaps` 接入 7 类 sitemap（静态页 + 6 内容库），robots.txt 指向 sitemap，base.html 独立 description/canonical/OG，404/500 友好错误页。
+- V40 专项测试 18 个，全量 168/168 通过。
 
 ### v3.0 公开稳定版（2026-08-20，已完成）
 

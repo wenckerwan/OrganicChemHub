@@ -8,6 +8,7 @@ from django.views.generic import DetailView, ListView
 from ..models import GeneralReaction, NamedReaction, ReactionComparison, StudyProgress, StudyTopic, SyntheticRoute
 from ..services.progress import topic_progress, topic_status_map
 from ..services.visits import increment_object_visit
+from .mixins import CommentContextMixin
 
 
 class StudyTopicListView(ListView):
@@ -35,7 +36,7 @@ class StudyTopicListView(ListView):
         return context
 
 
-class StudyTopicDetailView(DetailView):
+class StudyTopicDetailView(CommentContextMixin, DetailView):
     model = StudyTopic
     template_name = "reactions/study_topic_detail.html"
     context_object_name = "topic"
@@ -90,7 +91,7 @@ class ReactionComparisonListView(ListView):
         return context
 
 
-class ReactionComparisonDetailView(DetailView):
+class ReactionComparisonDetailView(CommentContextMixin, DetailView):
     model = ReactionComparison
     template_name = "reactions/reaction_comparison_detail.html"
     context_object_name = "comparison"

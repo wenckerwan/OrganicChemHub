@@ -1,4 +1,5 @@
 """Home page and deploy guide views."""
+from django.http import HttpResponse
 from django.views.generic import TemplateView
 
 from ..models import (
@@ -51,3 +52,18 @@ class HomeView(TemplateView):
 
 class DeployGuideView(TemplateView):
     template_name = "reactions/deploy_guide.html"
+
+
+def robots_txt_view(request):
+    """Serve robots.txt pointing at the sitemap (v4.0)."""
+    lines = [
+        "User-agent: *",
+        "Disallow: /admin/",
+        "Disallow: /accounts/",
+        "Disallow: /profile/",
+        "Disallow: /messages/",
+        "Sitemap: {scheme}://{host}/sitemap.xml".format(
+            scheme=request.scheme, host=request.get_host()
+        ),
+    ]
+    return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")

@@ -203,6 +203,37 @@
           {% endif %}
         </div>
       </div>
+
+      <!-- 我的评论 -->
+      <div class="col-lg-6">
+        <div class="quick-panel">
+          <h2 class="h5 mb-3">我的评论</h2>
+          {% if my_comments %}
+            <div class="list-group list-group-flush">
+              {% for comment in my_comments %}
+                <div class="list-group-item px-0">
+                  <p class="mb-1">
+                    {% if comment.content_object %}
+                      <a href="{{ comment.content_object.get_absolute_url }}#comments">
+                        <strong>评论：{{ comment.content_object }}</strong>
+                      </a>
+                    {% else %}
+                      <strong>评论内容</strong>
+                    {% endif %}
+                    <span class="text-muted small ms-2">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                  </p>
+                  <p class="mb-0 text-secondary small">{{ comment.body|truncatechars:100 }}</p>
+                  {% if comment.is_hidden %}
+                    <span class="badge bg-warning text-dark mt-1">已隐藏（管理员）</span>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-0">暂无评论，在内容详情页参与讨论吧。</p>
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
 </section>
