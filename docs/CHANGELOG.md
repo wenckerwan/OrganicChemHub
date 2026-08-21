@@ -8,6 +8,12 @@
 
 ## 后续规划
 
+### v4.0 — 评论与公开化（开发中，2026-08-21）
+
+- 评论/社区：新增 `Comment` 模型（GFK 通用内容关联）；详情页评论区登录发表/回复、匿名登录引导；后台审核隐藏（写 OpLog）；个人中心"我的评论"。
+- SEO 公开化：sitemap.xml + robots.txt；详情页独立 description/canonical/OG；404/500 错误页。
+- 零新依赖（sitemaps 为 Django 内置）。
+
 ### v3.0 — 公开稳定版（已完成，2026-08-20）
 
 - 占位图工作流：为缺图反应一键生成中性占位图（方程图 + 缩略图），让内容通过发布校验并上线，待替换真图。
@@ -25,6 +31,23 @@
 ---
 
 ## 版本历史
+
+### v3.0 公开稳定版（2026-08-20，已完成）
+
+- 占位图工作流：`reactions/services/placeholder.py` 一键生成中性占位图（方程图 + 缩略图），绑定字段后内容通过发布校验。
+- 图片维护工具增强：`?missing=` 类型筛选、全量分页、批量生成占位图（写 OpLog + ContentBatch）。
+- 内容就绪报告：`reactions/services/readiness.py` + `content_readiness_report` 命令（统计 + `--export` CSV）。
+- 发布流程闭环：`publish_ready_content` 写 OpLog + ContentBatch；仪表盘 `placeholders_pending` 计数。
+- 零模型变更、零迁移。
+
+### v2.8 运营与审计（2026-08-20，已完成）
+
+- 模型迁移 `0022_contentbatch`：新增 `ContentBatch` 内容批次记录（导入/发布/归档/清理/其他）。
+- 审计服务层 `reactions/services/audit.py`：`log_operation` + `record_batch` 统一入口。
+- 批量发布/归档、CSV 导入、消息工具均写入 OpLog + ContentBatch。
+- 导入错误结构化（行号/字段/原始值/建议修复）并支持 CSV 下载修复后重新导入。
+- Admin：`ContentBatchAdmin` 只读注册；部署文档新增备份与恢复章节。
+- V28 专项测试 9 个，全量 141/141 通过。
 
 ### v2.7 合成路线扩充（2026-08-20，已完成）
 
